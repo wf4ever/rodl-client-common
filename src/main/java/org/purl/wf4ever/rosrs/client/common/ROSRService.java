@@ -11,23 +11,18 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.scribe.exceptions.OAuthException;
 import org.scribe.model.Token;
 
-import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.shared.DoesNotExistException;
-import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -164,7 +159,7 @@ public class ROSRService
 		throws URISyntaxException
 	{
 		OntModel manifest = createManifestModel(researchObjectURI);
-		addAnnotationToManifestModel(manifest, researchObjectURI, annURI, targetURI, bodyURI, userURI);
+		ROService.addAnnotationToManifestModel(manifest, researchObjectURI, annURI, targetURI, bodyURI, userURI);
 		return uploadManifestModel(researchObjectURI, manifest, dLibraToken);
 	}
 
@@ -174,87 +169,14 @@ public class ROSRService
 	{
 		OntModel manifest = createManifestModel(researchObjectURI);
 
-		Individual ann = manifest.getIndividual(annURI.toString());
-		if (ann == null) {
-			throw new IllegalArgumentException("Annotation URI is not valid");
-		}
-		Resource body = ann.getPropertyResourceValue(Vocab.aoBody);
+		URI bodyURI = ROService.deleteAnnotationFromManifest(manifest, annURI);
 		try {
-			deleteResource(new URI(body.getURI()), dLibraToken);
+			deleteResource(bodyURI, dLibraToken);
 		}
 		catch (Exception e) {
 			log.warn("Problem with deleting annotation body: " + e.getMessage());
 		}
-
-		manifest.removeAll(ann, null, null);
-		manifest.removeAll(null, null, ann);
 		return uploadManifestModel(researchObjectURI, manifest, dLibraToken);
-	}
-
-
-	/**
-	 * Adds an annotation to the manifest model
-	 * 
-	 * @param manifest
-	 * @param researchObjectURI
-	 * @param targetURI
-	 * @param bodyURI
-	 * @throws URISyntaxException
-	 */
-	public static void addAnnotationToManifestModel(OntModel manifest, URI researchObjectURI, URI annURI,
-			URI targetURI, URI bodyURI, URI userURI)
-		throws URISyntaxException
-	{
-		Individual ann = manifest.createIndividual(annURI.toString(), Vocab.aggregatedAnnotation);
-		ann.addProperty(Vocab.annotatesAggregatedResource, manifest.createResource(targetURI.toString()));
-		ann.addProperty(Vocab.aoBody, manifest.createResource(bodyURI.toString()));
-		ann.addProperty(DCTerms.created, manifest.createTypedLiteral(Calendar.getInstance()));
-		Resource agent = manifest.createResource(userURI.toString());
-		ann.addProperty(DCTerms.creator, agent);
-		Individual ro = manifest.createResource(researchObjectURI.toString()).as(Individual.class);
-		ro.addProperty(Vocab.aggregates, ann);
-	}
-
-
-	/**
-	 * 
-	 * @param manifest
-	 * @param researchObjectURI
-	 * @return i.e.
-	 *         http://sandbox.wf4ever-project.org/rosrs5/ROs/.ro/manifest.rdf#ann217/52
-	 *         a272f1 -864f-4a42 -89ff-2501a739d6f0
-	 */
-	public static URI createAnnotationURI(OntModel manifest, URI researchObjectURI)
-	{
-		URI ann = null;
-		do {
-			ann = researchObjectURI.resolve(".ro/manifest.rdf#" + UUID.randomUUID().toString());
-		}
-		while (manifest != null && manifest.containsResource(manifest.createResource(ann.toString())));
-		return ann;
-	}
-
-
-	/**
-	 * 
-	 * @param researchObjectURI
-	 * @param targetURI
-	 * @return i.e.
-	 *         http://sandbox.wf4ever-project.org/rosrs5/ROs/ann217/.ro/ro--5600459667350895101.
-	 *         rdf
-	 * @throws URISyntaxException
-	 */
-	public static URI createAnnotationBodyURI(URI researchObjectURI, URI targetURI)
-		throws URISyntaxException
-	{
-		String targetName;
-		if (targetURI.equals(researchObjectURI))
-			targetName = "ro";
-		else
-			targetName = targetURI.resolve(".").relativize(targetURI).toString();
-		String randomBit = "" + Math.abs(UUID.randomUUID().getLeastSignificantBits());
-
-		return researchObjectURI.resolve(".ro/" + targetName + "-" + randomBit + ".rdf");
 	}
 
 
