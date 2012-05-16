@@ -53,6 +53,8 @@ public class Vocab
 
 	public static final OntProperty aggregates = model.createOntProperty(Vocab.ORE_NAMESPACE + "aggregates");
 
+	public static final OntProperty describes = model.createOntProperty(Vocab.ORE_NAMESPACE + "describes");
+
 	public static final OntProperty annotatesAggregatedResource = model.createOntProperty(Vocab.RO_NAMESPACE
 			+ "annotatesAggregatedResource");
 
