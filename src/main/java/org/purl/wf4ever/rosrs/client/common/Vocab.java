@@ -5,6 +5,7 @@ import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.ontology.OntProperty;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.shared.JenaException;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.hp.hpl.jena.vocabulary.OWL;
 
@@ -25,10 +26,23 @@ public class Vocab
 
 	static final String WF4EVER_NAMESPACE = "http://purl.org/wf4ever/wf4ever#";
 
-	public static final OntModel model = (OntModel) ModelFactory
-			.createOntologyModel(OntModelSpec.OWL_LITE_MEM_RDFS_INF).read(RO_NAMESPACE).read(ORE_NAMESPACE)
-			.read(AO_NAMESPACE).read(WFPROV_NAMESPACE).read(WFDESC_NAMESPACE).read(WF4EVER_NAMESPACE).read(DCTerms.NS)
-			.read(ROEVO_NAMESPACE);
+	public static final OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM_RDFS_INF);
+
+	static {
+		try {
+			model.read(RO_NAMESPACE).read(ORE_NAMESPACE).read(AO_NAMESPACE).read(WFPROV_NAMESPACE)
+					.read(WFDESC_NAMESPACE).read(WF4EVER_NAMESPACE).read(DCTerms.NS).read(ROEVO_NAMESPACE);
+		}
+		catch (JenaException e) {
+			// TODO
+		}
+		model.add(DCTerms.references, OWL.inverseOf, DCTerms.isReferencedBy);
+		model.add(DCTerms.isReferencedBy, OWL.inverseOf, DCTerms.references);
+		model.add(DCTerms.replaces, OWL.inverseOf, DCTerms.isReplacedBy);
+		model.add(DCTerms.isReplacedBy, OWL.inverseOf, DCTerms.replaces);
+		model.add(DCTerms.requires, OWL.inverseOf, DCTerms.isRequiredBy);
+		model.add(DCTerms.isRequiredBy, OWL.inverseOf, DCTerms.requires);
+	}
 
 	public static final Resource roResource = model.createResource(RO_NAMESPACE + "Resource");
 
@@ -68,14 +82,5 @@ public class Vocab
 			+ "hasPreviousVersion");
 
 	public static final OntProperty derivedFrom = model.createOntProperty(Vocab.ROEVO_NAMESPACE + "derivedFrom");
-
-	static {
-		model.add(DCTerms.references, OWL.inverseOf, DCTerms.isReferencedBy);
-		model.add(DCTerms.isReferencedBy, OWL.inverseOf, DCTerms.references);
-		model.add(DCTerms.replaces, OWL.inverseOf, DCTerms.isReplacedBy);
-		model.add(DCTerms.isReplacedBy, OWL.inverseOf, DCTerms.replaces);
-		model.add(DCTerms.requires, OWL.inverseOf, DCTerms.isRequiredBy);
-		model.add(DCTerms.isRequiredBy, OWL.inverseOf, DCTerms.requires);
-	}
 
 }
