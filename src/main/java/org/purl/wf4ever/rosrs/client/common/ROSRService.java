@@ -94,6 +94,20 @@ public final class ROSRService {
 
 
     /**
+     * Get a HEAD response to an RODL resource.
+     * 
+     * @param resource
+     *            resource URI
+     * @return RODL response
+     */
+    public static ClientResponse getResourceHead(URI resource) {
+        Client client = Client.create();
+        WebResource webResource = client.resource(resource.toString());
+        return webResource.head();
+    }
+
+
+    /**
      * Create a new resource in RODL.
      * 
      * @param resourceURI
