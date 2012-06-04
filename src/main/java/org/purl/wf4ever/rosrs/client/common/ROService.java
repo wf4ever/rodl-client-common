@@ -9,7 +9,21 @@ import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 
-public class ROService {
+/**
+ * Class for manipulating RO models. In the future this functionality should be performed directly by RODL.
+ * 
+ * @author piotrekhol
+ * 
+ */
+public final class ROService {
+
+    /**
+     * Private constructor.
+     */
+    private ROService() {
+        // nope
+    }
+
 
     /**
      * Delete the annotation from the manifest. Does not delete the annotation body.
@@ -18,15 +32,16 @@ public class ROService {
      * 
      * @param manifest
      *            the Jena model of the manifest
-     * @param annotationURI
+     * @param annURI
      *            the annotation URI
+     * @return the annotation body URI or null if not found
      */
     public static URI deleteAnnotationFromManifest(OntModel manifest, URI annURI) {
         Individual ann = manifest.getIndividual(annURI.toString());
         if (ann == null) {
             throw new IllegalArgumentException("Annotation URI is not valid");
         }
-        Resource body = ann.getPropertyResourceValue(Vocab.aoBody);
+        Resource body = ann.getPropertyResourceValue(Vocab.AO_BODY);
 
         manifest.removeAll(ann, null, null);
         manifest.removeAll(null, null, ann);
@@ -47,10 +62,11 @@ public class ROService {
      *            the Jena model of the manifest
      * @param annId
      *            the annotation id
+     * @return the annotation body URI or null if not found
      */
     public static URI deleteAnnotationFromManifest(OntModel manifest, AnonId annId) {
         Resource ann = manifest.createResource(annId);
-        Resource body = ann.getPropertyResourceValue(Vocab.aoBody);
+        Resource body = ann.getPropertyResourceValue(Vocab.AO_BODY);
 
         manifest.removeAll(ann, null, null);
         manifest.removeAll(null, null, ann);
@@ -83,21 +99,24 @@ public class ROService {
      */
     public static void addAnnotationToManifestModel(OntModel manifest, URI researchObjectURI, URI annURI,
             URI targetURI, URI bodyURI, URI userURI) {
-        Individual ann = manifest.createIndividual(annURI.toString(), Vocab.aggregatedAnnotation);
-        ann.addProperty(Vocab.annotatesAggregatedResource, manifest.createResource(targetURI.toString()));
-        ann.addProperty(Vocab.aoBody, manifest.createResource(bodyURI.toString()));
+        Individual ann = manifest.createIndividual(annURI.toString(), Vocab.RO_AGGREGATED_ANNOTATION);
+        ann.addProperty(Vocab.ORE_ANNOTATES_AGGREGATED_RESOURCE, manifest.createResource(targetURI.toString()));
+        ann.addProperty(Vocab.AO_BODY, manifest.createResource(bodyURI.toString()));
         ann.addProperty(DCTerms.created, manifest.createTypedLiteral(Calendar.getInstance()));
         Resource agent = manifest.createResource(userURI.toString());
         ann.addProperty(DCTerms.creator, agent);
         Individual ro = manifest.createResource(researchObjectURI.toString()).as(Individual.class);
-        ro.addProperty(Vocab.aggregates, ann);
+        ro.addProperty(Vocab.ORE_AGGREGATES, ann);
     }
 
 
     /**
+     * Create a random annotation URI.
      * 
      * @param manifest
+     *            the manifest, used to check that the URI doesn't repeat, can be null
      * @param researchObjectURI
+     *            RO URI
      * @return i.e. http://sandbox.wf4ever-project.org/rosrs5/ROs/.ro/manifest.rdf#ann217/52 a272f1 -864f-4a42
      *         -89ff-2501a739d6f0
      */
@@ -122,10 +141,11 @@ public class ROService {
      */
     public static URI createAnnotationBodyURI(URI researchObjectURI, URI targetURI) {
         String targetName;
-        if (targetURI.equals(researchObjectURI))
+        if (targetURI.equals(researchObjectURI)) {
             targetName = "ro";
-        else
+        } else {
             targetName = targetURI.resolve(".").relativize(targetURI).toString();
+        }
         String randomBit = "" + Math.abs(UUID.randomUUID().getLeastSignificantBits());
 
         return researchObjectURI.resolve(".ro/" + targetName + "-" + randomBit + ".rdf");

@@ -6,6 +6,8 @@ package org.purl.wf4ever.rosrs.client.common;
 import java.io.Serializable;
 
 /**
+ * A class that extends {@link com.hp.hpl.jena.rdf.model.AnonId} in that it's serializable.
+ * 
  * @author piotrekhol
  * 
  */
