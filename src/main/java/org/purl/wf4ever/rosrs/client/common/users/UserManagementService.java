@@ -81,14 +81,14 @@ public final class UserManagementService {
      *            RODL URI
      * @param token
      *            RODL admin access token
-     * @param user
-     *            RODL user
+     * @param userId
+     *            .java RODL user
      * @return RODL response
      */
-    public static ClientResponse deleteUser(URI rodlURI, String token, OpenIdUser user) {
+    public static ClientResponse deleteUser(URI rodlURI, String token, String userId) {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("users")
-                .path(Base64.encodeBase64URLSafeString(user.getOpenId().getBytes()));
+                .path(Base64.encodeBase64URLSafeString(userId.getBytes()));
         return webResource.header("Authorization", "Bearer " + token).type("text/plain").delete(ClientResponse.class);
     }
 
