@@ -24,6 +24,13 @@ public class AccessTokenList implements Serializable {
 
 
     /**
+     * Default constructor.
+     */
+    public AccessTokenList() {
+    }
+
+
+    /**
      * Constructor.
      * 
      * @param list

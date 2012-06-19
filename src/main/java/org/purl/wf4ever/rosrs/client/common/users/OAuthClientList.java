@@ -24,6 +24,13 @@ public class OAuthClientList implements Serializable {
 
 
     /**
+     * Default constructor.
+     */
+    public OAuthClientList() {
+    }
+
+
+    /**
      * Constructor.
      * 
      * @param list
