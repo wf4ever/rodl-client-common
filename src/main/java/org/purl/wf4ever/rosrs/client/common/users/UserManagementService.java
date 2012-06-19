@@ -8,6 +8,7 @@ import org.apache.commons.codec.binary.Base64;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
 /**
@@ -141,16 +142,24 @@ public final class UserManagementService {
      * @param clientId
      *            client id
      * @return the access token
+     * @throws UniformInterfaceException
+     *             when the RODL response status is different from 201
      */
-    public static String createAccessToken(URI rodlURI, String token, String userId, String clientId) {
+    public static String createAccessToken(URI rodlURI, String token, String userId, String clientId)
+            throws UniformInterfaceException {
         String payload = clientId + "\r\n" + userId;
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("accesstokens");
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).type("text/plain")
                 .post(ClientResponse.class, payload);
-        URI at = response.getLocation();
-        String[] segments = at.getPath().split("/");
-        return segments[segments.length - 1];
+        if (response.getStatus() == HttpURLConnection.HTTP_CREATED) {
+            URI at = response.getLocation();
+            response.close();
+            String[] segments = at.getPath().split("/");
+            return segments[segments.length - 1];
+        } else {
+            throw new UniformInterfaceException(response);
+        }
     }
 
 
