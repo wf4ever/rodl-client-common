@@ -79,6 +79,9 @@ public final class Vocab {
     /** roevo:ArchivedRO. */
     public static final Resource ROEVO_ARCHIVED_RO = MODEL.createResource(ROEVO_NAMESPACE + "ArchivedRO");
 
+    /** ore:Proxy. */
+    public static final Resource ORE_PROXY = MODEL.createResource(Vocab.ORE_NAMESPACE + "Proxy");
+
     /** foaf:name. */
     public static final OntProperty FOAF_NAME = MODEL.createOntProperty("http://xmlns.com/foaf/0.1/name");
 
@@ -95,18 +98,23 @@ public final class Vocab {
     /** ore:describes. */
     public static final OntProperty ORE_DESCRIBES = MODEL.createOntProperty(Vocab.ORE_NAMESPACE + "describes");
 
+    /** ore:proxyFor. */
+    public static final OntProperty ORE_PROXY_FOR = MODEL.createOntProperty(Vocab.ORE_NAMESPACE + "proxyFor");
+
     /** ro:annotatesAggregatedResource. */
-    public static final OntProperty ORE_ANNOTATES_AGGREGATED_RESOURCE = MODEL.createOntProperty(Vocab.RO_NAMESPACE
+    public static final OntProperty RO_ANNOTATES_AGGREGATED_RESOURCE = MODEL.createOntProperty(Vocab.RO_NAMESPACE
             + "annotatesAggregatedResource");
 
     /** ao:body. */
     public static final OntProperty AO_BODY = MODEL.createOntProperty(Vocab.AO_NAMESPACE + "body");
 
     /** wfdesc:hasSubProcess. */
-    public static final OntProperty WFDESC_HAS_SUBPROCESS = MODEL.createOntProperty(Vocab.WFDESC_NAMESPACE + "hasSubProcess");
+    public static final OntProperty WFDESC_HAS_SUBPROCESS = MODEL.createOntProperty(Vocab.WFDESC_NAMESPACE
+            + "hasSubProcess");
 
     /** roevo:isSnapshotOf. */
-    public static final OntProperty ROEVO_IS_SNAPSHOT_OF = MODEL.createOntProperty(Vocab.ROEVO_NAMESPACE + "isSnapshotOf");
+    public static final OntProperty ROEVO_IS_SNAPSHOT_OF = MODEL.createOntProperty(Vocab.ROEVO_NAMESPACE
+            + "isSnapshotOf");
 
     /** roevo:hasPreviousVersion. */
     public static final OntProperty ROEVO_HAS_PREVIOUS_VERSION = MODEL.createOntProperty(Vocab.ROEVO_NAMESPACE

@@ -9,23 +9,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 import org.scribe.model.Token;
 
+import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.shared.DoesNotExistException;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.WebResource.Builder;
 
 import de.fuberlin.wiwiss.ng4j.NamedGraphSet;
 import de.fuberlin.wiwiss.ng4j.impl.NamedGraphSetImpl;
 
 /**
- * A client of ROSR API.
+ * A client of ROSR 6 API.
  * 
  * @author Piotr Hołubowicz
  * 
@@ -34,6 +37,12 @@ public final class ROSRService {
 
     /** Logger. */
     private static final Logger LOG = Logger.getLogger(ROSRService.class);
+
+    /** Annotation MIME type. */
+    public static final String ANNOTATION_MIME_TYPE = "application/vnd.wf4ever.annotation";
+
+    /** Proxy MIME type. */
+    public static final String PROXY_MIME_TYPE = "application/vnd.wf4ever.proxy";
 
 
     /**
@@ -58,8 +67,8 @@ public final class ROSRService {
     public static ClientResponse createResearchObject(URI rodlURI, String roId, Token dLibraToken) {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("ROs");
-        return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).type("text/plain")
-                .post(ClientResponse.class, roId);
+        return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).header("Slug", roId)
+                .type("text/plain").post(ClientResponse.class);
     }
 
 
@@ -110,6 +119,62 @@ public final class ROSRService {
     /**
      * Create a new resource in RODL.
      * 
+     * @param researchObject
+     *            research object URI
+     * @param resourcePath
+     *            path to the resource
+     * @param content
+     *            content input stream
+     * @param contentType
+     *            MIME type for the request
+     * @param dLibraToken
+     *            RODL access token
+     * @return response from RODL, remember to close it after use
+     */
+    public static ClientResponse createResource(URI researchObject, String resourcePath, InputStream content,
+            String contentType, Token dLibraToken) {
+        Client client = Client.create();
+        WebResource webResource = client.resource(researchObject.toString());
+        if (!contentType.equals(PROXY_MIME_TYPE)) {
+            return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).header("Slug", resourcePath)
+                    .type(contentType).post(ClientResponse.class, content);
+        } else {
+            URI resource = researchObject.resolve(resourcePath);
+            aggregateResource(researchObject, resource, dLibraToken);
+            return updateResource(resource, content, contentType, dLibraToken);
+
+        }
+    }
+
+
+    /**
+     * Aggregate an external resource in RO.
+     * 
+     * @param researchObject
+     *            research object URI
+     * @param resource
+     *            external resource URI
+     * @param dLibraToken
+     *            RODL access token
+     * @return response from RODL, remember to close it after use
+     */
+    public static ClientResponse aggregateResource(URI researchObject, URI resource, Token dLibraToken) {
+        Client client = Client.create();
+        WebResource webResource = client.resource(researchObject.toString());
+        OntModel model = ModelFactory.createOntologyModel();
+        Individual proxy = model.createIndividual(Vocab.ORE_PROXY);
+        Resource proxyFor = model.createResource(resource.toString());
+        model.add(proxy, Vocab.ORE_PROXY_FOR, proxyFor);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        model.write(out);
+        return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).type("application/rdf+xml")
+                .post(ClientResponse.class, new ByteArrayInputStream(out.toByteArray()));
+    }
+
+
+    /**
+     * Update an existing resource in RODL.
+     * 
      * @param resourceURI
      *            resource URI
      * @param content
@@ -120,7 +185,7 @@ public final class ROSRService {
      *            RODL access token
      * @return response from RODL, remember to close it after use
      */
-    public static ClientResponse uploadResource(URI resourceURI, InputStream content, String contentType,
+    public static ClientResponse updateResource(URI resourceURI, InputStream content, String contentType,
             Token dLibraToken) {
         Client client = Client.create();
         WebResource webResource = client.resource(resourceURI.toString());
@@ -129,29 +194,28 @@ public final class ROSRService {
     }
 
 
-    /**
-     * Create a new RDF resource in RODL.
-     * 
-     * @param bodyURI
-     *            resource URI
-     * @param statements
-     *            list of Jena statements that should make the content
-     * @param dLibraToken
-     *            RODL access token
-     * @return response from RODL, remember to close it after use
-     */
-    public static ClientResponse uploadResource(URI bodyURI, List<Statement> statements, Token dLibraToken) {
-        OntModel body = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
-        if (statements != null) {
-            for (Statement statement : statements) {
-                body.add(statement);
-            }
-        }
-        body.write(out2);
-        return uploadResource(bodyURI, new ByteArrayInputStream(out2.toByteArray()), "application/rdf+xml", dLibraToken);
-    }
-
+    //    /**
+    //     * Create a new RDF resource in RODL.
+    //     * 
+    //     * @param bodyURI
+    //     *            resource URI
+    //     * @param statements
+    //     *            list of Jena statements that should make the content
+    //     * @param dLibraToken
+    //     *            RODL access token
+    //     * @return response from RODL, remember to close it after use
+    //     */
+    //    public static InputStream create(URI bodyURI, List<Statement> statements, Token dLibraToken) {
+    //        OntModel body = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+    //        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+    //        if (statements != null) {
+    //            for (Statement statement : statements) {
+    //                body.add(statement);
+    //            }
+    //        }
+    //        body.write(out2);
+    //        return updateResource(bodyURI, new ByteArrayInputStream(out2.toByteArray()), "application/rdf+xml", dLibraToken);
+    //    }
 
     /**
      * Delete a resource from RODL.
@@ -250,77 +314,92 @@ public final class ROSRService {
 
 
     /**
-     * Create an annotation in RODL.
+     * Create an annotation in RODL using an existing resource as the annotation body.
      * 
-     * @param rodlURI
-     *            RODL URI
-     * @param researchObjectURI
+     * @param researchObject
      *            RO URI
-     * @param annURI
-     *            annotation URI
-     * @param targetURI
-     *            annotated resource URI
+     * @param targets
+     *            annotated resources URIs
      * @param bodyURI
      *            annotation body URI
-     * @param userURI
-     *            annotating user URI
      * @param dLibraToken
      *            RODL access token
      * @return RODL response
      */
-    public static ClientResponse addAnnotation(URI rodlURI, URI researchObjectURI, URI annURI, URI targetURI,
-            URI bodyURI, URI userURI, Token dLibraToken) {
-        OntModel manifest = createManifestModel(researchObjectURI);
-        ROService.addAnnotationToManifestModel(manifest, researchObjectURI, annURI, targetURI, bodyURI, userURI);
-        return uploadManifestModel(researchObjectURI, manifest, dLibraToken);
+    public static ClientResponse addAnnotation(URI researchObject, List<URI> targets, URI bodyURI, Token dLibraToken) {
+        Client client = Client.create();
+        WebResource webResource = client.resource(researchObject.toString());
+        OntModel model = ModelFactory.createOntologyModel();
+        Individual annotation = model.createIndividual(Vocab.RO_AGGREGATED_ANNOTATION);
+        Resource body = model.createResource(bodyURI.toString());
+        model.add(annotation, Vocab.AO_BODY, body);
+        for (URI targetURI : targets) {
+            Resource target = model.createResource(targetURI.toString());
+            model.add(annotation, Vocab.RO_ANNOTATES_AGGREGATED_RESOURCE, target);
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        model.write(out);
+        return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).type(ANNOTATION_MIME_TYPE)
+                .post(ClientResponse.class, new ByteArrayInputStream(out.toByteArray()));
+    }
+
+
+    /**
+     * Aggregate a new resource in RO using it as an annotation body.
+     * 
+     * @param researchObject
+     *            RO URI
+     * @param targets
+     *            annotated resources URIs
+     * @param bodyPath
+     *            annotation body path
+     * @param content
+     *            content input stream
+     * @param contentType
+     *            MIME type for the request
+     * @param dLibraToken
+     *            RODL access token
+     * @return RODL response
+     */
+    public static ClientResponse addAnnotation(URI researchObject, List<URI> targets, String bodyPath,
+            InputStream content, String contentType, Token dLibraToken) {
+        if (!ANNOTATION_MIME_TYPE.equals(contentType)) {
+            Client client = Client.create();
+            WebResource webResource = client.resource(researchObject.toString());
+            Builder builder = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
+                    .header("Slug", bodyPath).type(contentType);
+            for (URI target : targets) {
+                builder = builder.header("Link",
+                    String.format("<%s>; rel=\"http://purl.org/ao/annotates\"", target.toString()));
+            }
+            return builder.post(ClientResponse.class, content);
+        } else {
+            URI resource = researchObject.resolve(bodyPath);
+            addAnnotation(researchObject, targets, resource, dLibraToken);
+            return updateResource(resource, content, contentType, dLibraToken);
+        }
     }
 
 
     /**
      * Delete an annotation and its annotation body, if exists.
      * 
-     * @param researchObjectURI
-     *            RO URI
      * @param annURI
      *            annotation URI
      * @param dLibraToken
      *            RODL access token
      * @return RODL response to uploading the manifest
      */
-    public static ClientResponse deleteAnnotationAndBody(URI researchObjectURI, URI annURI, Token dLibraToken) {
-        OntModel manifest = createManifestModel(researchObjectURI);
-
-        URI bodyURI = ROService.deleteAnnotationFromManifest(manifest, annURI);
-        try {
-            deleteResource(bodyURI, dLibraToken);
-        } catch (Exception e) {
-            LOG.warn("Problem with deleting annotation body: " + e.getMessage());
+    public static ClientResponse deleteAnnotationAndBody(URI annURI, Token dLibraToken) {
+        Client client = Client.create();
+        client.setFollowRedirects(false);
+        ClientResponse response = client.resource(annURI.toString()).get(ClientResponse.class);
+        if (response.getClientResponseStatus().getStatusCode() == HttpStatus.SC_SEE_OTHER) {
+            client.resource(response.getLocation()).header("Authorization", "Bearer " + dLibraToken.getToken())
+                    .delete();
         }
-        return uploadManifestModel(researchObjectURI, manifest, dLibraToken);
-    }
-
-
-    /**
-     * Delete an annotation and its annotation body, if exists.
-     * 
-     * @param researchObjectURI
-     *            RO URI
-     * @param annId
-     *            annotation blank node id
-     * @param dLibraToken
-     *            RODL access token
-     * @return RODL response to uploading the manifest
-     */
-    public static ClientResponse deleteAnnotationAndBody(URI researchObjectURI, AnonId annId, Token dLibraToken) {
-        OntModel manifest = createManifestModel(researchObjectURI);
-
-        URI bodyURI = ROService.deleteAnnotationFromManifest(manifest, annId);
-        try {
-            deleteResource(bodyURI, dLibraToken);
-        } catch (Exception e) {
-            LOG.warn("Problem with deleting annotation body: " + e.getMessage());
-        }
-        return uploadManifestModel(researchObjectURI, manifest, dLibraToken);
+        return client.resource(annURI).header("Authorization", "Bearer " + dLibraToken.getToken())
+                .delete(ClientResponse.class);
     }
 
 
@@ -388,25 +467,6 @@ public final class ROSRService {
             graphset.asJenaModel(researchObjectURI.resolve(".ro/manifest.rdf").toString()));
         model.add(Vocab.MODEL);
         return model;
-    }
-
-
-    /**
-     * Upload a manifest model back to RODL.
-     * 
-     * @param researchObjectURI
-     *            RO URI
-     * @param manifest
-     *            manifest
-     * @param dLibraToken
-     *            RODL access token
-     * @return RODL response
-     */
-    public static ClientResponse uploadManifestModel(URI researchObjectURI, OntModel manifest, Token dLibraToken) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        manifest.write(out);
-        return uploadResource(researchObjectURI.resolve(".ro/manifest.rdf"),
-            new ByteArrayInputStream(out.toByteArray()), "application/rdf+xml", dLibraToken);
     }
 
 }
