@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
@@ -467,6 +468,27 @@ public final class ROSRService {
             graphset.asJenaModel(researchObjectURI.resolve(".ro/manifest.rdf").toString()));
         model.add(Vocab.MODEL);
         return model;
+    }
+
+
+    /**
+     * Generate a path for an annotation body of a resource. The template is ["ro"|resource_name] + "-" + random_string.
+     * 
+     * @param targetPath
+     *            the annotation body target relative to the RO URI. null means the RO itself
+     * @return an annotation body path relative to the RO URI
+     */
+    public static String createAnnotationBodyPath(String targetPath) {
+        String targetName;
+        if (targetPath == null || targetPath.isEmpty()) {
+            targetName = "ro";
+        } else {
+            String[] segments = targetPath.split("/");
+            targetName = segments[segments.length - 1];
+        }
+        String randomBit = "" + Math.abs(UUID.randomUUID().getLeastSignificantBits());
+
+        return ".ro/" + targetName + "-" + randomBit + ".rdf";
     }
 
 }
