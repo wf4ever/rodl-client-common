@@ -25,7 +25,7 @@
 		<dependency>
 			<groupId>de.fuberlin.wiwss.ng4j</groupId>
 			<artifactId>ng4j</artifactId>
-			<version>0.9.4-SNAPSHOT</version>
+			<version>0.9.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -47,4 +47,7 @@
 			</plugin>
 		</plugins>
 	</build>
+	<scm>
+		<developerConnection>scm:git:git@github.com:wf4ever/rosrs-client-common.git</developerConnection>
+	</scm>
 </project>
