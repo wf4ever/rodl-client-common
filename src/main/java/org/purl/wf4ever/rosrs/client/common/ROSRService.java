@@ -482,7 +482,7 @@ public final class ROSRService {
                     .header("Slug", bodyPath).type(contentType);
             for (URI target : targets) {
                 builder = builder.header("Link",
-                    String.format("<%s>; rel=\"http://purl.org/ao/annotates\"", target.toString()));
+                    String.format("<%s>; rel=\"http://purl.org/ao/annotatesResource\"", target.toString()));
             }
             ClientResponse response = builder.post(ClientResponse.class, content);
             if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
