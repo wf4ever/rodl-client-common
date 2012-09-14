@@ -22,6 +22,7 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.shared.DoesNotExistException;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
 
@@ -64,12 +65,21 @@ public final class ROSRService {
      * @param dLibraToken
      *            RODL access token
      * @return response from RODL, remember to close it after use
+     * @throws ROSRSException
+     *             when the response code is neither 201 nor 409
      */
-    public static ClientResponse createResearchObject(URI rodlURI, String roId, Token dLibraToken) {
+    public static ClientResponse createResearchObject(URI rodlURI, String roId, Token dLibraToken)
+            throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("ROs");
-        return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).header("Slug", roId)
-                .type("text/plain").post(ClientResponse.class);
+        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
+                .header("Slug", roId).type("text/plain").post(ClientResponse.class);
+        if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
+            return response;
+        } else {
+            throw new ROSRSException("Creating the RO failed", response.getStatus(), response.getClientResponseStatus()
+                    .getReasonPhrase());
+        }
     }
 
 
@@ -81,11 +91,21 @@ public final class ROSRService {
      * @param dLibraToken
      *            RODL access token
      * @return response from RODL, remember to close it after use
+     * @throws ROSRSException
+     *             when the response code is neither 204 nor 404
      */
-    public static ClientResponse deleteResearchObject(URI researchObjectURI, Token dLibraToken) {
+    public static ClientResponse deleteResearchObject(URI researchObjectURI, Token dLibraToken)
+            throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(researchObjectURI.toString());
-        return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).delete(ClientResponse.class);
+        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).delete(
+            ClientResponse.class);
+        if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
+            return response;
+        } else {
+            throw new ROSRSException("Deleting the RO failed", response.getStatus(), response.getClientResponseStatus()
+                    .getReasonPhrase());
+        }
     }
 
 
@@ -95,11 +115,19 @@ public final class ROSRService {
      * @param resourceURI
      *            resource URI
      * @return a resource input stream, remember to close it after use
+     * @throws ROSRSException
+     *             when the response code is not 2xx
      */
-    public static InputStream getResource(URI resourceURI) {
+    public static InputStream getResource(URI resourceURI)
+            throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(resourceURI.toString());
-        return webResource.get(InputStream.class);
+        try {
+            return webResource.get(InputStream.class);
+        } catch (UniformInterfaceException e) {
+            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
+                    .getClientResponseStatus().getReasonPhrase());
+        }
     }
 
 
@@ -109,11 +137,20 @@ public final class ROSRService {
      * @param resource
      *            resource URI
      * @return RODL response
+     * @throws ROSRSException
+     *             when the response code is neither 200 nor 404
      */
-    public static ClientResponse getResourceHead(URI resource) {
+    public static ClientResponse getResourceHead(URI resource)
+            throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(resource.toString());
-        return webResource.head();
+        ClientResponse response = webResource.head();
+        if (response.getStatus() == HttpStatus.SC_OK || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
+            return response;
+        } else {
+            throw new ROSRSException("Getting the resource head failed", response.getStatus(), response
+                    .getClientResponseStatus().getReasonPhrase());
+        }
     }
 
 
@@ -131,14 +168,23 @@ public final class ROSRService {
      * @param dLibraToken
      *            RODL access token
      * @return response from RODL, remember to close it after use
+     * @throws ROSRSException
+     *             when the response code is neither 201 nor 409
      */
     public static ClientResponse createResource(URI researchObject, String resourcePath, InputStream content,
-            String contentType, Token dLibraToken) {
+            String contentType, Token dLibraToken)
+            throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(researchObject.toString());
         if (!contentType.equals(PROXY_MIME_TYPE)) {
-            return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).header("Slug", resourcePath)
-                    .type(contentType).post(ClientResponse.class, content);
+            ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
+                    .header("Slug", resourcePath).type(contentType).post(ClientResponse.class, content);
+            if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
+                return response;
+            } else {
+                throw new ROSRSException("Creating the resource failed", response.getStatus(), response
+                        .getClientResponseStatus().getReasonPhrase());
+            }
         } else {
             URI resource = researchObject.resolve(resourcePath);
             aggregateResource(researchObject, resource, dLibraToken);
@@ -158,8 +204,11 @@ public final class ROSRService {
      * @param dLibraToken
      *            RODL access token
      * @return response from RODL, remember to close it after use
+     * @throws ROSRSException
+     *             when the response code is not 201
      */
-    public static ClientResponse aggregateResource(URI researchObject, URI resource, Token dLibraToken) {
+    public static ClientResponse aggregateResource(URI researchObject, URI resource, Token dLibraToken)
+            throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(researchObject.toString());
         OntModel model = ModelFactory.createOntologyModel();
@@ -168,8 +217,14 @@ public final class ROSRService {
         model.add(proxy, Vocab.ORE_PROXY_FOR, proxyFor);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         model.write(out);
-        return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).type("application/rdf+xml")
-                .post(ClientResponse.class, new ByteArrayInputStream(out.toByteArray()));
+        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
+                .type("application/rdf+xml").post(ClientResponse.class, new ByteArrayInputStream(out.toByteArray()));
+        if (response.getStatus() == HttpStatus.SC_CREATED) {
+            return response;
+        } else {
+            throw new ROSRSException("Aggregating the resource failed", response.getStatus(), response
+                    .getClientResponseStatus().getReasonPhrase());
+        }
     }
 
 
@@ -185,13 +240,22 @@ public final class ROSRService {
      * @param dLibraToken
      *            RODL access token
      * @return response from RODL, remember to close it after use
+     * @throws ROSRSException
+     *             when the response code is not 200
      */
     public static ClientResponse updateResource(URI resourceURI, InputStream content, String contentType,
-            Token dLibraToken) {
+            Token dLibraToken)
+            throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(resourceURI.toString());
-        return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).type(contentType)
-                .put(ClientResponse.class, content);
+        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
+                .type(contentType).put(ClientResponse.class, content);
+        if (response.getStatus() == HttpStatus.SC_OK) {
+            return response;
+        } else {
+            throw new ROSRSException("Updating the resource failed", response.getStatus(), response
+                    .getClientResponseStatus().getReasonPhrase());
+        }
     }
 
 
@@ -226,11 +290,21 @@ public final class ROSRService {
      * @param dLibraToken
      *            RODL access token
      * @return response from RODL, remember to close it after use
+     * @throws ROSRSException
+     *             when the response code is not 204 nor 404
      */
-    public static ClientResponse deleteResource(URI resourceURI, Token dLibraToken) {
+    public static ClientResponse deleteResource(URI resourceURI, Token dLibraToken)
+            throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(resourceURI.toString());
-        return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).delete(ClientResponse.class);
+        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).delete(
+            ClientResponse.class);
+        if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
+            return response;
+        } else {
+            throw new ROSRSException("Deleting the resource failed", response.getStatus(), response
+                    .getClientResponseStatus().getReasonPhrase());
+        }
     }
 
 
@@ -242,12 +316,20 @@ public final class ROSRService {
      * @param userURI
      *            URI of the user in RODL
      * @return RDF graph input stream
+     * @throws ROSRSException
+     *             when the response code is not 2xx
      */
-    public static InputStream getUser(URI rodlURI, URI userURI) {
+    public static InputStream getUser(URI rodlURI, URI userURI)
+            throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("users")
                 .path(Base64.encodeBase64URLSafeString(userURI.toString().getBytes()));
-        return webResource.get(InputStream.class);
+        try {
+            return webResource.get(InputStream.class);
+        } catch (UniformInterfaceException e) {
+            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
+                    .getClientResponseStatus().getReasonPhrase());
+        }
     }
 
 
@@ -259,11 +341,19 @@ public final class ROSRService {
      * @param dLibraToken
      *            RODL access token
      * @return RDF graph input stream
+     * @throws ROSRSException
+     *             when the response code is not 2xx
      */
-    public static InputStream getWhoAmi(URI rodlURI, Token dLibraToken) {
+    public static InputStream getWhoAmi(URI rodlURI, Token dLibraToken)
+            throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("whoami");
-        return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).get(InputStream.class);
+        try {
+            return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).get(InputStream.class);
+        } catch (UniformInterfaceException e) {
+            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
+                    .getClientResponseStatus().getReasonPhrase());
+        }
     }
 
 
@@ -275,9 +365,11 @@ public final class ROSRService {
      * @return a list of RO URIs
      * @throws URISyntaxException
      *             if the URIs returned by RODL are incorrect
+     * @throws ROSRSException
+     *             when the response code is not 2xx
      */
     public static List<URI> getROList(URI rodlURI)
-            throws URISyntaxException {
+            throws URISyntaxException, ROSRSException {
         return getROList(rodlURI, null);
     }
 
@@ -293,16 +385,23 @@ public final class ROSRService {
      * @return a list of RO URIs
      * @throws URISyntaxException
      *             if the URIs returned by RODL are incorrect
+     * @throws ROSRSException
+     *             when the response code is not 2xx
      */
     public static List<URI> getROList(URI rodlURI, Token dLibraToken)
-            throws URISyntaxException {
+            throws URISyntaxException, ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("ROs");
         String response;
-        if (dLibraToken == null) {
-            response = webResource.get(String.class);
-        } else {
-            response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).get(String.class);
+        try {
+            if (dLibraToken == null) {
+                response = webResource.get(String.class);
+            } else {
+                response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).get(String.class);
+            }
+        } catch (UniformInterfaceException e) {
+            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
+                    .getClientResponseStatus().getReasonPhrase());
         }
         List<URI> uris = new ArrayList<URI>();
         for (String s : response.split("[\\r\\n]+")) {
@@ -326,8 +425,11 @@ public final class ROSRService {
      * @param dLibraToken
      *            RODL access token
      * @return RODL response
+     * @throws ROSRSException
+     *             when the response code is not 201
      */
-    public static ClientResponse addAnnotation(URI researchObject, List<URI> targets, URI bodyURI, Token dLibraToken) {
+    public static ClientResponse addAnnotation(URI researchObject, List<URI> targets, URI bodyURI, Token dLibraToken)
+            throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(researchObject.toString());
         OntModel model = ModelFactory.createOntologyModel();
@@ -340,8 +442,14 @@ public final class ROSRService {
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         model.write(out);
-        return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).type(ANNOTATION_MIME_TYPE)
-                .post(ClientResponse.class, new ByteArrayInputStream(out.toByteArray()));
+        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
+                .type(ANNOTATION_MIME_TYPE).post(ClientResponse.class, new ByteArrayInputStream(out.toByteArray()));
+        if (response.getStatus() == HttpStatus.SC_CREATED) {
+            return response;
+        } else {
+            throw new ROSRSException("Creating the annotation failed", response.getStatus(), response
+                    .getClientResponseStatus().getReasonPhrase());
+        }
     }
 
 
@@ -361,9 +469,12 @@ public final class ROSRService {
      * @param dLibraToken
      *            RODL access token
      * @return RODL response
+     * @throws ROSRSException
+     *             when the response code is not 201 or 409 (or 200 in case of aggregating an annotation description)
      */
     public static ClientResponse addAnnotation(URI researchObject, List<URI> targets, String bodyPath,
-            InputStream content, String contentType, Token dLibraToken) {
+            InputStream content, String contentType, Token dLibraToken)
+            throws ROSRSException {
         if (!ANNOTATION_MIME_TYPE.equals(contentType)) {
             Client client = Client.create();
             WebResource webResource = client.resource(researchObject.toString());
@@ -373,7 +484,13 @@ public final class ROSRService {
                 builder = builder.header("Link",
                     String.format("<%s>; rel=\"http://purl.org/ao/annotates\"", target.toString()));
             }
-            return builder.post(ClientResponse.class, content);
+            ClientResponse response = builder.post(ClientResponse.class, content);
+            if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
+                return response;
+            } else {
+                throw new ROSRSException("Creating the resource failed", response.getStatus(), response
+                        .getClientResponseStatus().getReasonPhrase());
+            }
         } else {
             URI resource = researchObject.resolve(bodyPath);
             addAnnotation(researchObject, targets, resource, dLibraToken);
@@ -390,8 +507,11 @@ public final class ROSRService {
      * @param dLibraToken
      *            RODL access token
      * @return RODL response to uploading the manifest
+     * @throws ROSRSException
+     *             when the response code is not 204 or 404
      */
-    public static ClientResponse deleteAnnotationAndBody(URI annURI, Token dLibraToken) {
+    public static ClientResponse deleteAnnotationAndBody(URI annURI, Token dLibraToken)
+            throws ROSRSException {
         Client client = Client.create();
         client.setFollowRedirects(false);
         ClientResponse response = client.resource(annURI.toString()).get(ClientResponse.class);
@@ -399,8 +519,14 @@ public final class ROSRService {
             client.resource(response.getLocation()).header("Authorization", "Bearer " + dLibraToken.getToken())
                     .delete();
         }
-        return client.resource(annURI).header("Authorization", "Bearer " + dLibraToken.getToken())
+        response = client.resource(annURI).header("Authorization", "Bearer " + dLibraToken.getToken())
                 .delete(ClientResponse.class);
+        if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
+            return response;
+        } else {
+            throw new ROSRSException("Deleting the annotation failed", response.getStatus(), response
+                    .getClientResponseStatus().getReasonPhrase());
+        }
     }
 
 
@@ -414,9 +540,11 @@ public final class ROSRService {
      * @return true if the RO id is free, false otherwise
      * @throws URISyntaxException
      *             if the URIs returned by RODL are not correct
+     * @throws ROSRSException
+     *             when the response code is not 2xx
      */
     public static boolean isRoIdFree(URI rodlURI, String roId)
-            throws URISyntaxException {
+            throws URISyntaxException, ROSRSException {
         //FIXME there should be a way to implement this without getting the list of all URIs
         List<URI> ros = getROList(rodlURI);
         URI ro = new URI(rodlURI.getScheme(), rodlURI.getHost(), rodlURI.getPath() + "ROs/" + roId + "/", null);
