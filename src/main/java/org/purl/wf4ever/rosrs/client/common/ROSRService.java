@@ -218,7 +218,8 @@ public final class ROSRService {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         model.write(out);
         ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
-                .type("application/rdf+xml").post(ClientResponse.class, new ByteArrayInputStream(out.toByteArray()));
+                .type("application/vnd.wf4ever.proxy")
+                .post(ClientResponse.class, new ByteArrayInputStream(out.toByteArray()));
         if (response.getStatus() == HttpStatus.SC_CREATED) {
             return response;
         } else {
