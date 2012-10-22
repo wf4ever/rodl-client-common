@@ -517,8 +517,11 @@ public final class ROSRService {
         client.setFollowRedirects(false);
         ClientResponse response = client.resource(annURI.toString()).get(ClientResponse.class);
         if (response.getClientResponseStatus().getStatusCode() == HttpStatus.SC_SEE_OTHER) {
-            client.resource(response.getLocation()).header("Authorization", "Bearer " + dLibraToken.getToken())
-                    .delete();
+            ClientResponse bodyResponse = client.resource(response.getLocation())
+                    .header("Authorization", "Bearer " + dLibraToken.getToken()).delete(ClientResponse.class);
+            if (bodyResponse.getStatus() != HttpStatus.SC_NO_CONTENT) {
+                LOG.warn("Unexpected response when deleting the annotation body: " + bodyResponse.toString());
+            }
         }
         response = client.resource(annURI).header("Authorization", "Bearer " + dLibraToken.getToken())
                 .delete(ClientResponse.class);
