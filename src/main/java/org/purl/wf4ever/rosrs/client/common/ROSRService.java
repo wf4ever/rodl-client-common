@@ -519,8 +519,8 @@ public class ROSRService {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
         model.createIndividual(RO.Folder);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         model.write(out, "RDF/XML");
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 
         WebResource webResource = client.resource(researchObject.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).header("Slug", path)
@@ -556,8 +556,8 @@ public class ROSRService {
             entry.addProperty(RO.entryName, model.createLiteral(name));
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         model.write(out, "RDF/XML");
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 
         WebResource webResource = client.resource(folder.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).type(FOLDER_MIME_TYPE)
