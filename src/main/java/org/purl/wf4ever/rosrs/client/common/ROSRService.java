@@ -12,7 +12,6 @@ import java.util.UUID;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
-import org.scribe.model.Token;
 
 import pl.psnc.dl.wf4ever.vocabulary.AO;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
@@ -40,7 +39,7 @@ import de.fuberlin.wiwiss.ng4j.impl.NamedGraphSetImpl;
  * @author Piotr Hołubowicz
  * 
  */
-public final class ROSRService {
+public class ROSRService {
 
     /** Logger. */
     private static final Logger LOG = Logger.getLogger(ROSRService.class);
@@ -51,12 +50,19 @@ public final class ROSRService {
     /** Proxy MIME type. */
     public static final String PROXY_MIME_TYPE = "application/vnd.wf4ever.proxy";
 
+    /** RODL URI. */
+    private URI rodlURI;
+
+    /** RODL access token. */
+    private String token;
+
 
     /**
-     * Private constructor.
+     * Constructor.
      */
-    private ROSRService() {
-        //nope
+    public ROSRService(URI rodlURI, String token) {
+        this.rodlURI = rodlURI;
+        this.token = token;
     }
 
 
@@ -73,12 +79,12 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is neither 201 nor 409
      */
-    public static ClientResponse createResearchObject(URI rodlURI, String roId, Token dLibraToken)
+    public ClientResponse createResearchObject(String roId)
             throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("ROs");
-        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
-                .header("Slug", roId).type("text/plain").post(ClientResponse.class);
+        ClientResponse response = webResource.header("Authorization", "Bearer " + token).header("Slug", roId)
+                .type("text/plain").post(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
             return response;
         } else {
@@ -99,12 +105,11 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is neither 204 nor 404
      */
-    public static ClientResponse deleteResearchObject(URI researchObjectURI, Token dLibraToken)
+    public ClientResponse deleteResearchObject(URI researchObjectURI)
             throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(researchObjectURI.toString());
-        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).delete(
-            ClientResponse.class);
+        ClientResponse response = webResource.header("Authorization", "Bearer " + token).delete(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return response;
         } else {
@@ -123,7 +128,7 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 2xx
      */
-    public static InputStream getResource(URI resourceURI)
+    public InputStream getResource(URI resourceURI)
             throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(resourceURI.toString());
@@ -145,7 +150,7 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is neither 200 nor 404
      */
-    public static ClientResponse getResourceHead(URI resource)
+    public ClientResponse getResourceHead(URI resource)
             throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(resource.toString());
@@ -176,13 +181,13 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is neither 201 nor 409
      */
-    public static ClientResponse createResource(URI researchObject, String resourcePath, InputStream content,
-            String contentType, Token dLibraToken)
+    public ClientResponse createResource(URI researchObject, String resourcePath, InputStream content,
+            String contentType)
             throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(researchObject.toString());
         if (!contentType.equals(PROXY_MIME_TYPE)) {
-            ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
+            ClientResponse response = webResource.header("Authorization", "Bearer " + token)
                     .header("Slug", resourcePath).type(contentType).post(ClientResponse.class, content);
             if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
                 return response;
@@ -192,8 +197,8 @@ public final class ROSRService {
             }
         } else {
             URI resource = researchObject.resolve(resourcePath);
-            aggregateResource(researchObject, resource, dLibraToken);
-            return updateResource(resource, content, contentType, dLibraToken);
+            aggregateResource(researchObject, resource);
+            return updateResource(resource, content, contentType);
 
         }
     }
@@ -212,7 +217,7 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 201
      */
-    public static ClientResponse aggregateResource(URI researchObject, URI resource, Token dLibraToken)
+    public ClientResponse aggregateResource(URI researchObject, URI resource)
             throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(researchObject.toString());
@@ -222,7 +227,7 @@ public final class ROSRService {
         model.add(proxy, ORE.proxyFor, proxyFor);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         model.write(out);
-        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
+        ClientResponse response = webResource.header("Authorization", "Bearer " + token)
                 .type("application/vnd.wf4ever.proxy")
                 .post(ClientResponse.class, new ByteArrayInputStream(out.toByteArray()));
         if (response.getStatus() == HttpStatus.SC_CREATED) {
@@ -249,13 +254,12 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 200
      */
-    public static ClientResponse updateResource(URI resourceURI, InputStream content, String contentType,
-            Token dLibraToken)
+    public ClientResponse updateResource(URI resourceURI, InputStream content, String contentType)
             throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(resourceURI.toString());
-        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
-                .type(contentType).put(ClientResponse.class, content);
+        ClientResponse response = webResource.header("Authorization", "Bearer " + token).type(contentType)
+                .put(ClientResponse.class, content);
         if (response.getStatus() == HttpStatus.SC_OK) {
             return response;
         } else {
@@ -299,12 +303,11 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 204 nor 404
      */
-    public static ClientResponse deleteResource(URI resourceURI, Token dLibraToken)
+    public ClientResponse deleteResource(URI resourceURI)
             throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(resourceURI.toString());
-        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).delete(
-            ClientResponse.class);
+        ClientResponse response = webResource.header("Authorization", "Bearer " + token).delete(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return response;
         } else {
@@ -325,7 +328,7 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 2xx
      */
-    public static InputStream getUser(URI rodlURI, URI userURI)
+    public InputStream getUser(URI userURI)
             throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("users")
@@ -350,33 +353,16 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 2xx
      */
-    public static InputStream getWhoAmi(URI rodlURI, Token dLibraToken)
+    public InputStream getWhoAmi()
             throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("whoami");
         try {
-            return webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).get(InputStream.class);
+            return webResource.header("Authorization", "Bearer " + token).get(InputStream.class);
         } catch (UniformInterfaceException e) {
             throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
                     .getClientResponseStatus().getReasonPhrase());
         }
-    }
-
-
-    /**
-     * Return a list of all ROs.
-     * 
-     * @param rodlURI
-     *            RODL URI
-     * @return a list of RO URIs
-     * @throws URISyntaxException
-     *             if the URIs returned by RODL are incorrect
-     * @throws ROSRSException
-     *             when the response code is not 2xx
-     */
-    public static List<URI> getROList(URI rodlURI)
-            throws URISyntaxException, ROSRSException {
-        return getROList(rodlURI, null);
     }
 
 
@@ -394,16 +380,16 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 2xx
      */
-    public static List<URI> getROList(URI rodlURI, Token dLibraToken)
+    public List<URI> getROList(boolean all)
             throws URISyntaxException, ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("ROs");
         String response;
         try {
-            if (dLibraToken == null) {
+            if (all) {
                 response = webResource.get(String.class);
             } else {
-                response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken()).get(String.class);
+                response = webResource.header("Authorization", "Bearer " + token).get(String.class);
             }
         } catch (UniformInterfaceException e) {
             throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
@@ -434,7 +420,7 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 201
      */
-    public static ClientResponse addAnnotation(URI researchObject, List<URI> targets, URI bodyURI, Token dLibraToken)
+    public ClientResponse addAnnotation(URI researchObject, List<URI> targets, URI bodyURI)
             throws ROSRSException {
         Client client = Client.create();
         WebResource webResource = client.resource(researchObject.toString());
@@ -448,8 +434,8 @@ public final class ROSRService {
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         model.write(out);
-        ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
-                .type(ANNOTATION_MIME_TYPE).post(ClientResponse.class, new ByteArrayInputStream(out.toByteArray()));
+        ClientResponse response = webResource.header("Authorization", "Bearer " + token).type(ANNOTATION_MIME_TYPE)
+                .post(ClientResponse.class, new ByteArrayInputStream(out.toByteArray()));
         if (response.getStatus() == HttpStatus.SC_CREATED) {
             return response;
         } else {
@@ -478,14 +464,14 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 201 or 409 (or 200 in case of aggregating an annotation description)
      */
-    public static ClientResponse addAnnotation(URI researchObject, List<URI> targets, String bodyPath,
-            InputStream content, String contentType, Token dLibraToken)
+    public ClientResponse addAnnotation(URI researchObject, List<URI> targets, String bodyPath, InputStream content,
+            String contentType)
             throws ROSRSException {
         if (!ANNOTATION_MIME_TYPE.equals(contentType)) {
             Client client = Client.create();
             WebResource webResource = client.resource(researchObject.toString());
-            Builder builder = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
-                    .header("Slug", bodyPath).type(contentType);
+            Builder builder = webResource.header("Authorization", "Bearer " + token).header("Slug", bodyPath)
+                    .type(contentType);
             for (URI target : targets) {
                 builder = builder.header("Link",
                     String.format("<%s>; rel=\"http://purl.org/ao/annotatesResource\"", target.toString()));
@@ -499,8 +485,8 @@ public final class ROSRService {
             }
         } else {
             URI resource = researchObject.resolve(bodyPath);
-            addAnnotation(researchObject, targets, resource, dLibraToken);
-            return updateResource(resource, content, contentType, dLibraToken);
+            addAnnotation(researchObject, targets, resource);
+            return updateResource(resource, content, contentType);
         }
     }
 
@@ -516,20 +502,19 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 204 or 404
      */
-    public static ClientResponse deleteAnnotationAndBody(URI annURI, Token dLibraToken)
+    public ClientResponse deleteAnnotationAndBody(URI annURI)
             throws ROSRSException {
         Client client = Client.create();
         client.setFollowRedirects(false);
         ClientResponse response = client.resource(annURI.toString()).get(ClientResponse.class);
         if (response.getClientResponseStatus().getStatusCode() == HttpStatus.SC_SEE_OTHER) {
             ClientResponse bodyResponse = client.resource(response.getLocation())
-                    .header("Authorization", "Bearer " + dLibraToken.getToken()).delete(ClientResponse.class);
+                    .header("Authorization", "Bearer " + token).delete(ClientResponse.class);
             if (bodyResponse.getStatus() != HttpStatus.SC_NO_CONTENT) {
                 LOG.warn("Unexpected response when deleting the annotation body: " + bodyResponse.toString());
             }
         }
-        response = client.resource(annURI).header("Authorization", "Bearer " + dLibraToken.getToken())
-                .delete(ClientResponse.class);
+        response = client.resource(annURI).header("Authorization", "Bearer " + token).delete(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return response;
         } else {
@@ -552,10 +537,10 @@ public final class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 2xx
      */
-    public static boolean isRoIdFree(URI rodlURI, String roId)
+    public boolean isRoIdFree(String roId)
             throws URISyntaxException, ROSRSException {
         //FIXME there should be a way to implement this without getting the list of all URIs
-        List<URI> ros = getROList(rodlURI);
+        List<URI> ros = getROList(true);
         URI ro = new URI(rodlURI.getScheme(), rodlURI.getHost(), rodlURI.getPath() + "ROs/" + roId + "/", null);
         return !ros.contains(ro);
     }

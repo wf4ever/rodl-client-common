@@ -19,11 +19,19 @@ import com.sun.jersey.api.client.WebResource;
  */
 public final class UserManagementService {
 
+    /** RODL URI. */
+    private URI rodlURI;
+
+    /** RODL access token. */
+    private String token;
+
+
     /**
-     * Private constructor.
+     * Constructor.
      */
-    private UserManagementService() {
-        // nope
+    public UserManagementService(URI rodlURI, String token) {
+        this.rodlURI = rodlURI;
+        this.token = token;
     }
 
 
@@ -38,7 +46,7 @@ public final class UserManagementService {
      *            user id
      * @return true if the user id is already taken
      */
-    public static boolean userExistsInDlibra(URI rodlURI, String token, String userId) {
+    public boolean userExistsInDlibra(String userId) {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("users")
                 .path(Base64.encodeBase64URLSafeString(userId.getBytes()));
@@ -65,7 +73,7 @@ public final class UserManagementService {
      *            nice name
      * @return RODL response
      */
-    public static ClientResponse createUser(URI rodlURI, String token, String openId, String username) {
+    public ClientResponse createUser(String openId, String username) {
         String payload = username != null && !username.isEmpty() ? username : openId;
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("users")
@@ -86,7 +94,7 @@ public final class UserManagementService {
      *            .java RODL user
      * @return RODL response
      */
-    public static ClientResponse deleteUser(URI rodlURI, String token, String userId) {
+    public ClientResponse deleteUser(String userId) {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("users")
                 .path(Base64.encodeBase64URLSafeString(userId.getBytes()));
@@ -105,7 +113,7 @@ public final class UserManagementService {
      *            client id
      * @return the OAuth client
      */
-    public static OAuthClient getClient(URI rodlURI, String token, String clientId) {
+    public OAuthClient getClient(String clientId) {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("clients")
                 .path(Base64.encodeBase64URLSafeString(clientId.getBytes()));
@@ -122,7 +130,7 @@ public final class UserManagementService {
      *            RODL admin access token
      * @return a list of OAuth clients
      */
-    public static List<OAuthClient> getClients(URI rodlURI, String token) {
+    public List<OAuthClient> getClients() {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("clients").path("/");
         return webResource.header("Authorization", "Bearer " + token).type("text/plain").get(OAuthClientList.class)
@@ -145,7 +153,7 @@ public final class UserManagementService {
      * @throws UniformInterfaceException
      *             when the RODL response status is different from 201
      */
-    public static String createAccessToken(URI rodlURI, String token, String userId, String clientId)
+    public String createAccessToken(String userId, String clientId)
             throws UniformInterfaceException {
         String payload = clientId + "\r\n" + userId;
         Client client = Client.create();
@@ -174,7 +182,7 @@ public final class UserManagementService {
      *            user id
      * @return a list of {@link AccessToken}
      */
-    public static List<AccessToken> getAccessTokens(URI rodlURI, String token, String userId) {
+    public List<AccessToken> getAccessTokens(String userId) {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("accesstokens")
                 .queryParam("user_id", userId);
@@ -194,7 +202,7 @@ public final class UserManagementService {
      *            the token to delete
      * @return RODL response
      */
-    public static ClientResponse deleteAccessToken(URI rodlURI, String token, String accesstoken) {
+    public ClientResponse deleteAccessToken(String accesstoken) {
         Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("accesstokens").path(accesstoken);
         return webResource.header("Authorization", "Bearer " + token).type("text/plain").delete(ClientResponse.class);
