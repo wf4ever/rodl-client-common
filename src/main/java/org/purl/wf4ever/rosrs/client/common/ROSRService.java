@@ -50,11 +50,20 @@ public class ROSRService {
     /** Proxy MIME type. */
     public static final String PROXY_MIME_TYPE = "application/vnd.wf4ever.proxy";
 
+    /** ro:Folder MIME type. */
+    public static final String FOLDER_MIME_TYPE = "application/vnd.wf4ever.folder";
+
+    /** ro:FolderEntry MIME type. */
+    public static final String FOLDER_ENTRY_MIME_TYPE = "application/vnd.wf4ever.folderentry";
+
     /** RODL URI. */
     private URI rodlURI;
 
     /** RODL access token. */
     private String token;
+
+    /** web client. */
+    private Client client;
 
 
     /**
@@ -68,6 +77,7 @@ public class ROSRService {
     public ROSRService(URI rodlURI, String token) {
         this.rodlURI = rodlURI;
         this.token = token;
+        this.client = Client.create();
     }
 
 
@@ -82,7 +92,6 @@ public class ROSRService {
      */
     public ClientResponse createResearchObject(String roId)
             throws ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("ROs");
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).header("Slug", roId)
                 .type("text/plain").post(ClientResponse.class);
@@ -106,7 +115,6 @@ public class ROSRService {
      */
     public ClientResponse deleteResearchObject(URI researchObjectURI)
             throws ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(researchObjectURI.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).delete(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
@@ -129,7 +137,6 @@ public class ROSRService {
      */
     public InputStream getResource(URI resourceURI)
             throws ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(resourceURI.toString());
         try {
             return webResource.get(InputStream.class);
@@ -151,7 +158,6 @@ public class ROSRService {
      */
     public ClientResponse getResourceHead(URI resource)
             throws ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(resource.toString());
         ClientResponse response = webResource.head();
         if (response.getStatus() == HttpStatus.SC_OK || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
@@ -181,7 +187,6 @@ public class ROSRService {
     public ClientResponse createResource(URI researchObject, String resourcePath, InputStream content,
             String contentType)
             throws ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(researchObject.toString());
         if (!contentType.equals(PROXY_MIME_TYPE)) {
             ClientResponse response = webResource.header("Authorization", "Bearer " + token)
@@ -214,7 +219,6 @@ public class ROSRService {
      */
     public ClientResponse aggregateResource(URI researchObject, URI resource)
             throws ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(researchObject.toString());
         OntModel model = ModelFactory.createOntologyModel();
         Individual proxy = model.createIndividual(ORE.Proxy);
@@ -249,7 +253,6 @@ public class ROSRService {
      */
     public ClientResponse updateResource(URI resourceURI, InputStream content, String contentType)
             throws ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(resourceURI.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).type(contentType)
                 .put(ClientResponse.class, content);
@@ -262,29 +265,6 @@ public class ROSRService {
     }
 
 
-    //    /**
-    //     * Create a new RDF resource in RODL.
-    //     * 
-    //     * @param bodyURI
-    //     *            resource URI
-    //     * @param statements
-    //     *            list of Jena statements that should make the content
-    //     * @param dLibraToken
-    //     *            RODL access token
-    //     * @return response from RODL, remember to close it after use
-    //     */
-    //    public static InputStream create(URI bodyURI, List<Statement> statements, Token dLibraToken) {
-    //        OntModel body = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-    //        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
-    //        if (statements != null) {
-    //            for (Statement statement : statements) {
-    //                body.add(statement);
-    //            }
-    //        }
-    //        body.write(out2);
-    //        return updateResource(bodyURI, new ByteArrayInputStream(out2.toByteArray()), "application/rdf+xml", dLibraToken);
-    //    }
-
     /**
      * Delete a resource from RODL.
      * 
@@ -296,7 +276,6 @@ public class ROSRService {
      */
     public ClientResponse deleteResource(URI resourceURI)
             throws ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(resourceURI.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).delete(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
@@ -319,7 +298,6 @@ public class ROSRService {
      */
     public InputStream getUser(URI userURI)
             throws ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("users")
                 .path(Base64.encodeBase64URLSafeString(userURI.toString().getBytes()));
         try {
@@ -340,7 +318,6 @@ public class ROSRService {
      */
     public InputStream getWhoAmi()
             throws ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("whoami");
         try {
             return webResource.header("Authorization", "Bearer " + token).get(InputStream.class);
@@ -364,7 +341,6 @@ public class ROSRService {
      */
     public List<URI> getROList(boolean all)
             throws URISyntaxException, ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(rodlURI.toString()).path("ROs");
         String response;
         try {
@@ -402,7 +378,6 @@ public class ROSRService {
      */
     public ClientResponse addAnnotation(URI researchObject, List<URI> targets, URI bodyURI)
             throws ROSRSException {
-        Client client = Client.create();
         WebResource webResource = client.resource(researchObject.toString());
         OntModel model = ModelFactory.createOntologyModel();
         Individual annotation = model.createIndividual(RO.AggregatedAnnotation);
@@ -446,7 +421,6 @@ public class ROSRService {
             String contentType)
             throws ROSRSException {
         if (!ANNOTATION_MIME_TYPE.equals(contentType)) {
-            Client client = Client.create();
             WebResource webResource = client.resource(researchObject.toString());
             Builder builder = webResource.header("Authorization", "Bearer " + token).header("Slug", bodyPath)
                     .type(contentType);
@@ -480,7 +454,6 @@ public class ROSRService {
      */
     public ClientResponse deleteAnnotationAndBody(URI annURI)
             throws ROSRSException {
-        Client client = Client.create();
         client.setFollowRedirects(false);
         ClientResponse response = client.resource(annURI.toString()).get(ClientResponse.class);
         if (response.getClientResponseStatus().getStatusCode() == HttpStatus.SC_SEE_OTHER) {
@@ -517,6 +490,74 @@ public class ROSRService {
         List<URI> ros = getROList(true);
         URI ro = new URI(rodlURI.getScheme(), rodlURI.getHost(), rodlURI.getPath() + "ROs/" + roId + "/", null);
         return !ros.contains(ro);
+    }
+
+
+    /**
+     * Create a new folder in the Research Object.
+     * 
+     * @param researchObject
+     *            research object URI
+     * @param path
+     *            folder path
+     * @return response from server
+     * @throws ROSRSException
+     *             server returned other code than 201 Created or 409 Conflict
+     */
+    public ClientResponse createFolder(URI researchObject, String path)
+            throws ROSRSException {
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
+        model.createIndividual(RO.Folder);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        model.write(out, "RDF/XML");
+
+        WebResource webResource = client.resource(researchObject.toString());
+        ClientResponse response = webResource.header("Authorization", "Bearer " + token).header("Slug", path)
+                .type(FOLDER_MIME_TYPE).post(ClientResponse.class, in);
+        if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
+            return response;
+        } else {
+            throw new ROSRSException("Creating the folder failed", response.getStatus(), response
+                    .getClientResponseStatus().getReasonPhrase());
+        }
+    }
+
+
+    /**
+     * Create a new folder entry in a folder.
+     * 
+     * @param folder
+     *            folder URI
+     * @param resource
+     *            resource to be added to the folder
+     * @param name
+     *            name of the resource in the folder
+     * @return response from server
+     * @throws ROSRSException
+     *             server returned other code than 201 Created or 409 Conflict
+     */
+    public ClientResponse addFolderEntry(URI folder, URI resource, String name)
+            throws ROSRSException {
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
+        Individual entry = model.createIndividual(RO.FolderEntry);
+        entry.addProperty(ORE.proxyFor, resource.toString());
+        if (name != null) {
+            entry.addProperty(RO.entryName, model.createLiteral(name));
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        model.write(out, "RDF/XML");
+
+        WebResource webResource = client.resource(folder.toString());
+        ClientResponse response = webResource.header("Authorization", "Bearer " + token).type(FOLDER_MIME_TYPE)
+                .post(ClientResponse.class, in);
+        if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
+            return response;
+        } else {
+            throw new ROSRSException("Creating the folder entry failed", response.getStatus(), response
+                    .getClientResponseStatus().getReasonPhrase());
+        }
     }
 
 
