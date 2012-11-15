@@ -14,6 +14,11 @@ import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 import org.scribe.model.Token;
 
+import pl.psnc.dl.wf4ever.vocabulary.AO;
+import pl.psnc.dl.wf4ever.vocabulary.ORE;
+import pl.psnc.dl.wf4ever.vocabulary.RO;
+import pl.psnc.dl.wf4ever.vocabulary.W4E;
+
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
@@ -212,9 +217,9 @@ public final class ROSRService {
         Client client = Client.create();
         WebResource webResource = client.resource(researchObject.toString());
         OntModel model = ModelFactory.createOntologyModel();
-        Individual proxy = model.createIndividual(Vocab.ORE_PROXY);
+        Individual proxy = model.createIndividual(ORE.Proxy);
         Resource proxyFor = model.createResource(resource.toString());
-        model.add(proxy, Vocab.ORE_PROXY_FOR, proxyFor);
+        model.add(proxy, ORE.proxyFor, proxyFor);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         model.write(out);
         ClientResponse response = webResource.header("Authorization", "Bearer " + dLibraToken.getToken())
@@ -434,12 +439,12 @@ public final class ROSRService {
         Client client = Client.create();
         WebResource webResource = client.resource(researchObject.toString());
         OntModel model = ModelFactory.createOntologyModel();
-        Individual annotation = model.createIndividual(Vocab.RO_AGGREGATED_ANNOTATION);
+        Individual annotation = model.createIndividual(RO.AggregatedAnnotation);
         Resource body = model.createResource(bodyURI.toString());
-        model.add(annotation, Vocab.AO_BODY, body);
+        model.add(annotation, AO.body, body);
         for (URI targetURI : targets) {
             Resource target = model.createResource(targetURI.toString());
-            model.add(annotation, Vocab.RO_ANNOTATES_AGGREGATED_RESOURCE, target);
+            model.add(annotation, RO.annotatesAggregatedResource, target);
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         model.write(out);
@@ -598,7 +603,7 @@ public final class ROSRService {
         }
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM,
             graphset.asJenaModel(researchObjectURI.resolve(".ro/manifest.rdf").toString()));
-        model.add(Vocab.MODEL);
+        model.add(W4E.DEFAULT_MODEL);
         return model;
     }
 
