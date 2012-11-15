@@ -28,6 +28,11 @@ public final class UserManagementService {
 
     /**
      * Constructor.
+     * 
+     * @param rodlURI
+     *            RODL URI
+     * @param token
+     *            RODL access token
      */
     public UserManagementService(URI rodlURI, String token) {
         this.rodlURI = rodlURI;
@@ -38,10 +43,6 @@ public final class UserManagementService {
     /**
      * Check if the user id exists.
      * 
-     * @param rodlURI
-     *            RODL URI
-     * @param token
-     *            RODL admin access token
      * @param userId
      *            user id
      * @return true if the user id is already taken
@@ -63,10 +64,6 @@ public final class UserManagementService {
     /**
      * Create a user.
      * 
-     * @param rodlURI
-     *            RODL URI
-     * @param token
-     *            RODL admin access token
      * @param openId
      *            the user OpenID
      * @param username
@@ -86,10 +83,6 @@ public final class UserManagementService {
     /**
      * Delete a user from RODL.
      * 
-     * @param rodlURI
-     *            RODL URI
-     * @param token
-     *            RODL admin access token
      * @param userId
      *            .java RODL user
      * @return RODL response
@@ -105,10 +98,6 @@ public final class UserManagementService {
     /**
      * Get an OAuth client from RODL.
      * 
-     * @param rodlURI
-     *            RODL URI
-     * @param token
-     *            RODL admin access token
      * @param clientId
      *            client id
      * @return the OAuth client
@@ -124,10 +113,6 @@ public final class UserManagementService {
     /**
      * Get all clients from RODL.
      * 
-     * @param rodlURI
-     *            RODL URI
-     * @param token
-     *            RODL admin access token
      * @return a list of OAuth clients
      */
     public List<OAuthClient> getClients() {
@@ -141,10 +126,6 @@ public final class UserManagementService {
     /**
      * Create an access token in RODL.
      * 
-     * @param rodlURI
-     *            RODL URI
-     * @param token
-     *            RODL admin access token
      * @param userId
      *            user id
      * @param clientId
@@ -174,10 +155,6 @@ public final class UserManagementService {
     /**
      * Get all access tokens belonging to a user.
      * 
-     * @param rodlURI
-     *            RODL URI
-     * @param token
-     *            RODL admin access token
      * @param userId
      *            user id
      * @return a list of {@link AccessToken}
@@ -194,10 +171,6 @@ public final class UserManagementService {
     /**
      * Delete an access token.
      * 
-     * @param rodlURI
-     *            RODL URI
-     * @param token
-     *            RODL admin access token
      * @param accesstoken
      *            the token to delete
      * @return RODL response

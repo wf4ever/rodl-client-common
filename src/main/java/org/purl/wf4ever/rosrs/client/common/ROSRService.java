@@ -59,6 +59,11 @@ public class ROSRService {
 
     /**
      * Constructor.
+     * 
+     * @param rodlURI
+     *            RODL URI
+     * @param token
+     *            RODL access token
      */
     public ROSRService(URI rodlURI, String token) {
         this.rodlURI = rodlURI;
@@ -69,12 +74,8 @@ public class ROSRService {
     /**
      * Create a Research Object.
      * 
-     * @param rodlURI
-     *            RODL URI
      * @param roId
      *            RO ID, will be URL encoded
-     * @param dLibraToken
-     *            RODL access token
      * @return response from RODL, remember to close it after use
      * @throws ROSRSException
      *             when the response code is neither 201 nor 409
@@ -99,8 +100,6 @@ public class ROSRService {
      * 
      * @param researchObjectURI
      *            RO URI
-     * @param dLibraToken
-     *            RODL access token
      * @return response from RODL, remember to close it after use
      * @throws ROSRSException
      *             when the response code is neither 204 nor 404
@@ -175,8 +174,6 @@ public class ROSRService {
      *            content input stream
      * @param contentType
      *            MIME type for the request
-     * @param dLibraToken
-     *            RODL access token
      * @return response from RODL, remember to close it after use
      * @throws ROSRSException
      *             when the response code is neither 201 nor 409
@@ -211,8 +208,6 @@ public class ROSRService {
      *            research object URI
      * @param resource
      *            external resource URI
-     * @param dLibraToken
-     *            RODL access token
      * @return response from RODL, remember to close it after use
      * @throws ROSRSException
      *             when the response code is not 201
@@ -248,8 +243,6 @@ public class ROSRService {
      *            content input stream
      * @param contentType
      *            MIME type for the request
-     * @param dLibraToken
-     *            RODL access token
      * @return response from RODL, remember to close it after use
      * @throws ROSRSException
      *             when the response code is not 200
@@ -297,8 +290,6 @@ public class ROSRService {
      * 
      * @param resourceURI
      *            resource URI
-     * @param dLibraToken
-     *            RODL access token
      * @return response from RODL, remember to close it after use
      * @throws ROSRSException
      *             when the response code is not 204 nor 404
@@ -320,8 +311,6 @@ public class ROSRService {
     /**
      * Return data about a RODL user.
      * 
-     * @param rodlURI
-     *            rodl URI
      * @param userURI
      *            URI of the user in RODL
      * @return RDF graph input stream
@@ -345,10 +334,6 @@ public class ROSRService {
     /**
      * Return data about the access token owner.
      * 
-     * @param rodlURI
-     *            RODL URI
-     * @param dLibraToken
-     *            RODL access token
      * @return RDF graph input stream
      * @throws ROSRSException
      *             when the response code is not 2xx
@@ -367,13 +352,10 @@ public class ROSRService {
 
 
     /**
-     * Return a list of ROs. If the access token is not null, returns a list of ROs belonging to the access token owner.
-     * Otherwise returns a list of all ROs.
+     * Return a list of ROs, either a list of ROs belonging to the access token owner or a list of all ROs.
      * 
-     * @param rodlURI
-     *            RODL URI
-     * @param dLibraToken
-     *            RODL access token
+     * @param all
+     *            include all ROs
      * @return a list of RO URIs
      * @throws URISyntaxException
      *             if the URIs returned by RODL are incorrect
@@ -414,8 +396,6 @@ public class ROSRService {
      *            annotated resources URIs
      * @param bodyURI
      *            annotation body URI
-     * @param dLibraToken
-     *            RODL access token
      * @return RODL response
      * @throws ROSRSException
      *             when the response code is not 201
@@ -458,8 +438,6 @@ public class ROSRService {
      *            content input stream
      * @param contentType
      *            MIME type for the request
-     * @param dLibraToken
-     *            RODL access token
      * @return RODL response
      * @throws ROSRSException
      *             when the response code is not 201 or 409 (or 200 in case of aggregating an annotation description)
@@ -496,8 +474,6 @@ public class ROSRService {
      * 
      * @param annURI
      *            annotation URI
-     * @param dLibraToken
-     *            RODL access token
      * @return RODL response to uploading the manifest
      * @throws ROSRSException
      *             when the response code is not 204 or 404
@@ -527,8 +503,6 @@ public class ROSRService {
     /**
      * Checks if it is possible to create an RO with workspace "default" and version "v1".
      * 
-     * @param rodlURI
-     *            RODL URI
      * @param roId
      *            RO id
      * @return true if the RO id is free, false otherwise
