@@ -81,6 +81,16 @@ public class ROSRService {
     }
 
 
+    public URI getRodlURI() {
+        return rodlURI;
+    }
+
+
+    public String getToken() {
+        return token;
+    }
+
+
     /**
      * Create a Research Object.
      * 
