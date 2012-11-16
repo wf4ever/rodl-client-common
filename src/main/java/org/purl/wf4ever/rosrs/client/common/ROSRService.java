@@ -551,7 +551,7 @@ public class ROSRService {
             throws ROSRSException {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
         Individual entry = model.createIndividual(RO.FolderEntry);
-        entry.addProperty(ORE.proxyFor, resource.toString());
+        entry.addProperty(ORE.proxyFor, model.createResource(resource.toString()));
         if (name != null) {
             entry.addProperty(RO.entryName, model.createLiteral(name));
         }
@@ -560,13 +560,13 @@ public class ROSRService {
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 
         WebResource webResource = client.resource(folder.toString());
-        ClientResponse response = webResource.header("Authorization", "Bearer " + token).type(FOLDER_MIME_TYPE)
+        ClientResponse response = webResource.header("Authorization", "Bearer " + token).type(FOLDER_ENTRY_MIME_TYPE)
                 .post(ClientResponse.class, in);
         if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
             return response;
         } else {
-            throw new ROSRSException("Creating the folder entry failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException("Creating the folder entry failed, " + response.getEntity(String.class),
+                    response.getStatus(), response.getClientResponseStatus().getReasonPhrase());
         }
     }
 
