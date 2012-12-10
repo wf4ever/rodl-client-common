@@ -98,14 +98,14 @@ public class ROSRService {
      *            RO ID, will be URL encoded
      * @return response from RODL, remember to close it after use
      * @throws ROSRSException
-     *             when the response code is neither 201 nor 409
+     *             when the response code is not 201 Created
      */
     public ClientResponse createResearchObject(String roId)
             throws ROSRSException {
         WebResource webResource = client.resource(rodlURI.toString()).path("ROs");
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).header("Slug", roId)
                 .type("text/plain").post(ClientResponse.class);
-        if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
+        if (response.getStatus() == HttpStatus.SC_CREATED) {
             return response;
         } else {
             throw new ROSRSException("Creating the RO failed", response.getStatus(), response.getClientResponseStatus()
@@ -141,15 +141,17 @@ public class ROSRService {
      * 
      * @param resourceURI
      *            resource URI
+     * @param accept
+     *            acceptable MIME type or null
      * @return a resource input stream, remember to close it after use
      * @throws ROSRSException
      *             when the response code is not 2xx
      */
-    public InputStream getResource(URI resourceURI)
+    public InputStream getResource(URI resourceURI, String accept)
             throws ROSRSException {
         WebResource webResource = client.resource(resourceURI.toString());
         try {
-            return webResource.get(InputStream.class);
+            return webResource.accept(accept).get(InputStream.class);
         } catch (UniformInterfaceException e) {
             throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
                     .getClientResponseStatus().getReasonPhrase());
@@ -194,7 +196,7 @@ public class ROSRService {
      * @throws ROSRSException
      *             when the response code is neither 201 nor 409
      */
-    public ClientResponse createResource(URI researchObject, String resourcePath, InputStream content,
+    public ClientResponse aggregateInternalResource(URI researchObject, String resourcePath, InputStream content,
             String contentType)
             throws ROSRSException {
         WebResource webResource = client.resource(researchObject.toString());
@@ -209,7 +211,7 @@ public class ROSRService {
             }
         } else {
             URI resource = researchObject.resolve(resourcePath);
-            aggregateResource(researchObject, resource);
+            aggregateExternalResource(researchObject, resource);
             return updateResource(resource, content, contentType);
 
         }
@@ -227,7 +229,7 @@ public class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 201
      */
-    public ClientResponse aggregateResource(URI researchObject, URI resource)
+    public ClientResponse aggregateExternalResource(URI researchObject, URI resource)
             throws ROSRSException {
         WebResource webResource = client.resource(researchObject.toString());
         OntModel model = ModelFactory.createOntologyModel();
