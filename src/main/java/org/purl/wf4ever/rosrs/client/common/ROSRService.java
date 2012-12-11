@@ -147,13 +147,14 @@ public class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 2xx
      */
-    public InputStream getResource(URI resourceURI, String accept)
+    public ClientResponse getResource(URI resourceURI, String accept)
             throws ROSRSException {
         WebResource webResource = client.resource(resourceURI.toString());
-        try {
-            return webResource.accept(accept).get(InputStream.class);
-        } catch (UniformInterfaceException e) {
-            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
+        ClientResponse response = webResource.accept(accept).get(ClientResponse.class);
+        if (response.getStatus() == HttpStatus.SC_OK) {
+            return response;
+        } else {
+            throw new ROSRSException("Getting the resource failed", response.getStatus(), response
                     .getClientResponseStatus().getReasonPhrase());
         }
     }

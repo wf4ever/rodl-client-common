@@ -1,0 +1,59 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns="http://www.example.com/ROs/"
+    xmlns:ro="http://purl.org/wf4ever/ro#"
+    xmlns:roevo="http://purl.org/wf4ever/roevo#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/"
+    xmlns:ao="http://purl.org/ao/"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:dct="http://purl.org/dc/terms/"
+    xmlns:ore="http://www.openarchives.org/ore/terms/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfg="http://www.w3.org/2004/03/trix/rdfg-1/"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" > 
+  <rdf:Description rdf:about="../res1">
+    <dct:creator rdf:resource="http://test.myopenid.com"/>
+    <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2011-12-02T15:02:10Z</dct:created>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Resource"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="../res2">
+    <dct:creator rdf:resource="http://test.myopenid.com"/>
+    <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2011-12-02T15:02:10Z</dct:created>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Resource"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="../folder1">
+    <ore:isDescribedBy rdf:resource="../folder1.ttl"/>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Resource"/>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Folder"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="..">
+    <ore:aggregates rdf:resource="../folder1"/>
+    <ore:aggregates rdf:resource="../res2"/>
+    <ore:aggregates rdf:resource="../res1"/>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#ResearchObject"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
+    <dct:creator rdf:resource="http://test.myopenid.com"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="manifest.rdf">
+    <dct:creator rdf:resource="http://test.myopenid.com"/>
+    <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2011-12-02T16:01:10Z</dct:created>
+    <ore:describes rdf:resource=".."/>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Manifest"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="../proxies/1">
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Proxy"/>
+    <ore:proxyIn rdf:resource=".."/>
+    <ore:proxyFor rdf:resource="../res1"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="../proxies/2">
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Proxy"/>
+    <ore:proxyIn rdf:resource=".."/>
+    <ore:proxyFor rdf:resource="../res2"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="../proxies/3">
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Proxy"/>
+    <ore:proxyIn rdf:resource=".."/>
+    <ore:proxyFor rdf:resource="../folder1"/>
+  </rdf:Description>
+</rdf:RDF>
