@@ -127,7 +127,8 @@ public class ResearchObject implements Serializable {
         } else {
             ClientResponse response = rosrs.getResource(uri, "application/rdf+xml");
             try {
-                model.read(response.getEntityInputStream(), response.getLocation().toString());
+                //HACK there's no way to get the URI after redirection, so we're using a fixed one which may change for different ROSR services
+                model.read(response.getEntityInputStream(), uri.resolve(".ro/manifest.rdf").toString());
             } finally {
                 try {
                     response.getEntityInputStream().close();
@@ -141,6 +142,23 @@ public class ResearchObject implements Serializable {
         this.resources = extractResources(model);
         this.folders = extractFolders(model);
         this.loaded = true;
+    }
+
+
+    /**
+     * Delete the research object.
+     * 
+     * @throws ROSRSException
+     *             unexpected server response
+     */
+    public void delete()
+            throws ROSRSException {
+        this.rosrs.deleteResearchObject(uri);
+        this.loaded = false;
+        this.resources = null;
+        this.folders = null;
+        this.created = null;
+        this.creator = null;
     }
 
 

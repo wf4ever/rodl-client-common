@@ -56,8 +56,8 @@ public class ROSRService {
     /** ro:FolderEntry MIME type. */
     public static final String FOLDER_ENTRY_MIME_TYPE = "application/vnd.wf4ever.folderentry";
 
-    /** RODL URI. */
-    private URI rodlURI;
+    /** ROSRS URI. */
+    private URI rosrsURI;
 
     /** RODL access token. */
     private String token;
@@ -70,19 +70,19 @@ public class ROSRService {
      * Constructor.
      * 
      * @param rodlURI
-     *            RODL URI
+     *            ROSRS URI
      * @param token
      *            RODL access token
      */
     public ROSRService(URI rodlURI, String token) {
-        this.rodlURI = rodlURI;
+        this.rosrsURI = rodlURI;
         this.token = token;
         this.client = Client.create();
     }
 
 
-    public URI getRodlURI() {
-        return rodlURI;
+    public URI getRosrsURI() {
+        return rosrsURI;
     }
 
 
@@ -102,7 +102,7 @@ public class ROSRService {
      */
     public ClientResponse createResearchObject(String roId)
             throws ROSRSException {
-        WebResource webResource = client.resource(rodlURI.toString()).path("ROs");
+        WebResource webResource = client.resource(rosrsURI.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).header("Slug", roId)
                 .type("text/plain").post(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_CREATED) {
@@ -311,7 +311,7 @@ public class ROSRService {
      */
     public InputStream getUser(URI userURI)
             throws ROSRSException {
-        WebResource webResource = client.resource(rodlURI.toString()).path("users")
+        WebResource webResource = client.resource(rosrsURI.toString()).path("users")
                 .path(Base64.encodeBase64URLSafeString(userURI.toString().getBytes()));
         try {
             return webResource.get(InputStream.class);
@@ -331,7 +331,7 @@ public class ROSRService {
      */
     public InputStream getWhoAmi()
             throws ROSRSException {
-        WebResource webResource = client.resource(rodlURI.toString()).path("whoami");
+        WebResource webResource = client.resource(rosrsURI.toString()).path("whoami");
         try {
             return webResource.header("Authorization", "Bearer " + token).get(InputStream.class);
         } catch (UniformInterfaceException e) {
@@ -354,7 +354,7 @@ public class ROSRService {
      */
     public List<URI> getROList(boolean all)
             throws URISyntaxException, ROSRSException {
-        WebResource webResource = client.resource(rodlURI.toString()).path("ROs");
+        WebResource webResource = client.resource(rosrsURI.toString());
         String response;
         try {
             if (all) {
@@ -501,7 +501,7 @@ public class ROSRService {
             throws URISyntaxException, ROSRSException {
         //FIXME there should be a way to implement this without getting the list of all URIs
         List<URI> ros = getROList(true);
-        URI ro = new URI(rodlURI.getScheme(), rodlURI.getHost(), rodlURI.getPath() + "ROs/" + roId + "/", null);
+        URI ro = new URI(rosrsURI.getScheme(), rosrsURI.getHost(), rosrsURI.getPath() + "ROs/" + roId + "/", null);
         return !ros.contains(ro);
     }
 

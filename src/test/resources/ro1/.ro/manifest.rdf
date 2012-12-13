@@ -33,6 +33,7 @@
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#ResearchObject"/>
     <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
     <dct:creator rdf:resource="http://test.myopenid.com"/>
+    <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2011-12-02T16:01:10Z</dct:created>
   </rdf:Description>
   <rdf:Description rdf:about="manifest.rdf">
     <dct:creator rdf:resource="http://test.myopenid.com"/>
