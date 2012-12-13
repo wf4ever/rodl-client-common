@@ -3,15 +3,20 @@ package org.purl.wf4ever.rosrs.client.common;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
+import pl.psnc.dl.wf4ever.vocabulary.AO;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 import pl.psnc.dl.wf4ever.vocabulary.RO;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
@@ -51,10 +56,13 @@ public class ResearchObject implements Serializable {
     private boolean loaded;
 
     /** aggregated ro:Resources, excluding ro:Folders. */
-    private Set<Resource> resources;
+    private Map<URI, Resource> resources;
 
     /** aggregated ro:Folders. */
-    private Set<Folder> folders;
+    private Map<URI, Folder> folders;
+
+    /** aggregated annotations, grouped based on ao:annotatesResource. */
+    private Multimap<Resource, Annotation> annotations;
 
     /** creator URI. */
     private URI creator;
@@ -141,6 +149,7 @@ public class ResearchObject implements Serializable {
         this.created = extractCreated(model);
         this.resources = extractResources(model);
         this.folders = extractFolders(model);
+        this.annotations = extractAnnotations(model);
         this.loaded = true;
     }
 
@@ -162,13 +171,18 @@ public class ResearchObject implements Serializable {
     }
 
 
-    public Set<Resource> getResources() {
-        return resources;
+    public Collection<Resource> getResources() {
+        return resources.values();
     }
 
 
-    public Set<Folder> getFolders() {
-        return folders;
+    public Collection<Folder> getFolders() {
+        return folders.values();
+    }
+
+
+    public Multimap<Resource, Annotation> getAnnotations() {
+        return annotations;
     }
 
 
@@ -232,13 +246,12 @@ public class ResearchObject implements Serializable {
      *            manifest model
      * @return a set of resources (not loaded)
      */
-    private Set<Resource> extractResources(OntModel model) {
-        Set<Resource> resources2 = new HashSet<>();
-        model.write(System.out, "TURTLE");
+    private Map<URI, Resource> extractResources(OntModel model) {
+        Map<URI, Resource> resources2 = new HashMap<>();
         String queryString = String
                 .format(
-                    "PREFIX ore: <%s> PREFIX ro: <%s> SELECT ?resource ?proxy WHERE { <%s> ore:aggregates ?resource . ?resource a ro:Resource . ?proxy ore:proxyFor ?resource . }",
-                    ORE.NAMESPACE, RO.NAMESPACE, uri.toString());
+                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> SELECT ?resource ?proxy ?created ?creator WHERE { <%s> ore:aggregates ?resource . ?resource a ro:Resource . ?proxy ore:proxyFor ?resource . OPTIONAL { ?resource dcterms:creator ?creator . } OPTIONAL { ?resource dcterms:created ?created . } }",
+                    ORE.NAMESPACE, DCTerms.NS, RO.NAMESPACE, uri.toString());
 
         Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, model);
@@ -250,9 +263,16 @@ public class ResearchObject implements Serializable {
                 if (r.as(Individual.class).hasRDFType(RO.Folder)) {
                     continue;
                 }
+                URI rURI = URI.create(r.asResource().getURI());
                 RDFNode p = solution.get("proxy");
-                resources2.add(new Resource(this, URI.create(r.asResource().getURI()), URI.create(p.asResource()
-                        .getURI())));
+                RDFNode creatorNode = solution.get("creator");
+                URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode
+                        .asResource().getURI()) : null;
+                RDFNode createdNode = solution.get("created");
+                DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
+                        .asLiteral().getString()) : null;
+                resources2.put(rURI, new Resource(this, rURI, URI.create(p.asResource().getURI()), resCreator,
+                        resCreated));
             }
         } finally {
             qe.close();
@@ -269,12 +289,12 @@ public class ResearchObject implements Serializable {
      *            manifest model
      * @return a set of folders (not loaded)
      */
-    private Set<Folder> extractFolders(OntModel model) {
-        Set<Folder> folders2 = new HashSet<>();
+    private Map<URI, Folder> extractFolders(OntModel model) {
+        Map<URI, Folder> folders2 = new HashMap<>();
         String queryString = String
                 .format(
-                    "PREFIX ore: <%s> PREFIX ro: <%s> SELECT ?folder ?proxy ?resourcemap WHERE { <%s> ore:aggregates ?folder . ?folder a ro:Folder ; ore:isDescribedBy ?resourcemap . ?proxy ore:proxyFor ?folder . }",
-                    ORE.NAMESPACE, RO.NAMESPACE, uri.toString());
+                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> SELECT ?folder ?proxy ?resourcemap WHERE { <%s> ore:aggregates ?folder . ?folder a ro:Folder ; ore:isDescribedBy ?resourcemap . ?proxy ore:proxyFor ?folder . }",
+                    ORE.NAMESPACE, DCTerms.NS, RO.NAMESPACE, uri.toString());
 
         Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, model);
@@ -283,15 +303,76 @@ public class ResearchObject implements Serializable {
             while (results.hasNext()) {
                 QuerySolution solution = results.next();
                 RDFNode f = solution.get("folder");
+                URI fURI = URI.create(f.asResource().getURI());
                 RDFNode p = solution.get("proxy");
                 RDFNode rm = solution.get("resourcemap");
-                folders2.add(new Folder(this, URI.create(f.asResource().getURI()), URI.create(p.asResource().getURI()),
-                        URI.create(rm.asResource().getURI())));
+                RDFNode creatorNode = solution.get("creator");
+                URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode
+                        .asResource().getURI()) : null;
+                RDFNode createdNode = solution.get("created");
+                DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
+                        .asLiteral().getString()) : null;
+                folders2.put(fURI,
+                    new Folder(this, fURI, URI.create(p.asResource().getURI()), URI.create(rm.asResource().getURI()),
+                            resCreator, resCreated));
             }
         } finally {
             qe.close();
         }
 
         return folders2;
+    }
+
+
+    /**
+     * Identify ro:AggregatedAnnotations that aggregated by the RO.
+     * 
+     * @param model
+     *            manifest model
+     * @return a multivalued map of annotations, with bodies not loaded
+     */
+    private Multimap<Resource, Annotation> extractAnnotations(OntModel model) {
+        Multimap<Resource, Annotation> annotations2 = HashMultimap.<Resource, Annotation> create();
+        Map<URI, Annotation> annotationsByUri = new HashMap<>();
+        String queryString = String
+                .format(
+                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ao: <%s> PREFIX ro: <%s> SELECT ?annotation ?body ?target ?created ?creator WHERE { <%s> ore:aggregates ?annotation . ?annotation a ro:AggregatedAnnotation ; ao:body ?body ; ro:annotatesAggregatedResource ?target . OPTIONAL { ?annotation dcterms:creator ?creator . } OPTIONAL { ?annotation dcterms:created ?created . } }",
+                    ORE.NAMESPACE, DCTerms.NS, AO.NAMESPACE, RO.NAMESPACE, uri.toString());
+
+        Query query = QueryFactory.create(queryString);
+        QueryExecution qe = QueryExecutionFactory.create(query, model);
+        try {
+            ResultSet results = qe.execSelect();
+            while (results.hasNext()) {
+                QuerySolution solution = results.next();
+                RDFNode a = solution.get("annotation");
+                URI aURI = URI.create(a.asResource().getURI());
+                RDFNode t = solution.get("target");
+                Resource target = resources.get(URI.create(t.asResource().getURI()));
+                if (target == null) {
+                    target = folders.get(URI.create(t.asResource().getURI()));
+                }
+                Annotation annotation;
+                if (annotationsByUri.containsKey(aURI)) {
+                    annotation = annotationsByUri.get(aURI);
+                    annotation.getTargets().add(target);
+                } else {
+                    RDFNode b = solution.get("body");
+                    RDFNode creatorNode = solution.get("creator");
+                    URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode
+                            .asResource().getURI()) : null;
+                    RDFNode createdNode = solution.get("created");
+                    DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
+                            .asLiteral().getString()) : null;
+                    annotation = new Annotation(this, aURI, URI.create(b.asResource().getURI()), Arrays.asList(target),
+                            resCreator, resCreated);
+                }
+                annotations2.put(target, annotation);
+            }
+        } finally {
+            qe.close();
+        }
+
+        return annotations2;
     }
 }

@@ -60,6 +60,12 @@ public class ResearchObjectTest {
     }
 
 
+    /**
+     * Test that you can create and delete an RO in ROSRS.
+     * 
+     * @throws ROSRSException
+     *             ROSRS returned an unexpected response.
+     */
     @Test
     public final void testCreateDelete()
             throws ROSRSException {
@@ -130,10 +136,14 @@ public class ResearchObjectTest {
      */
     @Test
     public final void testGetResources() {
+        Set<Resource> ex = new HashSet<>();
+        ex.add(new Resource(ro1, RO_PREFIX.resolve("res1"), RO_PREFIX.resolve("proxies/proxy1"), URI
+                .create("http://test1.myopenid.com"), new DateTime(2011, 12, 02, 15, 01, 10, DateTimeZone.UTC)));
+        ex.add(new Resource(ro1, RO_PREFIX.resolve("res2"), RO_PREFIX.resolve("proxies/proxy2"), URI
+                .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 01, 11, DateTimeZone.UTC)));
         Set<Resource> res = new HashSet<>();
-        res.add(new Resource(ro1, RO_PREFIX.resolve("res1"), RO_PREFIX.resolve("proxies/proxy1")));
-        res.add(new Resource(ro1, RO_PREFIX.resolve("res2"), RO_PREFIX.resolve("proxies/proxy2")));
-        Assert.assertEquals(res, ro1.getResources());
+        res.addAll(ro1.getResources());
+        Assert.assertEquals(ex, res);
     }
 
 
@@ -144,8 +154,11 @@ public class ResearchObjectTest {
     public final void testGetFolders() {
         Set<Folder> folders = new HashSet<>();
         folders.add(new Folder(ro1, RO_PREFIX.resolve("folder1"), RO_PREFIX.resolve("proxies/proxy3"), RO_PREFIX
-                .resolve("folder1.ttl")));
-        Assert.assertEquals(folders, ro1.getFolders());
+                .resolve("folder1.ttl"), URI.create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 16, 01,
+                10, DateTimeZone.UTC)));
+        Set<Folder> res = new HashSet<>();
+        res.addAll(ro1.getFolders());
+        Assert.assertEquals(folders, res);
     }
 
 

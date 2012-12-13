@@ -12,13 +12,13 @@
     xmlns:rdfg="http://www.w3.org/2004/03/trix/rdfg-1/"
     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" > 
   <rdf:Description rdf:about="../res1">
-    <dct:creator rdf:resource="http://test.myopenid.com"/>
+    <dct:creator rdf:resource="http://test1.myopenid.com"/>
     <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2011-12-02T15:02:10Z</dct:created>
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Resource"/>
   </rdf:Description>
   <rdf:Description rdf:about="../res2">
-    <dct:creator rdf:resource="http://test.myopenid.com"/>
-    <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2011-12-02T15:02:10Z</dct:created>
+    <dct:creator rdf:resource="http://test2.myopenid.com"/>
+    <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2011-12-02T15:02:11Z</dct:created>
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Resource"/>
   </rdf:Description>
   <rdf:Description rdf:about="../folder1">

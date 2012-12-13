@@ -2,6 +2,8 @@ package org.purl.wf4ever.rosrs.client.common;
 
 import java.net.URI;
 
+import org.joda.time.DateTime;
+
 /**
  * ro:Resource.
  * 
@@ -11,19 +13,22 @@ import java.net.URI;
 public class Resource {
 
     /** URI. */
-    private URI uri;
+    protected final URI uri;
 
     /** The RO it is aggregated by. */
-    private ResearchObject researchObject;
+    protected final ResearchObject researchObject;
 
     /** URI of the proxy. */
-    private URI proxyUri;
+    protected final URI proxyUri;
 
     /** ROSRS client. */
-    private ROSRService rosrs;
+    protected ROSRService rosrs;
 
-    /** has the resource been loaded from ROSRS. */
-    private boolean loaded;
+    /** creator URI. */
+    protected URI creator;
+
+    /** creation date. */
+    protected DateTime created;
 
 
     /**
@@ -35,11 +40,47 @@ public class Resource {
      *            resource URI
      * @param proxyURI
      *            URI of the proxy
+     * @param creator
+     *            author of the resource
+     * @param created
+     *            creation date
      */
-    public Resource(ResearchObject researchObject, URI uri, URI proxyURI) {
+    public Resource(ResearchObject researchObject, URI uri, URI proxyURI, URI creator, DateTime created) {
         this.researchObject = researchObject;
         this.uri = uri;
         this.proxyUri = proxyURI;
+        this.creator = creator;
+        this.created = created;
+    }
+
+
+    public URI getUri() {
+        return uri;
+    }
+
+
+    public ResearchObject getResearchObject() {
+        return researchObject;
+    }
+
+
+    public URI getProxyUri() {
+        return proxyUri;
+    }
+
+
+    public ROSRService getRosrs() {
+        return rosrs;
+    }
+
+
+    public URI getCreator() {
+        return creator;
+    }
+
+
+    public DateTime getCreated() {
+        return created;
     }
 
 
