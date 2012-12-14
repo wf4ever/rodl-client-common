@@ -62,7 +62,7 @@ public class ResearchObject implements Serializable {
     private Map<URI, Folder> folders;
 
     /** aggregated annotations, grouped based on ao:annotatesResource. */
-    private Multimap<Resource, Annotation> annotations;
+    private Multimap<URI, Annotation> annotations;
 
     /** creator URI. */
     private URI creator;
@@ -181,7 +181,7 @@ public class ResearchObject implements Serializable {
     }
 
 
-    public Multimap<Resource, Annotation> getAnnotations() {
+    public Multimap<URI, Annotation> getAnnotations() {
         return annotations;
     }
 
@@ -293,7 +293,7 @@ public class ResearchObject implements Serializable {
         Map<URI, Folder> folders2 = new HashMap<>();
         String queryString = String
                 .format(
-                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> SELECT ?folder ?proxy ?resourcemap WHERE { <%s> ore:aggregates ?folder . ?folder a ro:Folder ; ore:isDescribedBy ?resourcemap . ?proxy ore:proxyFor ?folder . }",
+                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> SELECT ?folder ?proxy ?resourcemap ?created ?creator WHERE { <%s> ore:aggregates ?folder . ?folder a ro:Folder ; ore:isDescribedBy ?resourcemap . ?proxy ore:proxyFor ?folder . OPTIONAL { ?folder dcterms:creator ?creator . } OPTIONAL { ?folder dcterms:created ?created . } }",
                     ORE.NAMESPACE, DCTerms.NS, RO.NAMESPACE, uri.toString());
 
         Query query = QueryFactory.create(queryString);
@@ -331,8 +331,8 @@ public class ResearchObject implements Serializable {
      *            manifest model
      * @return a multivalued map of annotations, with bodies not loaded
      */
-    private Multimap<Resource, Annotation> extractAnnotations(OntModel model) {
-        Multimap<Resource, Annotation> annotations2 = HashMultimap.<Resource, Annotation> create();
+    private Multimap<URI, Annotation> extractAnnotations(OntModel model) {
+        Multimap<URI, Annotation> annotations2 = HashMultimap.<URI, Annotation> create();
         Map<URI, Annotation> annotationsByUri = new HashMap<>();
         String queryString = String
                 .format(
@@ -348,14 +348,11 @@ public class ResearchObject implements Serializable {
                 RDFNode a = solution.get("annotation");
                 URI aURI = URI.create(a.asResource().getURI());
                 RDFNode t = solution.get("target");
-                Resource target = resources.get(URI.create(t.asResource().getURI()));
-                if (target == null) {
-                    target = folders.get(URI.create(t.asResource().getURI()));
-                }
+                URI tURI = URI.create(t.asResource().getURI());
                 Annotation annotation;
                 if (annotationsByUri.containsKey(aURI)) {
                     annotation = annotationsByUri.get(aURI);
-                    annotation.getTargets().add(target);
+                    annotation.getTargets().add(tURI);
                 } else {
                     RDFNode b = solution.get("body");
                     RDFNode creatorNode = solution.get("creator");
@@ -364,10 +361,10 @@ public class ResearchObject implements Serializable {
                     RDFNode createdNode = solution.get("created");
                     DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
                             .asLiteral().getString()) : null;
-                    annotation = new Annotation(this, aURI, URI.create(b.asResource().getURI()), Arrays.asList(target),
+                    annotation = new Annotation(this, aURI, URI.create(b.asResource().getURI()), Arrays.asList(tURI),
                             resCreator, resCreated);
                 }
-                annotations2.put(target, annotation);
+                annotations2.put(tURI, annotation);
             }
         } finally {
             qe.close();

@@ -9,6 +9,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -137,10 +138,10 @@ public class ResearchObjectTest {
     @Test
     public final void testGetResources() {
         Set<Resource> ex = new HashSet<>();
-        ex.add(new Resource(ro1, RO_PREFIX.resolve("res1"), RO_PREFIX.resolve("proxies/proxy1"), URI
-                .create("http://test1.myopenid.com"), new DateTime(2011, 12, 02, 15, 01, 10, DateTimeZone.UTC)));
-        ex.add(new Resource(ro1, RO_PREFIX.resolve("res2"), RO_PREFIX.resolve("proxies/proxy2"), URI
-                .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 01, 11, DateTimeZone.UTC)));
+        ex.add(new Resource(ro1, RO_PREFIX.resolve("res1"), RO_PREFIX.resolve("proxies/1"), URI
+                .create("http://test1.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 10, DateTimeZone.UTC)));
+        ex.add(new Resource(ro1, RO_PREFIX.resolve("res2"), RO_PREFIX.resolve("proxies/2"), URI
+                .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
         Set<Resource> res = new HashSet<>();
         res.addAll(ro1.getResources());
         Assert.assertEquals(ex, res);
@@ -152,6 +153,22 @@ public class ResearchObjectTest {
      */
     @Test
     public final void testGetFolders() {
+        Set<Folder> folders = new HashSet<>();
+        folders.add(new Folder(ro1, RO_PREFIX.resolve("folder1"), RO_PREFIX.resolve("proxies/3"), RO_PREFIX
+                .resolve("folder1.ttl"), URI.create("http://test3.myopenid.com"), new DateTime(2011, 12, 02, 15, 02,
+                12, DateTimeZone.UTC)));
+        Set<Folder> res = new HashSet<>();
+        res.addAll(ro1.getFolders());
+        Assert.assertEquals(folders, res);
+    }
+
+
+    /**
+     * Test ro:AggregatedAnnotations identified.
+     */
+    @Test
+    @Ignore
+    public final void testGetAnnotations() {
         Set<Folder> folders = new HashSet<>();
         folders.add(new Folder(ro1, RO_PREFIX.resolve("folder1"), RO_PREFIX.resolve("proxies/proxy3"), RO_PREFIX
                 .resolve("folder1.ttl"), URI.create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 16, 01,

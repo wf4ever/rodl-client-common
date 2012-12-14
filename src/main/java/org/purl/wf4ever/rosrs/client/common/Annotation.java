@@ -8,13 +8,13 @@ import org.joda.time.DateTime;
 
 public class Annotation {
 
-    public Annotation(ResearchObject researchObject, URI create, URI create2, List<Resource> list, URI resCreator,
+    public Annotation(ResearchObject researchObject, URI create, URI create2, List<URI> list, URI resCreator,
             DateTime resCreated) {
         // TODO Auto-generated constructor stub
     }
 
 
-    public Set<Resource> getTargets() {
+    public Set<URI> getTargets() {
         // TODO Auto-generated method stub
         return null;
     }

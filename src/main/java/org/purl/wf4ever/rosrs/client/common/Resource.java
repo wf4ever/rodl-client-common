@@ -88,6 +88,9 @@ public class Resource {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result + ((created == null) ? 0 : created.hashCode());
+        result = prime * result + ((creator == null) ? 0 : creator.hashCode());
+        result = prime * result + ((proxyUri == null) ? 0 : proxyUri.hashCode());
         result = prime * result + ((uri == null) ? 0 : uri.hashCode());
         return result;
     }
@@ -110,6 +113,27 @@ public class Resource {
                 return false;
             }
         } else if (!uri.equals(other.uri)) {
+            return false;
+        }
+        if (created == null) {
+            if (other.created != null) {
+                return false;
+            }
+        } else if (!created.equals(other.created)) {
+            return false;
+        }
+        if (creator == null) {
+            if (other.creator != null) {
+                return false;
+            }
+        } else if (!creator.equals(other.creator)) {
+            return false;
+        }
+        if (proxyUri == null) {
+            if (other.proxyUri != null) {
+                return false;
+            }
+        } else if (!proxyUri.equals(other.proxyUri)) {
             return false;
         }
         return true;
