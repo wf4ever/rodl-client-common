@@ -1,8 +1,13 @@
 package org.purl.wf4ever.rosrs.client.common;
 
+import java.io.InputStream;
 import java.net.URI;
+import java.util.Collection;
 
 import org.joda.time.DateTime;
+
+import com.google.common.collect.Multimap;
+import com.sun.jersey.api.client.ClientResponse;
 
 /**
  * ro:Resource.
@@ -20,9 +25,6 @@ public class Resource {
 
     /** URI of the proxy. */
     protected final URI proxyUri;
-
-    /** ROSRS client. */
-    protected ROSRService rosrs;
 
     /** creator URI. */
     protected URI creator;
@@ -54,6 +56,75 @@ public class Resource {
     }
 
 
+    /**
+     * Add an internal resource to the research object. Does not add the resource instance to the {@link ResearchObject}
+     * instance.
+     * 
+     * @param researchObject
+     *            the RO
+     * @param path
+     *            resource path, relative to the RO URI
+     * @param content
+     *            resource content
+     * @param contentType
+     *            resource Content Type
+     * @return the resource instance
+     * @throws ROSRSException
+     *             server returned an unexpected response
+     */
+    public static Resource create(ResearchObject researchObject, String path, InputStream content, String contentType)
+            throws ROSRSException {
+        ClientResponse response = researchObject.getRosrs().aggregateInternalResource(researchObject.getUri(), path,
+            content, contentType);
+        Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
+        URI proxy = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
+                .get("http://www.openarchives.org/ore/terms/proxyFor").iterator().next();
+        //FIXME creator/created dates are null but see WFE-758
+        return new Resource(researchObject, response.getLocation(), proxy, null, null);
+    }
+
+
+    /**
+     * Add an external resource (a reference to a resource) to the research object. Does not add the resource instance
+     * to the {@link ResearchObject} instance.
+     * 
+     * @param researchObject
+     *            the RO
+     * @param uri
+     *            resource URI
+     * @return the resource instance
+     * @throws ROSRSException
+     *             server returned an unexpected response
+     */
+    public static Resource create(ResearchObject researchObject, URI uri)
+            throws ROSRSException {
+        ClientResponse response = researchObject.getRosrs().aggregateExternalResource(researchObject.getUri(), uri);
+        Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
+        URI proxy = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
+                .get("http://www.openarchives.org/ore/terms/proxyFor").iterator().next();
+        //FIXME creator/created dates are null but see WFE-758
+        return new Resource(researchObject, response.getLocation(), proxy, null, null);
+    }
+
+
+    /**
+     * Delete the resource from ROSRS and from the research object.
+     * 
+     * @throws ROSRSException
+     *             server returned an unexpected response
+     */
+    public void delete()
+            throws ROSRSException {
+        researchObject.getRosrs().deleteResource(uri);
+        researchObject.removeResource(this);
+    }
+
+
+    public Collection<Annotation> getAnnotations() {
+        return this.researchObject.getAnnotations().get(uri);
+    }
+
+
     public URI getUri() {
         return uri;
     }
@@ -66,11 +137,6 @@ public class Resource {
 
     public URI getProxyUri() {
         return proxyUri;
-    }
-
-
-    public ROSRService getRosrs() {
-        return rosrs;
     }
 
 

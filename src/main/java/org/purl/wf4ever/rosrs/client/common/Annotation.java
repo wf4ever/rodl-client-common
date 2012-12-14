@@ -7,16 +7,49 @@ import java.util.Set;
 
 import org.joda.time.DateTime;
 
+/**
+ * ro:AggregatedAnnotation.
+ * 
+ * @author piotrekhol
+ * 
+ */
 public class Annotation {
 
+    /** RO aggregating the annotation. */
     private ResearchObject researchObject;
+
+    /** annotation URI. */
     private URI uri;
+
+    /** annotation body, may be aggregated or not, may be a ro:Resource (rarely) or not. */
     private URI body;
+
+    /** annotated resources, must be RO/aggregated resources/proxies. */
     private Set<URI> targets;
+
+    /** annotation author. */
     private URI creator;
+
+    /** annotation creation time. */
     private DateTime created;
 
 
+    /**
+     * Constructor.
+     * 
+     * @param researchObject
+     *            RO aggregating the annotation
+     * @param uri
+     *            annotation URI
+     * @param body
+     *            annotation body, may be aggregated or not, may be a ro:Resource (rarely) or not
+     * @param targets
+     *            annotated resources, must be RO/aggregated resources/proxies
+     * @param creator
+     *            annotation author
+     * @param created
+     *            annotation creation time
+     */
     public Annotation(ResearchObject researchObject, URI uri, URI body, Set<URI> targets, URI creator, DateTime created) {
         this.researchObject = researchObject;
         this.uri = uri;
@@ -27,6 +60,22 @@ public class Annotation {
     }
 
 
+    /**
+     * Constructor.
+     * 
+     * @param researchObject
+     *            RO aggregating the annotation
+     * @param uri
+     *            annotation URI
+     * @param body
+     *            annotation body, may be aggregated or not, may be a ro:Resource (rarely) or not
+     * @param target
+     *            annotated resource, must be the RO/aggregated resource/proxy
+     * @param creator
+     *            annotation author
+     * @param created
+     *            annotation creation time
+     */
     public Annotation(ResearchObject researchObject, URI uri, URI body, URI target, URI creator, DateTime created) {
         this(researchObject, uri, body, new HashSet<URI>(Arrays.asList(new URI[] { target })), creator, created);
     }

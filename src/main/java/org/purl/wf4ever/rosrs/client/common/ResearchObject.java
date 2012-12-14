@@ -1,6 +1,7 @@
 package org.purl.wf4ever.rosrs.client.common;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Collection;
@@ -370,5 +371,83 @@ public class ResearchObject implements Serializable {
         }
 
         return annotations2;
+    }
+
+
+    /**
+     * Add an internal resource to the research object.
+     * 
+     * @param path
+     *            resource path, relative to the RO URI
+     * @param content
+     *            resource content
+     * @param contentType
+     *            resource Content Type
+     * @return the resource instance
+     * @throws ROSRSException
+     *             server returned an unexpected response
+     * @throws ROException
+     *             the manifest is incorrect
+     */
+    public Resource aggregate(String path, InputStream content, String contentType)
+            throws ROSRSException, ROException {
+        Resource resource = Resource.create(this, path, content, contentType);
+        if (!loaded) {
+            load();
+        }
+        this.resources.put(resource.getUri(), resource);
+        return resource;
+    }
+
+
+    /**
+     * Add an external resource (a reference to a resource) to the research object.
+     * 
+     * @param uri
+     *            resource URI
+     * @return the resource instance
+     * @throws ROSRSException
+     *             server returned an unexpected response
+     * @throws ROException
+     *             the manifest is incorrect
+     */
+    public Resource aggregate(URI uri)
+            throws ROSRSException, ROException {
+        Resource resource = Resource.create(this, uri);
+        if (!loaded) {
+            load();
+        }
+        this.resources.put(resource.getUri(), resource);
+        return resource;
+    }
+
+
+    /**
+     * Remove the resource and the annotations about it.
+     * 
+     * @param resource
+     *            resource to delete
+     */
+    public void removeResource(Resource resource) {
+        this.resources.remove(resource.getUri());
+        for (Annotation annotation : this.annotations.get(resource.getUri())) {
+            annotation.getTargets().remove(resource.getUri());
+        }
+        this.annotations.removeAll(resource.getUri());
+    }
+
+
+    /**
+     * Remove the folder and the annotations about it.
+     * 
+     * @param folder
+     *            folder to delete
+     */
+    public void removeFolder(Folder folder) {
+        this.folders.remove(folder.getUri());
+        for (Annotation annotation : this.annotations.get(folder.getUri())) {
+            annotation.getTargets().remove(folder.getUri());
+        }
+        this.annotations.removeAll(folder.getUri());
     }
 }
