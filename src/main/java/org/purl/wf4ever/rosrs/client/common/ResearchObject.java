@@ -3,7 +3,6 @@ package org.purl.wf4ever.rosrs.client.common;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -361,8 +360,8 @@ public class ResearchObject implements Serializable {
                     RDFNode createdNode = solution.get("created");
                     DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
                             .asLiteral().getString()) : null;
-                    annotation = new Annotation(this, aURI, URI.create(b.asResource().getURI()), Arrays.asList(tURI),
-                            resCreator, resCreated);
+                    annotation = new Annotation(this, aURI, URI.create(b.asResource().getURI()), tURI, resCreator,
+                            resCreated);
                 }
                 annotations2.put(tURI, annotation);
             }

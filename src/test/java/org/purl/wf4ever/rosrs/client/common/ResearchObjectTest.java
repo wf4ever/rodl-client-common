@@ -9,8 +9,10 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * Test the ResearchObject class.
@@ -167,15 +169,30 @@ public class ResearchObjectTest {
      * Test ro:AggregatedAnnotations identified.
      */
     @Test
-    @Ignore
     public final void testGetAnnotations() {
-        Set<Folder> folders = new HashSet<>();
-        folders.add(new Folder(ro1, RO_PREFIX.resolve("folder1"), RO_PREFIX.resolve("proxies/proxy3"), RO_PREFIX
-                .resolve("folder1.ttl"), URI.create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 16, 01,
-                10, DateTimeZone.UTC)));
-        Set<Folder> res = new HashSet<>();
-        res.addAll(ro1.getFolders());
-        Assert.assertEquals(folders, res);
+        Multimap<URI, Annotation> ex = HashMultimap.<URI, Annotation> create();
+        Annotation an1 = new Annotation(ro1, RO_PREFIX.resolve(".ro/annotations/1"), RO_PREFIX.resolve("body1.rdf"),
+                RO_PREFIX, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
+                        DateTimeZone.UTC));
+        Annotation an2 = new Annotation(ro1, RO_PREFIX.resolve(".ro/annotations/2"),
+                URI.create("http://example.org/externalbody1.rdf"), RO_PREFIX.resolve("res1"),
+                URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
+        Set<URI> targets = new HashSet<>();
+        targets.add(RO_PREFIX.resolve("folder1"));
+        targets.add(RO_PREFIX.resolve("res2"));
+        Annotation an3 = new Annotation(ro1, RO_PREFIX.resolve(".ro/annotations/3"), RO_PREFIX.resolve("body2.rdf"),
+                targets, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
+                        DateTimeZone.UTC));
+        Annotation an4 = new Annotation(ro1, RO_PREFIX.resolve(".ro/annotations/4"), RO_PREFIX.resolve("body3.rdf"),
+                RO_PREFIX.resolve("folder1"), URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12,
+                        06, 53, 551, DateTimeZone.UTC));
+        ex.put(RO_PREFIX, an1);
+        ex.put(RO_PREFIX.resolve("res1"), an2);
+        ex.put(RO_PREFIX.resolve("folder1"), an3);
+        ex.put(RO_PREFIX.resolve("res2"), an3);
+        ex.put(RO_PREFIX.resolve("folder1"), an4);
+
+        Assert.assertEquals(ex, ro1.getAnnotations());
     }
 
 
