@@ -460,6 +460,9 @@ public class ResearchObject implements Serializable {
      *            the annotation
      */
     public void removeAnnotation(Annotation annotation) {
+        if (annotations == null) {
+            return;
+        }
         for (URI target : annotation.getTargets()) {
             annotations.get(target).remove(annotation);
         }

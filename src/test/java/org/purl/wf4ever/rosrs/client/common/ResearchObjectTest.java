@@ -25,10 +25,6 @@ public class ResearchObjectTest {
     /** RO that will be mapped to local resources. */
     private static final URI RO_PREFIX = URI.create("http://example.org/ro1/");
 
-    /** Some ROSRS available by HTTP. */
-    private static final ROSRService ROSRS = new ROSRService(
-            URI.create("http://sandbox.wf4ever-project.org/rodl/ROs/"), "32801fc0-1df1-4e34-b");
-
     /** Some RO available by HTTP. */
     private static final URI PUBLIC_RO = URI.create("http://sandbox.wf4ever-project.org/rodl/ROs/AstronomyPack/");
 
@@ -74,12 +70,12 @@ public class ResearchObjectTest {
             throws ROSRSException {
         ResearchObject ro;
         try {
-            ro = ResearchObject.create(ROSRS, "JavaClientTest");
+            ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
         } catch (ROSRSException e) {
             if (e.getStatus() == HttpStatus.SC_CONFLICT) {
-                ro = new ResearchObject(ROSRS.getRosrsURI().resolve("JavaClientTest/"), ROSRS);
+                ro = new ResearchObject(TestUtils.ROSRS.getRosrsURI().resolve("JavaClientTest/"), TestUtils.ROSRS);
                 ro.delete();
-                ro = ResearchObject.create(ROSRS, "JavaClientTest");
+                ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
             } else {
                 throw e;
             }
@@ -127,7 +123,7 @@ public class ResearchObjectTest {
     @Test
     public final void testLoad()
             throws ROSRSException, ROException {
-        ResearchObject ro = new ResearchObject(PUBLIC_RO, ROSRS);
+        ResearchObject ro = new ResearchObject(PUBLIC_RO, TestUtils.ROSRS);
         Assert.assertFalse(ro.isLoaded());
         ro.load();
         Assert.assertTrue(ro.isLoaded());
