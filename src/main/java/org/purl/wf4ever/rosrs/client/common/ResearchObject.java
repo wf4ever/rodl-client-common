@@ -313,9 +313,21 @@ public class ResearchObject implements Serializable {
                 RDFNode createdNode = solution.get("created");
                 DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
                         .asLiteral().getString()) : null;
+
+                String queryString2 = String.format("PREFIX ro: <%s> ASK { <%s> ro:rootFolder <%s> }", RO.NAMESPACE,
+                    uri.toString(), fURI.toString());
+                Query query2 = QueryFactory.create(queryString2);
+                QueryExecution qe2 = QueryExecutionFactory.create(query2, model);
+                boolean isRootFolder = false;
+                try {
+                    isRootFolder = qe2.execAsk();
+                } finally {
+                    qe2.close();
+                }
+
                 folders2.put(fURI,
                     new Folder(this, fURI, URI.create(p.asResource().getURI()), URI.create(rm.asResource().getURI()),
-                            resCreator, resCreated));
+                            resCreator, resCreated, isRootFolder));
             }
         } finally {
             qe.close();

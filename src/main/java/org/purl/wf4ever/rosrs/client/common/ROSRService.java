@@ -469,20 +469,24 @@ public class ROSRService {
     public ClientResponse deleteAnnotationAndBody(URI annURI)
             throws ROSRSException {
         client.setFollowRedirects(false);
-        ClientResponse response = client.resource(annURI.toString()).get(ClientResponse.class);
-        if (response.getClientResponseStatus().getStatusCode() == HttpStatus.SC_SEE_OTHER) {
-            ClientResponse bodyResponse = client.resource(response.getLocation())
-                    .header("Authorization", "Bearer " + token).delete(ClientResponse.class);
-            if (bodyResponse.getStatus() != HttpStatus.SC_NO_CONTENT) {
-                LOG.warn("Unexpected response when deleting the annotation body: " + bodyResponse.toString());
+        try {
+            ClientResponse response = client.resource(annURI.toString()).get(ClientResponse.class);
+            if (response.getClientResponseStatus().getStatusCode() == HttpStatus.SC_SEE_OTHER) {
+                ClientResponse bodyResponse = client.resource(response.getLocation())
+                        .header("Authorization", "Bearer " + token).delete(ClientResponse.class);
+                if (bodyResponse.getStatus() != HttpStatus.SC_NO_CONTENT) {
+                    LOG.warn("Unexpected response when deleting the annotation body: " + bodyResponse.toString());
+                }
             }
-        }
-        response = client.resource(annURI).header("Authorization", "Bearer " + token).delete(ClientResponse.class);
-        if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
-            return response;
-        } else {
-            throw new ROSRSException("Deleting the annotation failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase());
+            response = client.resource(annURI).header("Authorization", "Bearer " + token).delete(ClientResponse.class);
+            if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
+                return response;
+            } else {
+                throw new ROSRSException("Deleting the annotation failed", response.getStatus(), response
+                        .getClientResponseStatus().getReasonPhrase());
+            }
+        } finally {
+            client.setFollowRedirects(true);
         }
     }
 
