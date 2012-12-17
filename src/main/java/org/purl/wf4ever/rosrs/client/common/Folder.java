@@ -1,8 +1,30 @@
 package org.purl.wf4ever.rosrs.client.common;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+
+import pl.psnc.dl.wf4ever.vocabulary.ORE;
+import pl.psnc.dl.wf4ever.vocabulary.RO;
+
+import com.hp.hpl.jena.ontology.Individual;
+import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryExecution;
+import com.hp.hpl.jena.query.QueryExecutionFactory;
+import com.hp.hpl.jena.query.QueryFactory;
+import com.hp.hpl.jena.query.QuerySolution;
+import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.util.FileManager;
+import com.hp.hpl.jena.vocabulary.DCTerms;
+import com.sun.jersey.api.client.ClientResponse;
 
 /**
  * ro:Folder.
@@ -15,6 +37,9 @@ public class Folder extends Resource {
     /** id. */
     private static final long serialVersionUID = 8014407879648172595L;
 
+    /** Logger. */
+    private static final Logger LOG = Logger.getLogger(Folder.class);
+
     /** Resource map (graph with folder description) URI. */
     private URI resourceMap;
 
@@ -23,6 +48,9 @@ public class Folder extends Resource {
 
     /** is the folder a root folder in the RO. */
     private boolean rootFolder;
+
+    /** folder entries (folder content). */
+    private Set<FolderEntry> folderEntries;
 
 
     /**
@@ -52,6 +80,77 @@ public class Folder extends Resource {
     }
 
 
+    /**
+     * Load the folder contents from the resource map.
+     * 
+     * @throws ROSRSException
+     *             unexpected service response
+     */
+    public void load()
+            throws ROSRSException {
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+        if (!FileManager.get().mapURI(resourceMap.toString()).startsWith("http")) {
+            FileManager.get().readModel(model, resourceMap.toString(), resourceMap.toString(), "RDF/XML");
+        } else {
+            ClientResponse response = researchObject.getRosrs().getResource(resourceMap, "application/rdf+xml");
+            try {
+                model.read(response.getEntityInputStream(), resourceMap.toString());
+            } finally {
+                try {
+                    response.getEntityInputStream().close();
+                } catch (IOException e) {
+                    LOG.warn("Failed to close the resource map input stream", e);
+                }
+            }
+        }
+        this.folderEntries = extractFolderEntries(model);
+        this.loaded = true;
+    }
+
+
+    /**
+     * Identify all the folder entries aggregated by the folder.
+     * 
+     * @param model
+     *            resource map model
+     * @return a set of folder entries
+     */
+    private Set<FolderEntry> extractFolderEntries(OntModel model) {
+        Set<FolderEntry> folderEntries2 = new HashSet<>();
+        String queryString = String
+                .format(
+                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> SELECT ?resource ?proxy ?created ?creator WHERE { <%s> ore:aggregates ?resource . ?resource a ro:Resource . ?proxy ore:proxyFor ?resource . OPTIONAL { ?resource dcterms:creator ?creator . } OPTIONAL { ?resource dcterms:created ?created . } }",
+                    ORE.NAMESPACE, DCTerms.NS, RO.NAMESPACE, uri.toString());
+
+        Query query = QueryFactory.create(queryString);
+        QueryExecution qe = QueryExecutionFactory.create(query, model);
+        try {
+            ResultSet results = qe.execSelect();
+            while (results.hasNext()) {
+                QuerySolution solution = results.next();
+                RDFNode r = solution.get("resource");
+                if (r.as(Individual.class).hasRDFType(RO.Folder)) {
+                    continue;
+                }
+                URI rURI = URI.create(r.asResource().getURI());
+                RDFNode p = solution.get("proxy");
+                RDFNode creatorNode = solution.get("creator");
+                URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode
+                        .asResource().getURI()) : null;
+                RDFNode createdNode = solution.get("created");
+                DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
+                        .asLiteral().getString()) : null;
+                resources2.put(rURI, new Resource(this, rURI, URI.create(p.asResource().getURI()), resCreator,
+                        resCreated));
+            }
+        } finally {
+            qe.close();
+        }
+
+        return resources2;
+    }
+
+
     public URI getResourceMap() {
         return resourceMap;
     }
@@ -64,6 +163,11 @@ public class Folder extends Resource {
 
     public boolean isRootFolder() {
         return rootFolder;
+    }
+
+
+    public Set<FolderEntry> getFolderEntries() {
+        return folderEntries;
     }
 
 
