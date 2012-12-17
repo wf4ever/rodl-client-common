@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
@@ -389,7 +390,7 @@ public class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 201
      */
-    public ClientResponse addAnnotation(URI researchObject, List<URI> targets, URI bodyURI)
+    public ClientResponse addAnnotation(URI researchObject, Set<URI> targets, URI bodyURI)
             throws ROSRSException {
         WebResource webResource = client.resource(researchObject.toString());
         OntModel model = ModelFactory.createOntologyModel();
@@ -430,7 +431,7 @@ public class ROSRService {
      * @throws ROSRSException
      *             when the response code is not 201 or 409 (or 200 in case of aggregating an annotation description)
      */
-    public ClientResponse addAnnotation(URI researchObject, List<URI> targets, String bodyPath, InputStream content,
+    public ClientResponse addAnnotation(URI researchObject, Set<URI> targets, String bodyPath, InputStream content,
             String contentType)
             throws ROSRSException {
         if (!ANNOTATION_MIME_TYPE.equals(contentType)) {

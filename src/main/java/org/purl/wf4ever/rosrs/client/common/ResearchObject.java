@@ -100,6 +100,7 @@ public class ResearchObject implements Serializable {
     public static ResearchObject create(ROSRService rosrs, String id)
             throws ROSRSException {
         ClientResponse response = rosrs.createResearchObject(id);
+        response.close();
         return new ResearchObject(response.getLocation(), rosrs);
     }
 
@@ -423,7 +424,7 @@ public class ResearchObject implements Serializable {
 
 
     /**
-     * Remove the resource and the annotations about it.
+     * Remove references to the resource and the annotations about it.
      * 
      * @param resource
      *            resource to delete
@@ -438,7 +439,7 @@ public class ResearchObject implements Serializable {
 
 
     /**
-     * Remove the folder and the annotations about it.
+     * Remove references to the folder and the annotations about it.
      * 
      * @param folder
      *            folder to delete
@@ -449,5 +450,19 @@ public class ResearchObject implements Serializable {
             annotation.getTargets().remove(folder.getUri());
         }
         this.annotations.removeAll(folder.getUri());
+    }
+
+
+    /**
+     * Remove references to the annotation.
+     * 
+     * @param annotation
+     *            the annotation
+     */
+    public void removeAnnotation(Annotation annotation) {
+        for (URI target : annotation.getTargets()) {
+            annotations.get(target).remove(annotation);
+        }
+
     }
 }

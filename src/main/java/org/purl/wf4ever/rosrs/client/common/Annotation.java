@@ -1,11 +1,22 @@
 package org.purl.wf4ever.rosrs.client.common;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+
+import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.util.FileManager;
+import com.sun.jersey.api.client.ClientResponse;
 
 /**
  * ro:AggregatedAnnotation.
@@ -13,7 +24,13 @@ import org.joda.time.DateTime;
  * @author piotrekhol
  * 
  */
-public class Annotation {
+public class Annotation implements Serializable {
+
+    /** id. */
+    private static final long serialVersionUID = 2231042343400055586L;
+
+    /** Logger. */
+    private static final Logger LOG = Logger.getLogger(Annotation.class);
 
     /** RO aggregating the annotation. */
     private ResearchObject researchObject;
@@ -32,6 +49,12 @@ public class Annotation {
 
     /** annotation creation time. */
     private DateTime created;
+
+    /** has the annotation body been loaded. */
+    private boolean loaded;
+
+    /** annotation body serialized as string. */
+    private String bodySerializedAsString;
 
 
     /**
@@ -57,6 +80,7 @@ public class Annotation {
         this.targets = targets;
         this.creator = creator;
         this.created = created;
+        this.loaded = false;
     }
 
 
@@ -78,6 +102,97 @@ public class Annotation {
      */
     public Annotation(ResearchObject researchObject, URI uri, URI body, URI target, URI creator, DateTime created) {
         this(researchObject, uri, body, new HashSet<URI>(Arrays.asList(new URI[] { target })), creator, created);
+    }
+
+
+    /**
+     * Create a new annotation. Does not add the annotation instance to the {@link ResearchObject} instance.
+     * 
+     * @param researchObject
+     *            RO aggregating the annotation
+     * @param body
+     *            annotation body, may be aggregated or not, may be a ro:Resource (rarely) or not
+     * @param targets
+     *            annotated resources, must be RO/aggregated resources/proxies
+     * @return created annotation
+     * @throws ROSRSException
+     *             unexpected response from the server
+     */
+    public static Annotation create(ResearchObject researchObject, URI body, Set<URI> targets)
+            throws ROSRSException {
+        ClientResponse response = researchObject.getRosrs().addAnnotation(researchObject.getUri(), targets, body);
+        response.close();
+        //FIXME creator/created dates are null but see WFE-758
+        return new Annotation(researchObject, response.getLocation(), body, targets, null, null);
+    }
+
+
+    /**
+     * Create a new annotation. Does not add the annotation instance to the {@link ResearchObject} instance.
+     * 
+     * @param researchObject
+     *            RO aggregating the annotation
+     * @param body
+     *            annotation body, may be aggregated or not, may be a ro:Resource (rarely) or not
+     * @param target
+     *            annotated resource, must be RO/aggregated resource/proxy
+     * @return created annotation
+     * @throws ROSRSException
+     *             unexpected response from the server
+     */
+    public static Annotation create(ResearchObject researchObject, URI body, URI target)
+            throws ROSRSException {
+        return create(researchObject, body, new HashSet<URI>(Arrays.asList(new URI[] { target })));
+    }
+
+
+    /**
+     * Deletes the annotation and the body.
+     * 
+     * @throws ROSRSException
+     *             unexpected response from the server
+     */
+    public void delete()
+            throws ROSRSException {
+        researchObject.getRosrs().deleteAnnotationAndBody(uri);
+        loaded = false;
+        researchObject.removeAnnotation(this);
+    }
+
+
+    /**
+     * Load the annotation body.
+     * 
+     * @throws ROSRSException
+     *             unexpected server response when downloading the body
+     * @throws IOException
+     *             error copying streams
+     */
+    public void load()
+            throws ROSRSException, IOException {
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+        if (!FileManager.get().mapURI(body.toString()).startsWith("http")) {
+            FileManager.get().readModel(model, body.toString(), body.toString(), "RDF/XML");
+        } else {
+            ClientResponse response = researchObject.getRosrs().getResource(body, "application/rdf+xml");
+            try {
+                model.read(response.getEntityInputStream(), body.toString());
+            } finally {
+                try {
+                    response.getEntityInputStream().close();
+                } catch (IOException e) {
+                    LOG.warn("Failed to close the annotation body input stream", e);
+                }
+            }
+        }
+        //in here we could do something with the model but we will only save it as string to make it serializable
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            try (ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray())) {
+                model.write(out, "RDF/XML");
+                bodySerializedAsString = out.toString();
+                loaded = true;
+            }
+        }
     }
 
 
@@ -108,6 +223,16 @@ public class Annotation {
 
     public Set<URI> getTargets() {
         return targets;
+    }
+
+
+    public boolean isLoaded() {
+        return loaded;
+    }
+
+
+    public String getBodySerializedAsString() {
+        return bodySerializedAsString;
     }
 
 

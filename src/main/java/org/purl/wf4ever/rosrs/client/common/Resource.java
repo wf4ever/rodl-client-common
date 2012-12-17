@@ -1,6 +1,7 @@
 package org.purl.wf4ever.rosrs.client.common;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.Collection;
 
@@ -15,7 +16,10 @@ import com.sun.jersey.api.client.ClientResponse;
  * @author piotrekhol
  * 
  */
-public class Resource {
+public class Resource implements Serializable {
+
+    /** id. */
+    private static final long serialVersionUID = 7593887876508190085L;
 
     /** URI. */
     protected final URI uri;
@@ -79,6 +83,7 @@ public class Resource {
         Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
         URI proxy = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
                 .get("http://www.openarchives.org/ore/terms/proxyFor").iterator().next();
+        response.close();
         //FIXME creator/created dates are null but see WFE-758
         return new Resource(researchObject, response.getLocation(), proxy, null, null);
     }
@@ -102,6 +107,7 @@ public class Resource {
         Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
         URI proxy = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
                 .get("http://www.openarchives.org/ore/terms/proxyFor").iterator().next();
+        response.close();
         //FIXME creator/created dates are null but see WFE-758
         return new Resource(researchObject, response.getLocation(), proxy, null, null);
     }
