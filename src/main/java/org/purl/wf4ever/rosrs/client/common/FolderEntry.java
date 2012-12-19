@@ -10,6 +10,11 @@ import java.net.URI;
  */
 public class FolderEntry {
 
+    public FolderEntry(Folder folder, URI eURI, URI rURI, String name2) {
+        // TODO Auto-generated constructor stub
+    }
+
+
     /** folder. */
     private Folder parentFolder;
 
@@ -24,5 +29,11 @@ public class FolderEntry {
 
     /** ROSRS client. */
     private ROSRService rosrs;
+
+
+    public URI getResource() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

@@ -11,7 +11,6 @@ import org.joda.time.DateTime;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 import pl.psnc.dl.wf4ever.vocabulary.RO;
 
-import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.query.Query;
@@ -23,7 +22,6 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.util.FileManager;
-import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
 
 /**
@@ -83,10 +81,12 @@ public class Folder extends Resource {
     /**
      * Load the folder contents from the resource map.
      * 
+     * @param recursive
+     *            should the folder tree rooted in this folder be loaded as well
      * @throws ROSRSException
      *             unexpected service response
      */
-    public void load()
+    public void load(boolean recursive)
             throws ROSRSException {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
         if (!FileManager.get().mapURI(resourceMap.toString()).startsWith("http")) {
@@ -105,6 +105,14 @@ public class Folder extends Resource {
         }
         this.folderEntries = extractFolderEntries(model);
         this.loaded = true;
+        if (recursive) {
+            for (FolderEntry entry : folderEntries) {
+                Folder folder = researchObject.getFolder(entry.getResource());
+                if (folder != null && !folder.isLoaded()) {
+                    folder.load(true);
+                }
+            }
+        }
     }
 
 
@@ -119,8 +127,8 @@ public class Folder extends Resource {
         Set<FolderEntry> folderEntries2 = new HashSet<>();
         String queryString = String
                 .format(
-                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> SELECT ?resource ?proxy ?created ?creator WHERE { <%s> ore:aggregates ?resource . ?resource a ro:Resource . ?proxy ore:proxyFor ?resource . OPTIONAL { ?resource dcterms:creator ?creator . } OPTIONAL { ?resource dcterms:created ?created . } }",
-                    ORE.NAMESPACE, DCTerms.NS, RO.NAMESPACE, uri.toString());
+                    "PREFIX ore: <%s> PREFIX ro: <%s> SELECT ?entry ?resource ?name WHERE { <%s> ore:aggregates ?resource . ?entry a ro:FolderEntry ; ore:proxyIn <%<s> ; ore:proxyFor ?resource . OPTIONAL { ?entry ro:entryName ?name . } }",
+                    ORE.NAMESPACE, RO.NAMESPACE, uri.toString());
 
         Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, model);
@@ -128,26 +136,19 @@ public class Folder extends Resource {
             ResultSet results = qe.execSelect();
             while (results.hasNext()) {
                 QuerySolution solution = results.next();
+                RDFNode e = solution.get("entry");
+                URI eURI = URI.create(e.asResource().getURI());
                 RDFNode r = solution.get("resource");
-                if (r.as(Individual.class).hasRDFType(RO.Folder)) {
-                    continue;
-                }
                 URI rURI = URI.create(r.asResource().getURI());
-                RDFNode p = solution.get("proxy");
-                RDFNode creatorNode = solution.get("creator");
-                URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode
-                        .asResource().getURI()) : null;
-                RDFNode createdNode = solution.get("created");
-                DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
-                        .asLiteral().getString()) : null;
-                resources2.put(rURI, new Resource(this, rURI, URI.create(p.asResource().getURI()), resCreator,
-                        resCreated));
+                RDFNode n = solution.get("name");
+                String name = n != null ? n.asLiteral().getString() : null;
+                folderEntries2.add(new FolderEntry(this, eURI, rURI, name));
             }
         } finally {
             qe.close();
         }
 
-        return resources2;
+        return folderEntries2;
     }
 
 

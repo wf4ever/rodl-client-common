@@ -182,6 +182,18 @@ public class ResearchObject implements Serializable {
     }
 
 
+    /**
+     * Get a folder with a given URI or null if doesn't exist.
+     * 
+     * @param folderURI
+     *            folder URI
+     * @return folder instance or null
+     */
+    public Folder getFolder(URI folderURI) {
+        return folders.get(folderURI);
+    }
+
+
     public Multimap<URI, Annotation> getAnnotations() {
         return annotations;
     }
