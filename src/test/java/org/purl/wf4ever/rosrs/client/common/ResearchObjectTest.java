@@ -136,7 +136,7 @@ public class ResearchObjectTest {
     @Test
     public final void testGetResources() {
         Set<Resource> ex = new HashSet<>();
-        ex.add(new Resource(ro1, RO_PREFIX.resolve("res1"), RO_PREFIX.resolve("proxies/1"), URI
+        ex.add(new Resource(ro1, RO_PREFIX.resolve("res1.txt"), RO_PREFIX.resolve("proxies/1"), URI
                 .create("http://test1.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 10, DateTimeZone.UTC)));
         ex.add(new Resource(ro1, RO_PREFIX.resolve("res2"), RO_PREFIX.resolve("proxies/2"), URI
                 .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
@@ -171,7 +171,7 @@ public class ResearchObjectTest {
                 RO_PREFIX, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
                         DateTimeZone.UTC));
         Annotation an2 = new Annotation(ro1, RO_PREFIX.resolve(".ro/annotations/2"),
-                URI.create("http://example.org/externalbody1.rdf"), RO_PREFIX.resolve("res1"),
+                URI.create("http://example.org/externalbody1.rdf"), RO_PREFIX.resolve("res1.txt"),
                 URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
         Set<URI> targets = new HashSet<>();
         targets.add(RO_PREFIX.resolve("folder1"));
@@ -183,7 +183,7 @@ public class ResearchObjectTest {
                 RO_PREFIX.resolve("folder1"), URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12,
                         06, 53, 551, DateTimeZone.UTC));
         ex.put(RO_PREFIX, an1);
-        ex.put(RO_PREFIX.resolve("res1"), an2);
+        ex.put(RO_PREFIX.resolve("res1.txt"), an2);
         ex.put(RO_PREFIX.resolve("folder1"), an3);
         ex.put(RO_PREFIX.resolve("res2"), an3);
         ex.put(RO_PREFIX.resolve("folder1"), an4);

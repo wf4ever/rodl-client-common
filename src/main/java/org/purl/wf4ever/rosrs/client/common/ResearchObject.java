@@ -477,11 +477,15 @@ public class ResearchObject implements Serializable {
      *            resource to delete
      */
     public void removeResource(Resource resource) {
-        this.resources.remove(resource.getUri());
-        for (Annotation annotation : this.annotations.get(resource.getUri())) {
-            annotation.getTargets().remove(resource.getUri());
+        if (resources != null) {
+            this.resources.remove(resource.getUri());
         }
-        this.annotations.removeAll(resource.getUri());
+        if (annotations != null) {
+            for (Annotation annotation : this.annotations.get(resource.getUri())) {
+                annotation.getTargets().remove(resource.getUri());
+            }
+            this.annotations.removeAll(resource.getUri());
+        }
     }
 
 
@@ -492,11 +496,15 @@ public class ResearchObject implements Serializable {
      *            folder to delete
      */
     public void removeFolder(Folder folder) {
-        this.folders.remove(folder.getUri());
-        for (Annotation annotation : this.annotations.get(folder.getUri())) {
-            annotation.getTargets().remove(folder.getUri());
+        if (folders != null) {
+            this.folders.remove(folder.getUri());
         }
-        this.annotations.removeAll(folder.getUri());
+        if (annotations != null) {
+            for (Annotation annotation : this.annotations.get(folder.getUri())) {
+                annotation.getTargets().remove(folder.getUri());
+            }
+            this.annotations.removeAll(folder.getUri());
+        }
     }
 
 

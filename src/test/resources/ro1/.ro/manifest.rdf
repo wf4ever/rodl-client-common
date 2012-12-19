@@ -11,7 +11,7 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
     xmlns:rdfg="http://www.w3.org/2004/03/trix/rdfg-1/"
     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" > 
-  <rdf:Description rdf:about="../res1">
+  <rdf:Description rdf:about="../res1.txt">
     <dct:creator rdf:resource="http://test1.myopenid.com"/>
     <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2011-12-02T15:02:10Z</dct:created>
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Resource"/>
@@ -31,7 +31,7 @@
   <rdf:Description rdf:about="..">
     <ore:aggregates rdf:resource="../folder1"/>
     <ore:aggregates rdf:resource="../res2"/>
-    <ore:aggregates rdf:resource="../res1"/>
+    <ore:aggregates rdf:resource="../res1.txt"/>
     <ore:aggregates rdf:resource="annotations/1"/>
     <ore:aggregates rdf:resource="annotations/2"/>
     <ore:aggregates rdf:resource="annotations/3"/>
@@ -64,7 +64,7 @@
     <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2012-12-11T12:06:53.551Z</dct:created>
     <dct:creator rdf:resource="http://test.myopenid.com"/>
     <ao:body rdf:resource="http://example.org/externalbody1.rdf"/>
-    <ro:annotatesAggregatedResource rdf:resource="../res1"/>
+    <ro:annotatesAggregatedResource rdf:resource="../res1.txt"/>
   </rdf:Description>
   <rdf:Description rdf:about="annotations/3">
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#AggregatedAnnotation"/>
@@ -96,7 +96,7 @@
   <rdf:Description rdf:about="../proxies/1">
     <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Proxy"/>
     <ore:proxyIn rdf:resource=".."/>
-    <ore:proxyFor rdf:resource="../res1"/>
+    <ore:proxyFor rdf:resource="../res1.txt"/>
   </rdf:Description>
   <rdf:Description rdf:about="../proxies/2">
     <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Proxy"/>
