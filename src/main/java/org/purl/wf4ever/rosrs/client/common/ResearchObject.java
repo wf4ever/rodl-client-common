@@ -448,6 +448,29 @@ public class ResearchObject implements Serializable {
 
 
     /**
+     * Create a new folder in the RO.
+     * 
+     * @param path
+     *            folder path
+     * @return folder instance
+     * @throws ROSRSException
+     *             server returned an unexpected response
+     * @throws ROException
+     *             the manifest is incorrect
+     */
+    public Folder createFolder(String path)
+            throws ROSRSException, ROException {
+        Folder folder = Folder.create(this, path);
+        if (!loaded) {
+            load();
+        }
+        this.folders.put(folder.getUri(), folder);
+        //FIXME seems that the manifest needs to be reloaded to fetch creator/created/rootfolder
+        return folder;
+    }
+
+
+    /**
      * Remove references to the resource and the annotations about it.
      * 
      * @param resource

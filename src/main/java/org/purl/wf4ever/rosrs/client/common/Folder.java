@@ -3,7 +3,10 @@ package org.purl.wf4ever.rosrs.client.common;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import javax.ws.rs.core.UriBuilder;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -11,6 +14,8 @@ import org.joda.time.DateTime;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 import pl.psnc.dl.wf4ever.vocabulary.RO;
 
+import com.google.common.collect.Multimap;
+import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.query.Query;
@@ -75,6 +80,29 @@ public class Folder extends Resource {
         this.resourceMap = resourceMap;
         this.rootFolder = rootFolder;
         this.loaded = false;
+    }
+
+
+    /**
+     * Create a new folder.
+     * 
+     * @param researchObject
+     *            research object by which the folder should be aggregated
+     * @param path
+     *            folder path relative to the RO
+     * @return a folder instance, with creator, created or rootFolder properties unset
+     * @throws ROSRSException
+     *             unexpected response from the server
+     */
+    public static Folder create(ResearchObject researchObject, String path)
+            throws ROSRSException {
+        ClientResponse response = researchObject.getRosrs().createFolder(researchObject.getUri(), path);
+        Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
+        URI folder = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
+                .get("http://www.openarchives.org/ore/terms/proxyFor").iterator().next();
+        URI resourceMap = headers.get("http://www.openarchives.org/ore/terms/isDescribedBy").iterator().next();
+        response.close();
+        return new Folder(researchObject, folder, response.getLocation(), resourceMap, null, null, false);
     }
 
 
@@ -149,6 +177,69 @@ public class Folder extends Resource {
         }
 
         return folderEntries2;
+    }
+
+
+    /**
+     * Add a new folder entry to this folder.
+     * 
+     * @param resource
+     *            the resource to aggregate
+     * @param entryName
+     *            entry name or null
+     * @return the new folder entry
+     * @throws ROSRSException
+     *             unexpected response from the server
+     * @throws ROException
+     *             the response entity body is incorrect
+     */
+    public FolderEntry addEntry(Resource resource, String entryName)
+            throws ROSRSException, ROException {
+        ClientResponse response = this.researchObject.getRosrs().addFolderEntry(uri, resource.getUri(), entryName);
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
+        model.read(response.getEntityInputStream(), response.getLocation().toString());
+        List<Individual> entries = model.listIndividuals(RO.FolderEntry).toList();
+        if (entries.isEmpty()) {
+            throw new ROException("The create folder entry response contains no folder entries",
+                    researchObject.getUri());
+        }
+        String name = entries.get(0).getPropertyValue(RO.entryName).asLiteral().getString();
+        FolderEntry entry = new FolderEntry(this, response.getLocation(), resource.getUri(), name);
+        this.folderEntries.add(entry);
+        return entry;
+    }
+
+
+    /**
+     * Create a new subfolder.
+     * 
+     * @param name
+     *            folder name, relative to this folder path
+     * @return a new folder entry
+     * @throws ROSRSException
+     *             unexpected response from the server
+     * @throws ROException
+     *             the response entity body is incorrect
+     */
+    public FolderEntry addSubFolder(String name)
+            throws ROSRSException, ROException {
+        URI subfolderURI = UriBuilder.fromUri(uri).path(name).build();
+        String path = this.researchObject.getUri().relativize(subfolderURI).toString();
+        Folder subfolder = this.researchObject.createFolder(path);
+        return addEntry(subfolder, name);
+    }
+
+
+    /**
+     * Delete the folder from ROSRS and from the research object.
+     * 
+     * @throws ROSRSException
+     *             server returned an unexpected response
+     */
+    public void delete()
+            throws ROSRSException {
+        researchObject.getRosrs().deleteResource(uri);
+        researchObject.removeFolder(this);
     }
 
 

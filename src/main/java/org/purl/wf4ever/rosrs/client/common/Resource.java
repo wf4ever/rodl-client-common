@@ -81,11 +81,11 @@ public class Resource implements Serializable {
         ClientResponse response = researchObject.getRosrs().aggregateInternalResource(researchObject.getUri(), path,
             content, contentType);
         Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
-        URI proxy = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
+        URI resource = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
                 .get("http://www.openarchives.org/ore/terms/proxyFor").iterator().next();
         response.close();
         //FIXME creator/created dates are null but see WFE-758
-        return new Resource(researchObject, response.getLocation(), proxy, null, null);
+        return new Resource(researchObject, resource, response.getLocation(), null, null);
     }
 
 
