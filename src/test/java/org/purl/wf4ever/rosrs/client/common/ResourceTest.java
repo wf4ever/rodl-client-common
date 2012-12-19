@@ -38,7 +38,7 @@ public class ResourceTest {
 
 
     /**
-     * Prepare a loaded RO.
+     * Prepare a loaded resource.
      * 
      * @throws ROException
      *             example RO has incorrect data
