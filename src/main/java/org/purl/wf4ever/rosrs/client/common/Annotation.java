@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.openrdf.rio.RDFFormat;
 
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
@@ -171,8 +172,9 @@ public class Annotation implements Serializable {
     public void load()
             throws ROSRSException, IOException {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+        RDFFormat syntax = RDFFormat.forFileName(body.toString(), RDFFormat.RDFXML);
         if (!FileManager.get().mapURI(body.toString()).startsWith("http")) {
-            FileManager.get().readModel(model, body.toString(), body.toString(), "RDF/XML");
+            FileManager.get().readModel(model, body.toString(), body.toString(), syntax.getName().toUpperCase());
         } else {
             ClientResponse response = researchObject.getRosrs().getResource(body, "application/rdf+xml");
             try {

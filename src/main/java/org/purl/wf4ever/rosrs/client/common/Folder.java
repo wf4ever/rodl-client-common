@@ -10,6 +10,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.openrdf.rio.RDFFormat;
 
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 import pl.psnc.dl.wf4ever.vocabulary.RO;
@@ -117,8 +118,10 @@ public class Folder extends Resource {
     public void load(boolean recursive)
             throws ROSRSException {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+        RDFFormat syntax = RDFFormat.forFileName(resourceMap.toString(), RDFFormat.RDFXML);
         if (!FileManager.get().mapURI(resourceMap.toString()).startsWith("http")) {
-            FileManager.get().readModel(model, resourceMap.toString(), resourceMap.toString(), "RDF/XML");
+            FileManager.get().readModel(model, resourceMap.toString(), resourceMap.toString(),
+                syntax.getName().toUpperCase());
         } else {
             ClientResponse response = researchObject.getRosrs().getResource(resourceMap, "application/rdf+xml");
             try {
@@ -269,8 +272,8 @@ public class Folder extends Resource {
         int result = super.hashCode();
         result = prime * result + ((created == null) ? 0 : created.hashCode());
         result = prime * result + ((creator == null) ? 0 : creator.hashCode());
-        result = prime * result + ((proxyUri == null) ? 0 : proxyUri.hashCode());
         result = prime * result + ((uri == null) ? 0 : uri.hashCode());
+        result = prime * result + ((proxyUri == null) ? 0 : proxyUri.hashCode());
         result = prime * result + ((resourceMap == null) ? 0 : resourceMap.hashCode());
         result = prime * result + (rootFolder ? 1231 : 1237);
         return result;

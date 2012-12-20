@@ -152,9 +152,12 @@ public class ResearchObjectTest {
     @Test
     public final void testGetFolders() {
         Set<Folder> folders = new HashSet<>();
-        folders.add(new Folder(ro1, RO_PREFIX.resolve("folder1"), RO_PREFIX.resolve("proxies/3"), RO_PREFIX
+        folders.add(new Folder(ro1, RO_PREFIX.resolve("folder1/"), RO_PREFIX.resolve("proxies/3"), RO_PREFIX
                 .resolve("folder1.ttl"), URI.create("http://test3.myopenid.com"), new DateTime(2011, 12, 02, 15, 02,
                 12, DateTimeZone.UTC), true));
+        folders.add(new Folder(ro1, RO_PREFIX.resolve("folder1/folder2/"), RO_PREFIX.resolve("proxies/4"), RO_PREFIX
+                .resolve("folder2.ttl"), URI.create("http://test3.myopenid.com"), new DateTime(2011, 12, 02, 15, 02,
+                12, DateTimeZone.UTC), false));
         Set<Folder> res = new HashSet<>();
         res.addAll(ro1.getFolders());
         Assert.assertEquals(folders, res);
@@ -174,19 +177,19 @@ public class ResearchObjectTest {
                 URI.create("http://example.org/externalbody1.rdf"), RO_PREFIX.resolve("res1.txt"),
                 URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
         Set<URI> targets = new HashSet<>();
-        targets.add(RO_PREFIX.resolve("folder1"));
+        targets.add(RO_PREFIX.resolve("folder1/"));
         targets.add(RO_PREFIX.resolve("res2"));
         Annotation an3 = new Annotation(ro1, RO_PREFIX.resolve(".ro/annotations/3"), RO_PREFIX.resolve("body2.rdf"),
                 targets, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
                         DateTimeZone.UTC));
         Annotation an4 = new Annotation(ro1, RO_PREFIX.resolve(".ro/annotations/4"), RO_PREFIX.resolve("body3.rdf"),
-                RO_PREFIX.resolve("folder1"), URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12,
+                RO_PREFIX.resolve("folder1/"), URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12,
                         06, 53, 551, DateTimeZone.UTC));
         ex.put(RO_PREFIX, an1);
         ex.put(RO_PREFIX.resolve("res1.txt"), an2);
-        ex.put(RO_PREFIX.resolve("folder1"), an3);
+        ex.put(RO_PREFIX.resolve("folder1/"), an3);
         ex.put(RO_PREFIX.resolve("res2"), an3);
-        ex.put(RO_PREFIX.resolve("folder1"), an4);
+        ex.put(RO_PREFIX.resolve("folder1/"), an4);
 
         Assert.assertEquals(ex, ro1.getAnnotations());
     }
