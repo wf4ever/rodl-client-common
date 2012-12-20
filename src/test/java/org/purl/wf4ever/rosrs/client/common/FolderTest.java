@@ -35,6 +35,14 @@ public class FolderTest {
     /** Resource map of the resource that will be mapped to local resources. */
     private static final URI RMAP_URI = URI.create("http://example.org/ro1/folder1.ttl");
 
+    /** Some folder available by HTTP. */
+    private static final URI PUBLIC_FOLDER = URI
+            .create("http://sandbox.wf4ever-project.org/rodl/ROs/worklflow2648withFolders/root/config/web%20services/");
+
+    /** Some folder resource mapavailable by HTTP. */
+    private static final URI PUBLIC_RMAP = URI
+            .create("http://sandbox.wf4ever-project.org/rodl/ROs/worklflow2648withFolders/root/config/web%20services/web%20services.rdf");
+
     /** A loaded RO. */
     private static ResearchObject ro1;
 
@@ -70,10 +78,14 @@ public class FolderTest {
     }
 
 
+    /**
+     * Test the constructor works without problems.
+     */
     @Test
     public final void testFolder() {
-        fail("Not yet implemented");
-        //        Folder folder = new Folder();
+        Folder f = new Folder(ro1, FOLDER_URI, PROXY_URI, RMAP_URI, URI.create("http://test3.myopenid.com"),
+                new DateTime(2011, 12, 02, 15, 02, 12, DateTimeZone.UTC), true);
+        Assert.assertFalse(f.isLoaded());
     }
 
 
@@ -83,9 +95,19 @@ public class FolderTest {
     }
 
 
+    /**
+     * Test that you can load a folder resource map over HTTP.
+     * 
+     * @throws ROSRSException
+     *             unexpected response from the server
+     */
     @Test
-    public final void testLoad() {
-        fail("Not yet implemented");
+    public final void testLoad()
+            throws ROSRSException {
+        Folder f = new Folder(ro1, PUBLIC_FOLDER, null, PUBLIC_RMAP, null, null, false);
+        Assert.assertFalse(f.isLoaded());
+        f.load(false);
+        Assert.assertTrue(f.isLoaded());
     }
 
 
