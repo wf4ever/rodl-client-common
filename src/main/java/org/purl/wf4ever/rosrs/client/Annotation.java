@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,10 +14,16 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.openrdf.rio.RDFFormat;
 
+import pl.psnc.dl.wf4ever.vocabulary.AO;
+
+import com.google.common.collect.Multimap;
+import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.util.FileManager;
+import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
 
 /**
@@ -122,9 +129,22 @@ public class Annotation implements Serializable {
     public static Annotation create(ResearchObject researchObject, URI body, Set<URI> targets)
             throws ROSRSException {
         ClientResponse response = researchObject.getRosrs().addAnnotation(researchObject.getUri(), targets, body);
+        Multimap<String, URI> links = Utils.getLinkHeaders(response.getHeaders().get("Link"));
+        Collection<URI> annUris = links.get(AO.annotatesResource.getURI());
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
+        model.read(response.getEntityInputStream(), null);
         response.close();
-        //FIXME creator/created dates are null but see WFE-758
-        return new Annotation(researchObject, response.getLocation(), body, targets, null, null);
+
+        URI annUri = annUris.iterator().next();
+        Individual r = model.getIndividual(annUri.toString());
+        com.hp.hpl.jena.rdf.model.Resource creatorNode = r.getPropertyResourceValue(DCTerms.creator);
+        URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode.asResource()
+                .getURI()) : null;
+        RDFNode createdNode = r.getPropertyValue(DCTerms.created);
+        DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode.asLiteral()
+                .getString()) : null;
+
+        return new Annotation(researchObject, response.getLocation(), body, targets, resCreator, resCreated);
     }
 
 

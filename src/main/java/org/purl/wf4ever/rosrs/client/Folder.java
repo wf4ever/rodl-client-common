@@ -28,6 +28,7 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.util.FileManager;
+import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
 
 /**
@@ -99,11 +100,23 @@ public class Folder extends Resource {
             throws ROSRSException {
         ClientResponse response = researchObject.getRosrs().createFolder(researchObject.getUri(), path);
         Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
-        URI folder = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
+        URI folderUri = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
                 .get("http://www.openarchives.org/ore/terms/proxyFor").iterator().next();
-        URI resourceMap = headers.get("http://www.openarchives.org/ore/terms/isDescribedBy").iterator().next();
+        URI resourceMapUri = headers.get("http://www.openarchives.org/ore/terms/isDescribedBy").iterator().next();
+
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
+        model.read(response.getEntityInputStream(), null);
         response.close();
-        return new Folder(researchObject, folder, response.getLocation(), resourceMap, null, null, false);
+
+        Individual r = model.getIndividual(folderUri.toString());
+        com.hp.hpl.jena.rdf.model.Resource creatorNode = r.getPropertyResourceValue(DCTerms.creator);
+        URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode.asResource()
+                .getURI()) : null;
+        RDFNode createdNode = r.getPropertyValue(DCTerms.created);
+        DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode.asLiteral()
+                .getString()) : null;
+        return new Folder(researchObject, folderUri, response.getLocation(), resourceMapUri, resCreator, resCreated,
+                false);
     }
 
 

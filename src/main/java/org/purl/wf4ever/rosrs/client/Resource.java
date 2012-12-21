@@ -8,6 +8,12 @@ import java.util.Collection;
 import org.joda.time.DateTime;
 
 import com.google.common.collect.Multimap;
+import com.hp.hpl.jena.ontology.Individual;
+import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
 
 /**
@@ -81,11 +87,19 @@ public class Resource implements Serializable {
         ClientResponse response = researchObject.getRosrs().aggregateInternalResource(researchObject.getUri(), path,
             content, contentType);
         Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
-        URI resource = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
+        URI resourceUri = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
                 .get("http://www.openarchives.org/ore/terms/proxyFor").iterator().next();
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
+        model.read(response.getEntityInputStream(), null);
         response.close();
-        //FIXME creator/created dates are null but see WFE-758
-        return new Resource(researchObject, resource, response.getLocation(), null, null);
+        Individual r = model.getIndividual(resourceUri.toString());
+        com.hp.hpl.jena.rdf.model.Resource creatorNode = r.getPropertyResourceValue(DCTerms.creator);
+        URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode.asResource()
+                .getURI()) : null;
+        RDFNode createdNode = r.getPropertyValue(DCTerms.created);
+        DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode.asLiteral()
+                .getString()) : null;
+        return new Resource(researchObject, resourceUri, response.getLocation(), resCreator, resCreated);
     }
 
 
