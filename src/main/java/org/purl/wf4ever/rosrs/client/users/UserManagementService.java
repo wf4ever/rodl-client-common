@@ -1,4 +1,4 @@
-package org.purl.wf4ever.rosrs.client.common.users;
+package org.purl.wf4ever.rosrs.client.users;
 
 import java.net.HttpURLConnection;
 import java.net.URI;

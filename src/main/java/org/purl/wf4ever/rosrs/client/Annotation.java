@@ -1,4 +1,4 @@
-package org.purl.wf4ever.rosrs.client.common;
+package org.purl.wf4ever.rosrs.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -1,4 +1,4 @@
-package org.purl.wf4ever.rosrs.client.common;
+package org.purl.wf4ever.rosrs.client;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +12,12 @@ import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.purl.wf4ever.rosrs.client.Annotation;
+import org.purl.wf4ever.rosrs.client.ROException;
+import org.purl.wf4ever.rosrs.client.ROSRSException;
+import org.purl.wf4ever.rosrs.client.ROSRService;
+import org.purl.wf4ever.rosrs.client.ResearchObject;
+import org.purl.wf4ever.rosrs.client.Resource;
 
 /**
  * Test {@link Resource} methods.

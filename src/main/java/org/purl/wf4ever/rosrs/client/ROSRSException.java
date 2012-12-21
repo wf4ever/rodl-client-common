@@ -1,4 +1,4 @@
-package org.purl.wf4ever.rosrs.client.common;
+package org.purl.wf4ever.rosrs.client;
 
 /**
  * Exception that indicates an unexpected response from the ROSR Service.

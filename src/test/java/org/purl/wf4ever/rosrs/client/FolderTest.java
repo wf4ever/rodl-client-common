@@ -1,4 +1,4 @@
-package org.purl.wf4ever.rosrs.client.common;
+package org.purl.wf4ever.rosrs.client;
 
 import static org.junit.Assert.fail;
 
@@ -14,6 +14,12 @@ import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.purl.wf4ever.rosrs.client.Folder;
+import org.purl.wf4ever.rosrs.client.FolderEntry;
+import org.purl.wf4ever.rosrs.client.ROException;
+import org.purl.wf4ever.rosrs.client.ROSRSException;
+import org.purl.wf4ever.rosrs.client.ROSRService;
+import org.purl.wf4ever.rosrs.client.ResearchObject;
 
 /**
  * Test the {@link} methods.

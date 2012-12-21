@@ -1,6 +1,8 @@
-package org.purl.wf4ever.rosrs.client.common;
+package org.purl.wf4ever.rosrs.client;
 
 import java.net.URI;
+
+import org.purl.wf4ever.rosrs.client.ROSRService;
 
 /**
  * A few utilities for the tests.
