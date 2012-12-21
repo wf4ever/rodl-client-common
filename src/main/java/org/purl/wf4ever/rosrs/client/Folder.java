@@ -151,7 +151,7 @@ public class Folder extends Resource {
         this.loaded = true;
         if (recursive) {
             for (FolderEntry entry : folderEntries) {
-                Folder folder = researchObject.getFolder(entry.getResource());
+                Folder folder = researchObject.getFolder(entry.getResourceUri());
                 if (folder != null && !folder.isLoaded()) {
                     folder.load(true);
                 }

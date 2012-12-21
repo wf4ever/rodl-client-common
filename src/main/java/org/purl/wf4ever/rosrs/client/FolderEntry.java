@@ -20,7 +20,10 @@ public class FolderEntry {
     private URI uri;
 
     /** URI of the resource it points to. */
-    private URI resource;
+    private URI resourceUri;
+
+    /** Resource pointed by the entry, lazily loaded. */
+    private Resource resource;
 
 
     /**
@@ -30,15 +33,15 @@ public class FolderEntry {
      *            aggregating folder
      * @param uri
      *            folder entry URI
-     * @param resource
+     * @param resourceUri
      *            URI of the resource it points to
      * @param entryName
      *            name in the folder
      */
-    public FolderEntry(Folder folder, URI uri, URI resource, String entryName) {
+    public FolderEntry(Folder folder, URI uri, URI resourceUri, String entryName) {
         this.folder = folder;
         this.uri = uri;
-        this.resource = resource;
+        this.resourceUri = resourceUri;
         this.name = entryName;
     }
 
@@ -58,8 +61,37 @@ public class FolderEntry {
     }
 
 
-    public URI getResource() {
+    public URI getResourceUri() {
+        return resourceUri;
+    }
+
+
+    /**
+     * Return the resource instance or null if it's not aggregated in the RO.
+     * 
+     * @return a resource instance or null
+     */
+    public Resource getResource() {
+        if (resource == null) {
+            resource = folder.getResearchObject().getResource(resourceUri);
+        }
+        if (resource == null) {
+            resource = folder.getResearchObject().getFolder(resourceUri);
+        }
         return resource;
+    }
+
+
+    /**
+     * Remove the folder entry from the folder. Does not delete the resource.
+     * 
+     * @throws ROSRSException
+     *             unexpected response from the server
+     */
+    public void delete()
+            throws ROSRSException {
+        folder.getResearchObject().getRosrs().deleteResource(uri);
+        folder.getFolderEntries().remove(this);
     }
 
 
@@ -67,7 +99,7 @@ public class FolderEntry {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((resource == null) ? 0 : resource.hashCode());
+        result = prime * result + ((resourceUri == null) ? 0 : resourceUri.hashCode());
         result = prime * result + ((uri == null) ? 0 : uri.hashCode());
         return result;
     }
@@ -85,11 +117,11 @@ public class FolderEntry {
             return false;
         }
         FolderEntry other = (FolderEntry) obj;
-        if (resource == null) {
-            if (other.resource != null) {
+        if (resourceUri == null) {
+            if (other.resourceUri != null) {
                 return false;
             }
-        } else if (!resource.equals(other.resource)) {
+        } else if (!resourceUri.equals(other.resourceUri)) {
             return false;
         }
         if (uri == null) {

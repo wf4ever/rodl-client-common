@@ -13,11 +13,6 @@ import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.purl.wf4ever.rosrs.client.Annotation;
-import org.purl.wf4ever.rosrs.client.ROException;
-import org.purl.wf4ever.rosrs.client.ROSRSException;
-import org.purl.wf4ever.rosrs.client.ROSRService;
-import org.purl.wf4ever.rosrs.client.ResearchObject;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;

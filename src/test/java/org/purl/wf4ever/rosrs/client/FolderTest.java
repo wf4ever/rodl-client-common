@@ -1,25 +1,19 @@
 package org.purl.wf4ever.rosrs.client;
 
-import static org.junit.Assert.fail;
-
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.purl.wf4ever.rosrs.client.Folder;
-import org.purl.wf4ever.rosrs.client.FolderEntry;
-import org.purl.wf4ever.rosrs.client.ROException;
-import org.purl.wf4ever.rosrs.client.ROSRSException;
-import org.purl.wf4ever.rosrs.client.ROSRService;
-import org.purl.wf4ever.rosrs.client.ResearchObject;
 
 /**
  * Test the {@link} methods.
@@ -78,12 +72,6 @@ public class FolderTest {
     }
 
 
-    @Test
-    public final void testDelete() {
-        fail("Not yet implemented");
-    }
-
-
     /**
      * Test the constructor works without problems.
      */
@@ -95,9 +83,31 @@ public class FolderTest {
     }
 
 
+    /**
+     * Test that the folder can be created and deleted remotely.
+     * 
+     * @throws ROSRSException
+     *             unexpected server response
+     */
     @Test
-    public final void testCreateResearchObjectString() {
-        fail("Not yet implemented");
+    public final void testCreateResearchObjectString()
+            throws ROSRSException {
+        ResearchObject ro;
+        try {
+            ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+        } catch (ROSRSException e) {
+            if (e.getStatus() == HttpStatus.SC_CONFLICT) {
+                ro = new ResearchObject(TestUtils.ROSRS.getRosrsURI().resolve("JavaClientTest/"), TestUtils.ROSRS);
+                ro.delete();
+                ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+            } else {
+                throw e;
+            }
+        }
+        Folder f = Folder.create(ro, "folder1/");
+        Assert.assertNotNull(f);
+        f.delete();
+        ro.delete();
     }
 
 
@@ -117,15 +127,96 @@ public class FolderTest {
     }
 
 
+    /**
+     * Test that you can add a folder entry and it gets saved both remotely and locally.
+     * 
+     * @throws ROSRSException
+     *             unexpected server response
+     * @throws IOException
+     *             problem loading test data
+     * @throws ROException
+     *             invalid remote manifest
+     */
     @Test
-    public final void testAddEntry() {
-        fail("Not yet implemented");
+    public final void testAddEntry()
+            throws ROSRSException, IOException, ROException {
+        ResearchObject ro;
+        try {
+            ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+        } catch (ROSRSException e) {
+            if (e.getStatus() == HttpStatus.SC_CONFLICT) {
+                ro = new ResearchObject(TestUtils.ROSRS.getRosrsURI().resolve("JavaClientTest/"), TestUtils.ROSRS);
+                ro.delete();
+                ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+            } else {
+                throw e;
+            }
+        }
+        Folder f = Folder.create(ro, "folder1/");
+        Assert.assertNotNull(f);
+        Resource res = null;
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream("ro1/res1.txt")) {
+            res = Resource.create(ro, "folder1/res1.txt", in, "text/plain");
+            Assert.assertNotNull(res);
+        }
+
+        FolderEntry entry = f.addEntry(res, "res1.txt");
+        Assert.assertTrue(f.getFolderEntries().contains(entry));
+
+        Folder f2 = new Folder(ro, ro.getUri().resolve("folder1/"), f.getProxyUri(), f.getResourceMap(), null, null,
+                f.isRootFolder());
+        f2.load(false);
+        Assert.assertTrue(f2.getFolderEntries().contains(entry));
+
+        f.delete();
+        ro.delete();
     }
 
 
+    /**
+     * Test that you can add a subfolder and it gets saved both remotely and locally.
+     * 
+     * @throws ROSRSException
+     *             unexpected server response
+     * @throws IOException
+     *             problem loading test data
+     * @throws ROException
+     *             invalid remote manifest
+     */
     @Test
-    public final void testAddSubFolder() {
-        fail("Not yet implemented");
+    public final void testAddSubFolder()
+            throws ROSRSException, IOException, ROException {
+        ResearchObject ro;
+        try {
+            ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+        } catch (ROSRSException e) {
+            if (e.getStatus() == HttpStatus.SC_CONFLICT) {
+                ro = new ResearchObject(TestUtils.ROSRS.getRosrsURI().resolve("JavaClientTest/"), TestUtils.ROSRS);
+                ro.delete();
+                ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+            } else {
+                throw e;
+            }
+        }
+        Folder f = Folder.create(ro, "folder1/");
+        Assert.assertNotNull(f);
+        Resource res = null;
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream("ro1/res1.txt")) {
+            res = Resource.create(ro, "folder1/res1.txt", in, "text/plain");
+            Assert.assertNotNull(res);
+        }
+
+        FolderEntry entry = f.addSubFolder("folder2/");
+        Assert.assertEquals(f.getUri().resolve("folder2/"), entry.getResourceUri());
+        Assert.assertTrue(f.getFolderEntries().contains(entry));
+
+        Folder f2 = new Folder(ro, ro.getUri().resolve("folder1/"), f.getProxyUri(), f.getResourceMap(), null, null,
+                f.isRootFolder());
+        f2.load(false);
+        Assert.assertTrue(f2.getFolderEntries().contains(entry));
+
+        f.delete();
+        ro.delete();
     }
 
 

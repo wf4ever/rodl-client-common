@@ -177,6 +177,18 @@ public class ResearchObject implements Serializable {
     }
 
 
+    /**
+     * Get a resource with a given URI or null if doesn't exist.
+     * 
+     * @param resourceUri
+     *            resource URI
+     * @return resource instance or null
+     */
+    public Resource getResource(URI resourceUri) {
+        return resources.get(resourceUri);
+    }
+
+
     public Collection<Folder> getFolders() {
         return folders.values();
     }
