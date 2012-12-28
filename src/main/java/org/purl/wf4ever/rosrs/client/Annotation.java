@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.openrdf.rio.RDFFormat;
 
-import pl.psnc.dl.wf4ever.vocabulary.AO;
+import pl.psnc.dl.wf4ever.vocabulary.ORE;
 
 import com.google.common.collect.Multimap;
 import com.hp.hpl.jena.ontology.Individual;
@@ -130,7 +130,7 @@ public class Annotation implements Serializable {
             throws ROSRSException {
         ClientResponse response = researchObject.getRosrs().addAnnotation(researchObject.getUri(), targets, body);
         Multimap<String, URI> links = Utils.getLinkHeaders(response.getHeaders().get("Link"));
-        Collection<URI> annUris = links.get(AO.annotatesResource.getURI());
+        Collection<URI> annUris = links.get(ORE.proxyFor.getURI());
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
         model.read(response.getEntityInputStream(), null);
         response.close();
