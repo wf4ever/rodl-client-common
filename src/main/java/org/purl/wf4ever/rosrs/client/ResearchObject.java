@@ -2,7 +2,6 @@ package org.purl.wf4ever.rosrs.client;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,16 +37,13 @@ import com.sun.jersey.api.client.ClientResponse;
  * @author piotrekhol
  * 
  */
-public class ResearchObject implements Serializable {
+public class ResearchObject extends Thing {
 
     /** id. */
     private static final long serialVersionUID = -2279202661374054080L;
 
     /** Logger. */
     private static final Logger LOG = Logger.getLogger(ResearchObject.class);
-
-    /** URI. */
-    private final URI uri;
 
     /** ROSRS client. */
     private final ROSRService rosrs;
@@ -64,12 +60,6 @@ public class ResearchObject implements Serializable {
     /** aggregated annotations, grouped based on ao:annotatesResource. */
     private Multimap<URI, Annotation> annotations;
 
-    /** creator URI. */
-    private URI creator;
-
-    /** creation date. */
-    private DateTime created;
-
 
     /**
      * Constructor.
@@ -80,7 +70,7 @@ public class ResearchObject implements Serializable {
      *            ROSRS client
      */
     public ResearchObject(URI uri, ROSRService rosrs) {
-        this.uri = uri;
+        super(uri, null, null);
         this.rosrs = rosrs;
         this.loaded = false;
     }
@@ -102,11 +92,6 @@ public class ResearchObject implements Serializable {
         ClientResponse response = rosrs.createResearchObject(id);
         response.close();
         return new ResearchObject(response.getLocation(), rosrs);
-    }
-
-
-    public URI getUri() {
-        return uri;
     }
 
 
@@ -172,8 +157,8 @@ public class ResearchObject implements Serializable {
     }
 
 
-    public Collection<Resource> getResources() {
-        return resources.values();
+    public Map<URI, Resource> getResources() {
+        return resources;
     }
 
 
@@ -208,16 +193,6 @@ public class ResearchObject implements Serializable {
 
     public Multimap<URI, Annotation> getAnnotations() {
         return annotations;
-    }
-
-
-    public URI getCreator() {
-        return creator;
-    }
-
-
-    public DateTime getCreated() {
-        return created;
     }
 
 

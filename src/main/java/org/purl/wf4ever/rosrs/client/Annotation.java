@@ -3,7 +3,6 @@ package org.purl.wf4ever.rosrs.client;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,7 +31,7 @@ import com.sun.jersey.api.client.ClientResponse;
  * @author piotrekhol
  * 
  */
-public class Annotation implements Serializable {
+public class Annotation extends Thing {
 
     /** id. */
     private static final long serialVersionUID = 2231042343400055586L;
@@ -43,20 +42,11 @@ public class Annotation implements Serializable {
     /** RO aggregating the annotation. */
     private ResearchObject researchObject;
 
-    /** annotation URI. */
-    private URI uri;
-
     /** annotation body, may be aggregated or not, may be a ro:Resource (rarely) or not. */
     private URI body;
 
     /** annotated resources, must be RO/aggregated resources/proxies. */
     private Set<URI> targets;
-
-    /** annotation author. */
-    private URI creator;
-
-    /** annotation creation time. */
-    private DateTime created;
 
     /** has the annotation body been loaded. */
     private boolean loaded;
@@ -82,12 +72,10 @@ public class Annotation implements Serializable {
      *            annotation creation time
      */
     public Annotation(ResearchObject researchObject, URI uri, URI body, Set<URI> targets, URI creator, DateTime created) {
+        super(uri, creator, created);
         this.researchObject = researchObject;
-        this.uri = uri;
         this.body = body;
         this.targets = targets;
-        this.creator = creator;
-        this.created = created;
         this.loaded = false;
     }
 
@@ -223,23 +211,8 @@ public class Annotation implements Serializable {
     }
 
 
-    public URI getUri() {
-        return uri;
-    }
-
-
     public URI getBody() {
         return body;
-    }
-
-
-    public URI getCreator() {
-        return creator;
-    }
-
-
-    public DateTime getCreated() {
-        return created;
     }
 
 

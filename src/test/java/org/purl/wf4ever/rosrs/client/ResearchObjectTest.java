@@ -141,7 +141,7 @@ public class ResearchObjectTest {
         ex.add(new Resource(ro1, RO_PREFIX.resolve("res2"), RO_PREFIX.resolve("proxies/2"), URI
                 .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
         Set<Resource> res = new HashSet<>();
-        res.addAll(ro1.getResources());
+        res.addAll(ro1.getResources().values());
         Assert.assertEquals(ex, res);
     }
 

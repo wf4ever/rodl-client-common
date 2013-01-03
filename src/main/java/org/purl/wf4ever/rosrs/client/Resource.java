@@ -1,7 +1,6 @@
 package org.purl.wf4ever.rosrs.client;
 
 import java.io.InputStream;
-import java.io.Serializable;
 import java.net.URI;
 import java.util.Collection;
 
@@ -22,13 +21,10 @@ import com.sun.jersey.api.client.ClientResponse;
  * @author piotrekhol
  * 
  */
-public class Resource implements Serializable {
+public class Resource extends Thing {
 
     /** id. */
     private static final long serialVersionUID = 7593887876508190085L;
-
-    /** URI. */
-    protected final URI uri;
 
     /** The RO it is aggregated by. */
     protected final ResearchObject researchObject;
@@ -36,11 +32,8 @@ public class Resource implements Serializable {
     /** URI of the proxy. */
     protected final URI proxyUri;
 
-    /** creator URI. */
-    protected URI creator;
-
-    /** creation date. */
-    protected DateTime created;
+    /** Resource size in bytes. */
+    protected long size = -1;
 
 
     /**
@@ -58,11 +51,9 @@ public class Resource implements Serializable {
      *            creation date
      */
     public Resource(ResearchObject researchObject, URI uri, URI proxyURI, URI creator, DateTime created) {
+        super(uri, creator, created);
         this.researchObject = researchObject;
-        this.uri = uri;
         this.proxyUri = proxyURI;
-        this.creator = creator;
-        this.created = created;
     }
 
 
@@ -145,11 +136,6 @@ public class Resource implements Serializable {
     }
 
 
-    public URI getUri() {
-        return uri;
-    }
-
-
     public ResearchObject getResearchObject() {
         return researchObject;
     }
@@ -160,13 +146,27 @@ public class Resource implements Serializable {
     }
 
 
-    public URI getCreator() {
-        return creator;
+    public long getSize() {
+        return size;
     }
 
 
-    public DateTime getCreated() {
-        return created;
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+
+    /**
+     * Resource size nicely formatted.
+     * 
+     * @return the size, nicely formatted (i.e. 23 MB)
+     */
+    public String getSizeFormatted() {
+        if (getSize() >= 0) {
+            return humanReadableByteCount(getSize());
+        } else {
+            return null;
+        }
     }
 
 
@@ -225,4 +225,21 @@ public class Resource implements Serializable {
         return true;
     }
 
+
+    /**
+     * Adapted from http://stackoverflow.com/questions/3758606/how-to-convert-byte
+     * -size-into-human-readable-format-in-java.
+     * 
+     * @param bytes
+     *            size in bytes
+     * @return nicely formatted size
+     */
+    private static String humanReadableByteCount(long bytes) {
+        int unit = 1024;
+        if (bytes < unit) {
+            return bytes + " B";
+        }
+        int exp = (int) (Math.log(bytes) / Math.log(unit));
+        return String.format("%.1f %cB", bytes / Math.pow(unit, exp), "KMGTPE".charAt(exp - 1));
+    }
 }
