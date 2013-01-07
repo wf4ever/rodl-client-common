@@ -21,7 +21,7 @@ import com.sun.jersey.api.client.ClientResponse;
  * @author piotrekhol
  * 
  */
-public class Resource extends Thing {
+public class Resource extends Thing implements Annotable {
 
     /** id. */
     private static final long serialVersionUID = 7593887876508190085L;
@@ -131,11 +131,6 @@ public class Resource extends Thing {
     }
 
 
-    public Collection<Annotation> getAnnotations() {
-        return this.researchObject.getAnnotations().get(uri);
-    }
-
-
     public ResearchObject getResearchObject() {
         return researchObject;
     }
@@ -241,5 +236,11 @@ public class Resource extends Thing {
         }
         int exp = (int) (Math.log(bytes) / Math.log(unit));
         return String.format("%.1f %cB", bytes / Math.pow(unit, exp), "KMGTPE".charAt(exp - 1));
+    }
+
+
+    @Override
+    public Collection<Annotation> getAnnotations() {
+        return this.researchObject.getAllAnnotations().get(uri);
     }
 }

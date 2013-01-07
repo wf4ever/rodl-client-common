@@ -3,10 +3,16 @@ package org.purl.wf4ever.rosrs.client;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -19,6 +25,7 @@ import com.google.common.collect.Multimap;
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.util.FileManager;
@@ -53,6 +60,9 @@ public class Annotation extends Thing {
 
     /** annotation body serialized as string. */
     private String bodySerializedAsString;
+
+    /** statements in the annotation body. */
+    private List<Statement> statements;
 
 
     /**
@@ -195,7 +205,10 @@ public class Annotation extends Thing {
                 }
             }
         }
-        //in here we could do something with the model but we will only save it as string to make it serializable
+
+        //first, extract statements
+        this.statements = extractStatements(model);
+
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             try (ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray())) {
                 model.write(out, "RDF/XML");
@@ -203,6 +216,51 @@ public class Annotation extends Thing {
                 loaded = true;
             }
         }
+    }
+
+
+    /**
+     * Create an list of statements for a model.
+     * 
+     * @param model
+     *            Jena model
+     * @return list of {@link Statement}
+     */
+    public List<Statement> extractStatements(Model model) {
+        List<Statement> statements2 = new ArrayList<Statement>();
+        for (com.hp.hpl.jena.rdf.model.Statement statement : model.listStatements().toSet()) {
+            try {
+                statements2.add(new Statement(statement, this));
+            } catch (URISyntaxException e) {
+                LOG.error("Could not parse statement", e);
+            }
+        }
+        Collections.sort(statements2, new Comparator<Statement>() {
+
+            @Override
+            public int compare(Statement s1, Statement s2) {
+                return s1.getPropertyLocalName().compareTo(s2.getPropertyLocalName());
+            }
+        });
+        return statements2;
+    }
+
+
+    /**
+     * Convert an annotation body (a list of {@link Statement}) to an RDF graph.
+     * 
+     * @param statements
+     *            a list of {@link Statement}
+     * @return input stream of an RDF graph in RDF/XML format
+     */
+    public static InputStream wrapAnnotationBody(List<Statement> statements) {
+        Model body = ModelFactory.createDefaultModel();
+        for (Statement stmt : statements) {
+            body.add(stmt.createJenaStatement());
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        body.write(out);
+        return new ByteArrayInputStream(out.toByteArray());
     }
 
 
@@ -228,6 +286,11 @@ public class Annotation extends Thing {
 
     public String getBodySerializedAsString() {
         return bodySerializedAsString;
+    }
+
+
+    public List<Statement> getStatements() {
+        return statements;
     }
 
 

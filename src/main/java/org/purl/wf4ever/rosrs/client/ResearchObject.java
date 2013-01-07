@@ -37,7 +37,7 @@ import com.sun.jersey.api.client.ClientResponse;
  * @author piotrekhol
  * 
  */
-public class ResearchObject extends Thing {
+public class ResearchObject extends Thing implements Annotable {
 
     /** id. */
     private static final long serialVersionUID = -2279202661374054080L;
@@ -191,7 +191,7 @@ public class ResearchObject extends Thing {
     }
 
 
-    public Multimap<URI, Annotation> getAnnotations() {
+    public Multimap<URI, Annotation> getAllAnnotations() {
         return annotations;
     }
 
@@ -509,5 +509,11 @@ public class ResearchObject extends Thing {
             annotations.get(target).remove(annotation);
         }
 
+    }
+
+
+    @Override
+    public Collection<Annotation> getAnnotations() {
+        return getAllAnnotations().get(uri);
     }
 }
