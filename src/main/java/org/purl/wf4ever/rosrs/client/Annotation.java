@@ -355,4 +355,17 @@ public class Annotation extends Thing {
         return true;
     }
 
+
+    /**
+     * Update the annotation body.
+     * 
+     * @throws ROSRSException
+     *             unexpected response from the server
+     */
+    public void update()
+            throws ROSRSException {
+        InputStream bodyContent = wrapAnnotationBody(getStatements());
+        researchObject.getRosrs().updateResource(getBody(), bodyContent, RDFFormat.RDFXML.getDefaultMIMEType());
+    }
+
 }

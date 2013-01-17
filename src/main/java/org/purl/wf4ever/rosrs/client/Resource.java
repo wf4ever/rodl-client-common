@@ -6,6 +6,8 @@ import java.util.Collection;
 
 import org.joda.time.DateTime;
 
+import pl.psnc.dl.wf4ever.vocabulary.ORE;
+
 import com.google.common.collect.Multimap;
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
@@ -78,8 +80,8 @@ public class Resource extends Thing implements Annotable {
         ClientResponse response = researchObject.getRosrs().aggregateInternalResource(researchObject.getUri(), path,
             content, contentType);
         Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
-        URI resourceUri = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
-                .get("http://www.openarchives.org/ore/terms/proxyFor").iterator().next();
+        URI resourceUri = headers.get(ORE.proxyFor.getURI()).isEmpty() ? null : headers.get(ORE.proxyFor.getURI())
+                .iterator().next();
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
         model.read(response.getEntityInputStream(), null);
         response.close();
@@ -110,8 +112,8 @@ public class Resource extends Thing implements Annotable {
             throws ROSRSException {
         ClientResponse response = researchObject.getRosrs().aggregateExternalResource(researchObject.getUri(), uri);
         Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
-        URI resource = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
-                .get("http://www.openarchives.org/ore/terms/proxyFor").iterator().next();
+        URI resource = headers.get(ORE.proxyFor.getURI()).isEmpty() ? null : headers.get(ORE.proxyFor.getURI())
+                .iterator().next();
         response.close();
         //FIXME creator/created dates are null but see WFE-758
         return new Resource(researchObject, resource, response.getLocation(), null, null);
@@ -242,5 +244,17 @@ public class Resource extends Thing implements Annotable {
     @Override
     public Collection<Annotation> getAnnotations() {
         return this.researchObject.getAllAnnotations().get(uri);
+    }
+
+
+    @Override
+    public Annotation annotate(String bodyPath, InputStream body, String bodyContentType)
+            throws ROSRSException, ROException {
+        return researchObject.annotate(this, bodyPath, body, bodyContentType);
+    }
+
+
+    public boolean isInternal() {
+        return uri.toString().startsWith(researchObject.getUri().toString());
     }
 }

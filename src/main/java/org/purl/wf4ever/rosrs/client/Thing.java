@@ -2,6 +2,7 @@ package org.purl.wf4ever.rosrs.client;
 
 import java.io.Serializable;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 
 import org.joda.time.DateTime;
 
@@ -15,6 +16,12 @@ public class Thing implements Serializable {
 
     /** id. */
     private static final long serialVersionUID = -6086301275622387040L;
+
+    /** Date format: Tuesday 14:03. */
+    public static final SimpleDateFormat SDF1 = new SimpleDateFormat("EEEE HH:mm");
+
+    /** Date format: 24 05 2012 23:04. */
+    public static final SimpleDateFormat SDF2 = new SimpleDateFormat("dd MMMM yyyy HH:mm");
 
     /** resource URI. */
     protected final URI uri;
@@ -62,6 +69,20 @@ public class Thing implements Serializable {
     }
 
 
+    public String getCreatedFormatted() {
+        if (getCreated() != null) {
+            if (getCreated().compareTo(new DateTime().minusWeeks(1)) > 0) {
+                return SDF1.format(getCreated().toDate());
+            } else {
+                return SDF2.format(getCreated().toDate());
+            }
+
+        } else {
+            return null;
+        }
+    }
+
+
     /**
      * Returns the last segment of the resource path, or the whole URI if has no path.
      * 
@@ -85,6 +106,16 @@ public class Thing implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+
+    public void setCreator(URI creator) {
+        this.creator = creator;
+    }
+
+
+    public void setCreated(DateTime created) {
+        this.created = created;
     }
 
 }

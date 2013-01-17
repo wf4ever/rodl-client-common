@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 
@@ -296,47 +295,6 @@ public class ROSRService {
             return response;
         } else {
             throw new ROSRSException("Deleting the resource failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase());
-        }
-    }
-
-
-    /**
-     * Return data about a RODL user.
-     * 
-     * @param userURI
-     *            URI of the user in RODL
-     * @return RDF graph input stream
-     * @throws ROSRSException
-     *             when the response code is not 2xx
-     */
-    public InputStream getUser(URI userURI)
-            throws ROSRSException {
-        WebResource webResource = client.resource(rosrsURI.toString()).path("users")
-                .path(Base64.encodeBase64URLSafeString(userURI.toString().getBytes()));
-        try {
-            return webResource.get(InputStream.class);
-        } catch (UniformInterfaceException e) {
-            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
-                    .getClientResponseStatus().getReasonPhrase());
-        }
-    }
-
-
-    /**
-     * Return data about the access token owner.
-     * 
-     * @return RDF graph input stream
-     * @throws ROSRSException
-     *             when the response code is not 2xx
-     */
-    public InputStream getWhoAmi()
-            throws ROSRSException {
-        WebResource webResource = client.resource(rosrsURI.toString()).path("whoami");
-        try {
-            return webResource.header("Authorization", "Bearer " + token).get(InputStream.class);
-        } catch (UniformInterfaceException e) {
-            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
                     .getClientResponseStatus().getReasonPhrase());
         }
     }

@@ -5,10 +5,13 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.purl.wf4ever.rosrs.client.users.UserManagementService;
 
 import pl.psnc.dl.wf4ever.vocabulary.AO;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
@@ -59,6 +62,9 @@ public class ResearchObject extends Thing implements Annotable {
 
     /** aggregated annotations, grouped based on ao:annotatesResource. */
     private Multimap<URI, Annotation> annotations;
+
+    /** temporary, moved from the portal. */
+    private Set<Creator> creators;
 
 
     /**
@@ -170,7 +176,7 @@ public class ResearchObject extends Thing implements Annotable {
      * @return resource instance or null
      */
     public Resource getResource(URI resourceUri) {
-        return resources.get(resourceUri);
+        return getResources().get(resourceUri);
     }
 
 
@@ -458,12 +464,56 @@ public class ResearchObject extends Thing implements Annotable {
 
 
     /**
+     * Add an annotation about this research object.
+     * 
+     * @param path
+     *            resource path, relative to the RO URI
+     * @param content
+     *            resource content
+     * @param contentType
+     *            resource Content Type
+     * @return the resource instance
+     * @throws ROException
+     * @throws ROSRSException
+     */
+    public Annotation annotate(Annotable target, String path, InputStream content, String contentType)
+            throws ROSRSException, ROException {
+        Resource body = aggregate(path, content, contentType);
+        Annotation annotation = Annotation.create(this, body.getUri(), target.getUri());
+        if (!loaded) {
+            load();
+        }
+        this.annotations.put(annotation.getUri(), annotation);
+        return annotation;
+    }
+
+
+    /**
+     * Add an annotation.
+     * 
+     * @param path
+     *            resource path, relative to the RO URI
+     * @param content
+     *            resource content
+     * @param contentType
+     *            resource Content Type
+     * @return the resource instance
+     * @throws ROException
+     * @throws ROSRSException
+     */
+    public Annotation annotate(String path, InputStream content, String contentType)
+            throws ROSRSException, ROException {
+        return annotate(this, path, content, contentType);
+    }
+
+
+    /**
      * Remove references to the resource and the annotations about it.
      * 
      * @param resource
      *            resource to delete
      */
-    public void removeResource(Resource resource) {
+    void removeResource(Resource resource) {
         if (resources != null) {
             this.resources.remove(resource.getUri());
         }
@@ -482,7 +532,7 @@ public class ResearchObject extends Thing implements Annotable {
      * @param folder
      *            folder to delete
      */
-    public void removeFolder(Folder folder) {
+    void removeFolder(Folder folder) {
         if (folders != null) {
             this.folders.remove(folder.getUri());
         }
@@ -501,7 +551,7 @@ public class ResearchObject extends Thing implements Annotable {
      * @param annotation
      *            the annotation
      */
-    public void removeAnnotation(Annotation annotation) {
+    void removeAnnotation(Annotation annotation) {
         if (annotations == null) {
             return;
         }
@@ -515,5 +565,23 @@ public class ResearchObject extends Thing implements Annotable {
     @Override
     public Collection<Annotation> getAnnotations() {
         return getAllAnnotations().get(uri);
+    }
+
+
+    public Set<Creator> getCreators() {
+        return creators;
+    }
+
+
+    public void setCreators(Set<Creator> creators) {
+        this.creators = creators;
+    }
+
+
+    public void addCreator(UserManagementService ums, URI creator) {
+        if (this.creators == null) {
+            this.creators = new HashSet<>();
+        }
+        creators.add(new Creator(ums, creator));
     }
 }
