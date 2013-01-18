@@ -3,8 +3,11 @@ package org.purl.wf4ever.rosrs.client;
 import java.io.Serializable;
 import java.net.URI;
 import java.text.SimpleDateFormat;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.purl.wf4ever.rosrs.client.users.UserManagementService;
 
 /**
  * Base of all resources.
@@ -34,6 +37,9 @@ public class Thing implements Serializable {
 
     /** creation date. */
     protected DateTime created;
+
+    /** temporary, moved from the portal. */
+    private Set<Creator> creators;
 
 
     /**
@@ -116,6 +122,24 @@ public class Thing implements Serializable {
 
     public void setCreated(DateTime created) {
         this.created = created;
+    }
+
+
+    public Set<Creator> getCreators() {
+        return creators;
+    }
+
+
+    public void setCreators(Set<Creator> creators) {
+        this.creators = creators;
+    }
+
+
+    public void addCreator(UserManagementService ums, URI creator) {
+        if (this.creators == null) {
+            this.creators = new HashSet<>();
+        }
+        creators.add(new Creator(ums, creator));
     }
 
 }

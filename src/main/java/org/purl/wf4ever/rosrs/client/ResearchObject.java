@@ -5,13 +5,10 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
-import org.purl.wf4ever.rosrs.client.users.UserManagementService;
 
 import pl.psnc.dl.wf4ever.vocabulary.AO;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
@@ -62,9 +59,6 @@ public class ResearchObject extends Thing implements Annotable {
 
     /** aggregated annotations, grouped based on ao:annotatesResource. */
     private Multimap<URI, Annotation> annotations;
-
-    /** temporary, moved from the portal. */
-    private Set<Creator> creators;
 
 
     /**
@@ -567,21 +561,4 @@ public class ResearchObject extends Thing implements Annotable {
         return getAllAnnotations().get(uri);
     }
 
-
-    public Set<Creator> getCreators() {
-        return creators;
-    }
-
-
-    public void setCreators(Set<Creator> creators) {
-        this.creators = creators;
-    }
-
-
-    public void addCreator(UserManagementService ums, URI creator) {
-        if (this.creators == null) {
-            this.creators = new HashSet<>();
-        }
-        creators.add(new Creator(ums, creator));
-    }
 }
