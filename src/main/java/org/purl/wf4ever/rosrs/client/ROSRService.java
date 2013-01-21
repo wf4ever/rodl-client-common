@@ -357,7 +357,7 @@ public class ROSRService {
         model.add(annotation, AO.body, body);
         for (URI targetURI : targets) {
             Resource target = model.createResource(targetURI.toString());
-            model.add(annotation, RO.annotatesAggregatedResource, target);
+            model.add(annotation, AO.annotatesResource, target);
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         model.write(out);
