@@ -477,7 +477,7 @@ public class ResearchObject extends Thing implements Annotable {
         if (!loaded) {
             load();
         }
-        this.annotations.put(annotation.getUri(), annotation);
+        this.annotations.put(target.getUri(), annotation);
         return annotation;
     }
 
