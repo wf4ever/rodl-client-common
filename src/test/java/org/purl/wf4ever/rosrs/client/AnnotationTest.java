@@ -13,6 +13,7 @@ import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.purl.wf4ever.rosrs.client.exception.NotLoadedObject;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
@@ -78,7 +79,7 @@ public class AnnotationTest {
      * Test the constructor.
      */
     @Test
-    public final void testAnnotationResearchObjectUriUriSetOfUriUriDateTime() {
+    public final void testAnnotationResearchObjectUriUriSetOfURIURIDateTime() {
         Set<URI> targets = new HashSet<>();
         targets.add(RO_PREFIX);
         Annotation annotation = new Annotation(ro1, ANN_PREFIX, BODY_PREFIX, targets,
@@ -231,5 +232,35 @@ public class AnnotationTest {
             res.read(in, BODY_PREFIX.toString());
         }
         Assert.assertTrue(ex.isIsomorphicWith(res));
+    }
+
+
+    /**
+     * The list of annotation statement should be fill up when the object is loaded.
+     * 
+     * @throws IOException
+     * @throws ROSRSException
+     */
+    @Test
+    public final void testGetStatement()
+            throws ROSRSException, IOException {
+        Annotation annotation = new Annotation(ro1, PUBLIC_ANNOTATION, PUBLIC_BODY, PUBLIC_TARGET, null, null);
+        annotation.load();
+        Assert.assertNotNull(annotation.getStatements());
+    }
+
+
+    /**
+     * When not loaded are accessed, NotLoadedObject Exception is thrown.
+     * 
+     * @throws IOException
+     * @throws ROSRSException
+     */
+    @Test(expected = NotLoadedObject.class)
+    public final void testGetNotLoadedStatement()
+            throws ROSRSException, IOException {
+        Annotation annotation = new Annotation(ro1, PUBLIC_ANNOTATION, PUBLIC_BODY, PUBLIC_TARGET, null, null);
+        annotation.getStatements();
+
     }
 }
