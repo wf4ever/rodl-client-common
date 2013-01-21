@@ -3,6 +3,7 @@ package org.purl.wf4ever.rosrs.client;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -39,7 +40,10 @@ import de.fuberlin.wiwiss.ng4j.impl.NamedGraphSetImpl;
  * @author Piotr Hołubowicz
  * 
  */
-public class ROSRService {
+public class ROSRService implements Serializable {
+
+    /** id. */
+    private static final long serialVersionUID = 8005409732875360705L;
 
     /** Logger. */
     private static final Logger LOG = Logger.getLogger(ROSRService.class);
