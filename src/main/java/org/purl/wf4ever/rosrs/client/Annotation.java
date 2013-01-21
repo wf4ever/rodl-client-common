@@ -18,6 +18,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.openrdf.rio.RDFFormat;
+import org.purl.wf4ever.rosrs.client.exception.NotLoadedObject;
 
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 
@@ -289,7 +290,11 @@ public class Annotation extends Thing {
     }
 
 
-    public List<Statement> getStatements() {
+    public List<Statement> getStatements()
+            throws NotLoadedObject {
+        if (!loaded) {
+            throw new NotLoadedObject("annotation wasn't loaded");
+        }
         return statements;
     }
 
@@ -361,6 +366,7 @@ public class Annotation extends Thing {
      * 
      * @throws ROSRSException
      *             unexpected response from the server
+     * 
      */
     public void update()
             throws ROSRSException {
