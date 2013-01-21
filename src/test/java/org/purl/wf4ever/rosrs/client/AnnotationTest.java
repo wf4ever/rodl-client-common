@@ -78,7 +78,7 @@ public class AnnotationTest {
      * Test the constructor.
      */
     @Test
-    public final void testAnnotationResearchObjectURIURISetOfURIURIDateTime() {
+    public final void testAnnotationResearchObjectUriUriSetOfUriUriDateTime() {
         Set<URI> targets = new HashSet<>();
         targets.add(RO_PREFIX);
         Annotation annotation = new Annotation(ro1, ANN_PREFIX, BODY_PREFIX, targets,
@@ -91,7 +91,7 @@ public class AnnotationTest {
      * Test the constructor.
      */
     @Test
-    public final void testAnnotationResearchObjectURIURIURIURIDateTime() {
+    public final void testAnnotationResearchObjectUriUriUriUriDateTime() {
         Annotation annotation = new Annotation(ro1, ANN_PREFIX, BODY_PREFIX, RO_PREFIX,
                 URI.create("http://test.myopenid.com"), new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
         Assert.assertFalse(annotation.isLoaded());
