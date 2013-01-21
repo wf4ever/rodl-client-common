@@ -205,11 +205,13 @@ public final class UserManagementService {
     /**
      * Return data about the access token owner.
      * 
+     * @param token
+     *            user token
      * @return RDF graph input stream
      * @throws ROSRSException
      *             when the response code is not 2xx
      */
-    public InputStream getWhoAmi()
+    public InputStream getWhoAmi(String token)
             throws ROSRSException {
         WebResource webResource = client.resource(rodlURI.toString()).path("whoami");
         try {
