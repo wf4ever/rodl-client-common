@@ -14,5 +14,6 @@
 
    , [ lm:name "http://example.org/ro1/" ; lm:altName "file:src/test/resources/ro1/.ro/manifest.rdf" ] 
    , [ lm:name "http://example.org/ro1/body1.rdf" ; lm:altName "file:src/test/resources/ro1/body1.rdf" ] 
+   , [ lm:name "http://example.org/ro1/folder1.ttl" ; lm:altName "file:src/test/resources/ro1/folder1.ttl" ] 
    , [ lm:prefix "http://example.org/ro1/" ; lm:altPrefix "file:src/test/resources/ro1/" ] 
    .
