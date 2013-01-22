@@ -193,7 +193,7 @@ public class ResearchObjectTest {
         ex.put(RO_PREFIX.resolve("res2"), an3);
         ex.put(RO_PREFIX.resolve("folder1/"), an4);
 
-        Assert.assertEquals(ex, ro1.getAnnotations());
+        Assert.assertEquals(ex, ro1.getAllAnnotations());
     }
 
 
