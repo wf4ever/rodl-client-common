@@ -291,10 +291,17 @@ public class Annotation extends Thing {
     }
 
 
+    /**
+     * Get a list of statements in the annotation body.
+     * 
+     * @return a list of statements
+     * @throws ObjectNotLoadedException
+     *             if the annotation body wasn't loaded
+     */
     public List<Statement> getStatements()
             throws ObjectNotLoadedException {
         if (!loaded) {
-            throw new ObjectNotLoadedException("annotation wasn't loaded");
+            throw new ObjectNotLoadedException("the annotation wasn't loaded: " + uri);
         }
         return statements;
     }

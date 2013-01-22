@@ -106,10 +106,12 @@ public class AnnotationTest {
      * 
      * @throws ROSRSException
      *             unexpected server response
+     * @throws ROException
+     *             the manifest is incorrect
      */
     @Test
     public final void testCreateDelete()
-            throws ROSRSException {
+            throws ROSRSException, ROException {
         ResearchObject ro;
         try {
             ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
@@ -122,7 +124,8 @@ public class AnnotationTest {
                 throw e;
             }
         }
-        Annotation an = Annotation.create(ro, ro.getUri().resolve("body1.rdf"), ro.getUri());
+        Resource r = ro.aggregate(BODY_PREFIX);
+        Annotation an = Annotation.create(ro, r.getProxyUri(), ro.getUri());
         Assert.assertNotNull(an);
         an.delete();
         ro.delete();
@@ -240,8 +243,10 @@ public class AnnotationTest {
     /**
      * The list of annotation statement should be fill up when the object is loaded.
      * 
-     * @throws IOException
      * @throws ROSRSException
+     *             unexpected server response when downloading the body
+     * @throws IOException
+     *             error copying streams
      */
     @Test
     public final void testGetStatement()
@@ -253,16 +258,17 @@ public class AnnotationTest {
 
 
     /**
-     * When not loaded are accessed, NotLoadedObject Exception is thrown.
+     * When not loaded are accessed, ObjectNotLoadedException is thrown.
      * 
-     * @throws IOException
      * @throws ROSRSException
+     *             unexpected server response when downloading the body
+     * @throws IOException
+     *             error copying streams
      */
     @Test(expected = ObjectNotLoadedException.class)
     public final void testGetNotLoadedStatement()
             throws ROSRSException, IOException {
         Annotation annotation = new Annotation(ro1, PUBLIC_ANNOTATION, PUBLIC_BODY, PUBLIC_TARGET, null, null);
         annotation.getStatements();
-
     }
 }
