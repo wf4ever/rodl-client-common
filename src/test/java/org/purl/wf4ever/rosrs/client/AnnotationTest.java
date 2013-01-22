@@ -13,7 +13,9 @@ import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.purl.wf4ever.rosrs.client.exception.NotLoadedObject;
+import org.purl.wf4ever.rosrs.client.exception.ObjectNotLoadedException;
+import org.purl.wf4ever.rosrs.client.exception.ROException;
+import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
@@ -256,7 +258,7 @@ public class AnnotationTest {
      * @throws IOException
      * @throws ROSRSException
      */
-    @Test(expected = NotLoadedObject.class)
+    @Test(expected = ObjectNotLoadedException.class)
     public final void testGetNotLoadedStatement()
             throws ROSRSException, IOException {
         Annotation annotation = new Annotation(ro1, PUBLIC_ANNOTATION, PUBLIC_BODY, PUBLIC_TARGET, null, null);

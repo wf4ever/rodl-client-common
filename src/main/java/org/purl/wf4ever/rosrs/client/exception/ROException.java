@@ -1,4 +1,4 @@
-package org.purl.wf4ever.rosrs.client;
+package org.purl.wf4ever.rosrs.client.exception;
 
 import java.net.URI;
 

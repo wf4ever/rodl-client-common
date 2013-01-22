@@ -9,6 +9,8 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.purl.wf4ever.rosrs.client.exception.ROException;
+import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import pl.psnc.dl.wf4ever.vocabulary.AO;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;

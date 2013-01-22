@@ -10,6 +10,8 @@ import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.purl.wf4ever.rosrs.client.exception.ROException;
+import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;

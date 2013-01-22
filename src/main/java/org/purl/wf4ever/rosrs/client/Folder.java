@@ -11,6 +11,8 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.openrdf.rio.RDFFormat;
+import org.purl.wf4ever.rosrs.client.exception.ROException;
+import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 import pl.psnc.dl.wf4ever.vocabulary.RO;

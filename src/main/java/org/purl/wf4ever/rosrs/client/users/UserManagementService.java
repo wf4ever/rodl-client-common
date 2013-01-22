@@ -6,7 +6,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
-import org.purl.wf4ever.rosrs.client.ROSRSException;
+import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;

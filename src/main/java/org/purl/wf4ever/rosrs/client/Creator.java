@@ -9,6 +9,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 import org.purl.wf4ever.rosrs.client.users.UserManagementService;
 
 import pl.psnc.dl.wf4ever.vocabulary.FOAF;

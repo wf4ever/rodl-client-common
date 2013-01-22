@@ -1,12 +1,12 @@
 package org.purl.wf4ever.rosrs.client.exception;
 
 /**
- * This exception indicates the attempt to not loaded object.
+ * This exception indicates the attempt to get a property that was not loaded.
  * 
  * @author filip
  * 
  */
-public class NotLoadedObject extends RuntimeException {
+public class ObjectNotLoadedException extends RuntimeException {
 
     /** id. */
     private static final long serialVersionUID = 1L;
@@ -18,7 +18,7 @@ public class NotLoadedObject extends RuntimeException {
      * @param message
      *            the message
      */
-    public NotLoadedObject(String message) {
+    public ObjectNotLoadedException(String message) {
         super(message);
     }
 
@@ -31,7 +31,7 @@ public class NotLoadedObject extends RuntimeException {
      * @param e
      *            the original exception
      */
-    public NotLoadedObject(String message, Exception e) {
+    public ObjectNotLoadedException(String message, Exception e) {
         super(message, e);
     }
 

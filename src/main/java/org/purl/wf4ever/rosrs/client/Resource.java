@@ -5,6 +5,8 @@ import java.net.URI;
 import java.util.Collection;
 
 import org.joda.time.DateTime;
+import org.purl.wf4ever.rosrs.client.exception.ROException;
+import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 

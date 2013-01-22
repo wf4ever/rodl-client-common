@@ -3,6 +3,9 @@ package org.purl.wf4ever.rosrs.client;
 import java.io.InputStream;
 import java.util.Collection;
 
+import org.purl.wf4ever.rosrs.client.exception.ROException;
+import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
+
 /**
  * An interface for the resource that may be the target of an ro:AggregatedAnnotation.
  * 

@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
+import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import pl.psnc.dl.wf4ever.vocabulary.AO;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
