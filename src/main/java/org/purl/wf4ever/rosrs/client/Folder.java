@@ -3,7 +3,6 @@ package org.purl.wf4ever.rosrs.client;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.core.UriBuilder;
@@ -11,6 +10,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.openrdf.rio.RDFFormat;
+import org.purl.wf4ever.rosrs.client.exception.ObjectNotLoadedException;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
@@ -214,16 +214,20 @@ public class Folder extends Resource {
     public FolderEntry addEntry(Resource resource, String entryName)
             throws ROSRSException, ROException {
         ClientResponse response = this.researchObject.getRosrs().addFolderEntry(uri, resource.getUri(), entryName);
-        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
-        model.read(response.getEntityInputStream(), response.getLocation().toString());
-        List<Individual> entries = model.listIndividuals(RO.FolderEntry).toList();
-        if (entries.isEmpty()) {
-            throw new ROException("The create folder entry response contains no folder entries",
-                    researchObject.getUri());
-        }
-        String name = entries.get(0).getPropertyValue(RO.entryName).asLiteral().getString();
-        FolderEntry entry = new FolderEntry(this, response.getLocation(), resource.getUri(), name);
-        this.folderEntries.add(entry);
+        Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
+        URI resourceUri = headers.get(ORE.proxyFor.getURI()).isEmpty() ? null : headers.get(ORE.proxyFor.getURI())
+                .iterator().next();
+        //FIXME this is not returned by RODL
+        //        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
+        //        model.read(response.getEntityInputStream(), response.getLocation().toString());
+        //        List<Individual> entries = model.listIndividuals(RO.FolderEntry).toList();
+        //        if (entries.isEmpty()) {
+        //            throw new ROException("The create folder entry response contains no folder entries",
+        //                    researchObject.getUri());
+        //        }
+        //        String name = entries.get(0).getPropertyValue(RO.entryName).asLiteral().getString();
+        FolderEntry entry = new FolderEntry(this, response.getLocation(), resourceUri, null);
+        this.getFolderEntries().add(entry);
         return entry;
     }
 
@@ -276,7 +280,18 @@ public class Folder extends Resource {
     }
 
 
-    public Set<FolderEntry> getFolderEntries() {
+    /**
+     * Get a set of folder entries.
+     * 
+     * @return folder entries
+     * @throws ObjectNotLoadedException
+     *             if the folder hasn't been loaded
+     */
+    public Set<FolderEntry> getFolderEntries()
+            throws ObjectNotLoadedException {
+        if (!loaded) {
+            throw new ObjectNotLoadedException("the folder hasn't been loaded: " + uri);
+        }
         return folderEntries;
     }
 

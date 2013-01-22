@@ -156,6 +156,7 @@ public class FolderTest {
         }
         Folder f = Folder.create(ro, "folder1/");
         Assert.assertNotNull(f);
+        f.load(false);
         Resource res = null;
         try (InputStream in = getClass().getClassLoader().getResourceAsStream("ro1/res1.txt")) {
             res = Resource.create(ro, "folder1/res1.txt", in, "text/plain");
