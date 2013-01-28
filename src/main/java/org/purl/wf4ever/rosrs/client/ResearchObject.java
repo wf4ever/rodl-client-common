@@ -5,7 +5,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -61,6 +63,9 @@ public class ResearchObject extends Thing implements Annotable {
 
     /** aggregated annotations, grouped based on ao:annotatesResource. */
     private Multimap<URI, Annotation> annotations;
+
+    /** root folders of the RO. */
+    private Set<Folder> rootFolders;
 
 
     /**
@@ -137,6 +142,12 @@ public class ResearchObject extends Thing implements Annotable {
         this.created = extractCreated(model);
         this.resources = extractResources(model);
         this.folders = extractFolders(model);
+        this.rootFolders = new HashSet<>();
+        for (Folder folder : folders.values()) {
+            if (folder.isRootFolder()) {
+                rootFolders.add(folder);
+            }
+        }
         this.annotations = extractAnnotations(model);
         this.loaded = true;
     }
@@ -178,6 +189,11 @@ public class ResearchObject extends Thing implements Annotable {
 
     public Map<URI, Folder> getFolders() {
         return folders;
+    }
+
+
+    public Set<Folder> getRootFolders() {
+        return rootFolders;
     }
 
 
