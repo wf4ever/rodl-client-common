@@ -2,7 +2,9 @@ package org.purl.wf4ever.rosrs.client;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.core.UriBuilder;
@@ -293,6 +295,15 @@ public class Folder extends Resource {
             throw new ObjectNotLoadedException("the folder hasn't been loaded: " + uri);
         }
         return folderEntries;
+    }
+
+
+    public List<Resource> getResources() {
+        List<Resource> list = new ArrayList<>();
+        for (FolderEntry entry : getFolderEntries()) {
+            list.add(entry.getResource());
+        }
+        return list;
     }
 
 
