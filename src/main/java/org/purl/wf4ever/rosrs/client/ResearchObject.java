@@ -176,8 +176,8 @@ public class ResearchObject extends Thing implements Annotable {
     }
 
 
-    public Collection<Folder> getFolders() {
-        return folders.values();
+    public Map<URI, Folder> getFolders() {
+        return folders;
     }
 
 

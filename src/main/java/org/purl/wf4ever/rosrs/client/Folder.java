@@ -3,6 +3,8 @@ package org.purl.wf4ever.rosrs.client;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,6 +62,12 @@ public class Folder extends Resource {
 
     /** folder entries (folder content). */
     private Set<FolderEntry> folderEntries;
+
+    /** subfolders sorted by name. */
+    private List<Folder> subfolders;
+
+    /** aggregated resources sorted by name. */
+    private List<Resource> resources;
 
 
     /**
@@ -152,6 +160,27 @@ public class Folder extends Resource {
             }
         }
         this.folderEntries = extractFolderEntries(model);
+        subfolders = new ArrayList<>();
+        resources = new ArrayList<>();
+        Comparator<Resource> c = new Comparator<Resource>() {
+
+            @Override
+            public int compare(Resource o1, Resource o2) {
+                return o1.getName() != null ? o1.getName().compareTo(o2.getName()) : -1;
+            }
+
+        };
+        if (researchObject.isLoaded()) {
+            for (FolderEntry entry : folderEntries) {
+                if (researchObject.getResources().containsKey(entry.getResourceUri())) {
+                    resources.add(researchObject.getResource(entry.getResourceUri()));
+                } else if (researchObject.getFolders().containsKey(entry.getResourceUri())) {
+                    subfolders.add(researchObject.getFolder(entry.getResourceUri()));
+                }
+            }
+            Collections.sort(subfolders, c);
+            Collections.sort(resources, c);
+        }
         this.loaded = true;
         if (recursive) {
             for (FolderEntry entry : folderEntries) {
@@ -298,12 +327,29 @@ public class Folder extends Resource {
     }
 
 
+    /**
+     * Return a list of all resources (not folders) sorted by name.
+     * 
+     * @return a list of resources
+     */
     public List<Resource> getResources() {
-        List<Resource> list = new ArrayList<>();
-        for (FolderEntry entry : getFolderEntries()) {
-            list.add(entry.getResource());
+        if (!loaded) {
+            throw new ObjectNotLoadedException("the folder hasn't been loaded: " + uri);
         }
-        return list;
+        return resources;
+    }
+
+
+    /**
+     * Return a list of all subfolders sorted by name.
+     * 
+     * @return a list of resources
+     */
+    public List<Folder> getSubfolders() {
+        if (!loaded) {
+            throw new ObjectNotLoadedException("the folder hasn't been loaded: " + uri);
+        }
+        return subfolders;
     }
 
 

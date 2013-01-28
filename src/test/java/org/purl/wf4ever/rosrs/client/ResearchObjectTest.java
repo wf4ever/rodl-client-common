@@ -161,7 +161,7 @@ public class ResearchObjectTest {
                 .resolve("folder2.ttl"), URI.create("http://test3.myopenid.com"), new DateTime(2011, 12, 02, 15, 02,
                 12, DateTimeZone.UTC), false));
         Set<Folder> res = new HashSet<>();
-        res.addAll(ro1.getFolders());
+        res.addAll(ro1.getFolders().values());
         Assert.assertEquals(folders, res);
     }
 
