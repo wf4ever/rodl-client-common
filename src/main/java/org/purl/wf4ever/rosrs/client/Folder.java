@@ -330,7 +330,7 @@ public class Folder extends Resource {
      * @throws ObjectNotLoadedException
      *             if the folder hasn't been loaded
      */
-    public FolderEntry getFolderEntries(URI entryUri)
+    public FolderEntry getFolderEntry(URI entryUri)
             throws ObjectNotLoadedException {
         if (!loaded) {
             throw new ObjectNotLoadedException("the folder hasn't been loaded: " + uri);
