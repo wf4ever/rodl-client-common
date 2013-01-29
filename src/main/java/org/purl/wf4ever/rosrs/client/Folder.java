@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -317,6 +318,31 @@ public class Folder extends Resource {
             throw new ObjectNotLoadedException("the folder hasn't been loaded: " + uri);
         }
         return folderEntries;
+    }
+
+
+    /**
+     * Get a folder entry.
+     * 
+     * @param entryUri
+     *            entry uri
+     * @return folder entry
+     * @throws ObjectNotLoadedException
+     *             if the folder hasn't been loaded
+     */
+    public FolderEntry getFolderEntries(URI entryUri)
+            throws ObjectNotLoadedException {
+        if (!loaded) {
+            throw new ObjectNotLoadedException("the folder hasn't been loaded: " + uri);
+        }
+        Iterator<FolderEntry> iter = folderEntries.iterator();
+        while (iter.hasNext()) {
+            FolderEntry entry = iter.next();
+            if (entry.getUri().equals(entryUri)) {
+                return entry;
+            }
+        }
+        return null;
     }
 
 
