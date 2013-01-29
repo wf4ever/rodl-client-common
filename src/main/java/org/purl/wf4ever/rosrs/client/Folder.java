@@ -253,6 +253,15 @@ public class Folder extends Resource {
         //        String name = entries.get(0).getPropertyValue(RO.entryName).asLiteral().getString();
         FolderEntry entry = new FolderEntry(this, response.getLocation(), resourceUri, null);
         this.getFolderEntries().add(entry);
+        if (researchObject.isLoaded()) {
+            if (resources != null && researchObject.getResources().containsKey(entry.getResourceUri())) {
+                resources.add(researchObject.getResource(entry.getResourceUri()));
+                Collections.sort(resources, new ResourceByNameComparator());
+            } else if (subfolders != null && researchObject.getFolders().containsKey(entry.getResourceUri())) {
+                subfolders.add(researchObject.getFolder(entry.getResourceUri()));
+                Collections.sort(subfolders, new ResourceByNameComparator());
+            }
+        }
         return entry;
     }
 
