@@ -5,9 +5,9 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -61,7 +61,7 @@ public class Folder extends Resource {
     private boolean rootFolder;
 
     /** folder entries (folder content). */
-    private Set<FolderEntry> folderEntries;
+    private Map<URI, FolderEntry> folderEntries;
 
     /** subfolders sorted by name. */
     private List<Folder> subfolders;
@@ -164,7 +164,7 @@ public class Folder extends Resource {
         resources = new ArrayList<>();
         Comparator<Resource> c = new ResourceByNameComparator();
         if (researchObject.isLoaded()) {
-            for (FolderEntry entry : folderEntries) {
+            for (FolderEntry entry : folderEntries.values()) {
                 if (researchObject.getResources().containsKey(entry.getResourceUri())) {
                     resources.add(researchObject.getResource(entry.getResourceUri()));
                 } else if (researchObject.getFolders().containsKey(entry.getResourceUri())) {
@@ -176,7 +176,7 @@ public class Folder extends Resource {
         }
         this.loaded = true;
         if (recursive) {
-            for (FolderEntry entry : folderEntries) {
+            for (FolderEntry entry : folderEntries.values()) {
                 Folder folder = researchObject.getFolder(entry.getResourceUri());
                 if (folder != null && !folder.isLoaded()) {
                     folder.load(true);
@@ -193,8 +193,8 @@ public class Folder extends Resource {
      *            resource map model
      * @return a set of folder entries
      */
-    private Set<FolderEntry> extractFolderEntries(OntModel model) {
-        Set<FolderEntry> folderEntries2 = new HashSet<>();
+    private Map<URI, FolderEntry> extractFolderEntries(OntModel model) {
+        Map<URI, FolderEntry> folderEntries2 = new HashMap<>();
         String queryString = String
                 .format(
                     "PREFIX ore: <%s> PREFIX ro: <%s> SELECT ?entry ?resource ?name WHERE { <%s> ore:aggregates ?resource . ?entry a ro:FolderEntry ; ore:proxyIn <%<s> ; ore:proxyFor ?resource . OPTIONAL { ?entry ro:entryName ?name . } }",
@@ -212,7 +212,7 @@ public class Folder extends Resource {
                 URI rURI = URI.create(r.asResource().getURI());
                 RDFNode n = solution.get("name");
                 String name = n != null ? n.asLiteral().getString() : null;
-                folderEntries2.add(new FolderEntry(this, eURI, rURI, name));
+                folderEntries2.put(eURI, new FolderEntry(this, eURI, rURI, name));
             }
         } finally {
             qe.close();
@@ -251,7 +251,7 @@ public class Folder extends Resource {
         //        }
         //        String name = entries.get(0).getPropertyValue(RO.entryName).asLiteral().getString();
         FolderEntry entry = new FolderEntry(this, response.getLocation(), resourceUri, null);
-        this.getFolderEntries().add(entry);
+        this.getFolderEntries().put(entry.getUri(), entry);
         if (researchObject.isLoaded()) {
             if (resources != null && researchObject.getResources().containsKey(entry.getResourceUri())) {
                 resources.add(researchObject.getResource(entry.getResourceUri()));
@@ -320,7 +320,7 @@ public class Folder extends Resource {
      * @throws ObjectNotLoadedException
      *             if the folder hasn't been loaded
      */
-    public Set<FolderEntry> getFolderEntries()
+    public Map<URI, FolderEntry> getFolderEntries()
             throws ObjectNotLoadedException {
         if (!loaded) {
             throw new ObjectNotLoadedException("the folder hasn't been loaded: " + uri);
