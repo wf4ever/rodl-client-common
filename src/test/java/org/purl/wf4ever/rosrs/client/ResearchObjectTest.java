@@ -1,7 +1,9 @@
 package org.purl.wf4ever.rosrs.client;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.http.HttpStatus;
@@ -142,8 +144,27 @@ public class ResearchObjectTest {
                 .create("http://test1.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 10, DateTimeZone.UTC)));
         ex.add(new Resource(ro1, RO_PREFIX.resolve("res2"), RO_PREFIX.resolve("proxies/2"), URI
                 .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
+        ex.add(new Resource(ro1, RO_PREFIX.resolve("res3"), RO_PREFIX.resolve("proxies/5"), URI
+                .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
         Set<Resource> res = new HashSet<>();
         res.addAll(ro1.getResources().values());
+        Assert.assertEquals(ex, res);
+    }
+
+
+    /**
+     * Test ro:Folders identified.
+     * 
+     * @throws ROSRSException
+     *             unexpected response from the server
+     */
+    @Test
+    public final void testGetResourcesWithoutFolders()
+            throws ROSRSException {
+        List<Resource> ex = new ArrayList<>();
+        ex.add(new Resource(ro1, RO_PREFIX.resolve("res3"), RO_PREFIX.resolve("proxies/5"), URI
+                .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
+        List<Resource> res = ro1.getResourcesWithoutFolders();
         Assert.assertEquals(ex, res);
     }
 

@@ -3,9 +3,12 @@ package org.purl.wf4ever.rosrs.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -189,6 +192,27 @@ public class ResearchObject extends Thing implements Annotable {
 
     public Map<URI, Folder> getFolders() {
         return folders;
+    }
+
+
+    /**
+     * Returns resources which are not aggregated in any folder.
+     * 
+     * @return a list of resources sorted by name
+     * @throws ROSRSException
+     *             unexpected response from the server when loading the folders
+     */
+    public List<Resource> getResourcesWithoutFolders()
+            throws ROSRSException {
+        List<Resource> resourcesWithoutFolders = new ArrayList<>(getResources().values());
+        for (Folder folder : getFolders().values()) {
+            if (!folder.isLoaded()) {
+                folder.load(true);
+            }
+            resourcesWithoutFolders.removeAll(folder.getResources());
+        }
+        Collections.sort(resourcesWithoutFolders, new ResourceByNameComparator());
+        return resourcesWithoutFolders;
     }
 
 

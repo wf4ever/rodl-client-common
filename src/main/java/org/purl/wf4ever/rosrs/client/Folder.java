@@ -162,14 +162,7 @@ public class Folder extends Resource {
         this.folderEntries = extractFolderEntries(model);
         subfolders = new ArrayList<>();
         resources = new ArrayList<>();
-        Comparator<Resource> c = new Comparator<Resource>() {
-
-            @Override
-            public int compare(Resource o1, Resource o2) {
-                return o1.getName() != null ? o1.getName().compareTo(o2.getName()) : -1;
-            }
-
-        };
+        Comparator<Resource> c = new ResourceByNameComparator();
         if (researchObject.isLoaded()) {
             for (FolderEntry entry : folderEntries) {
                 if (researchObject.getResources().containsKey(entry.getResourceUri())) {
