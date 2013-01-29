@@ -59,8 +59,8 @@ public class Creator implements Serializable {
     /**
      * Constructor, will try to load the name from the URI.
      * 
-     * @param rodlURI
-     *            RODL URI
+     * @param ums
+     *            user management service
      * @param uri
      *            creator URI
      */
@@ -141,8 +141,8 @@ public class Creator implements Serializable {
     /**
      * Create a {@link Creator} from a string, which may or may not be an URI.
      * 
-     * @param rodlURI
-     *            RODL URI
+     * @param ums
+     *            user management service
      * @param usernames
      *            usernames cache
      * @param nameOrUri

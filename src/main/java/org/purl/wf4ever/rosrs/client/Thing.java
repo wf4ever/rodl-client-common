@@ -75,6 +75,11 @@ public class Thing implements Serializable {
     }
 
 
+    /**
+     * Return the creation date nicely formatted.
+     * 
+     * @return the date formatted
+     */
     public String getCreatedFormatted() {
         if (getCreated() != null) {
             if (getCreated().compareTo(new DateTime().minusWeeks(1)) > 0) {
@@ -135,6 +140,14 @@ public class Thing implements Serializable {
     }
 
 
+    /**
+     * Add a new creator instance.
+     * 
+     * @param ums
+     *            user management service to use to look for name
+     * @param creator
+     *            creator URI
+     */
     public void addCreator(UserManagementService ums, URI creator) {
         if (this.creators == null) {
             this.creators = new HashSet<>();

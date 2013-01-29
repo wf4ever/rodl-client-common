@@ -478,6 +478,8 @@ public class ResearchObject extends Thing implements Annotable {
     /**
      * Add an annotation about this research object.
      * 
+     * @param target
+     *            resource that is annotated
      * @param path
      *            resource path, relative to the RO URI
      * @param content
@@ -485,8 +487,10 @@ public class ResearchObject extends Thing implements Annotable {
      * @param contentType
      *            resource Content Type
      * @return the resource instance
-     * @throws ROException
      * @throws ROSRSException
+     *             server returned an unexpected response
+     * @throws ROException
+     *             the manifest is incorrect
      */
     public Annotation annotate(Annotable target, String path, InputStream content, String contentType)
             throws ROSRSException, ROException {
@@ -510,8 +514,10 @@ public class ResearchObject extends Thing implements Annotable {
      * @param contentType
      *            resource Content Type
      * @return the resource instance
-     * @throws ROException
      * @throws ROSRSException
+     *             server returned an unexpected response
+     * @throws ROException
+     *             the manifest is incorrect
      */
     public Annotation annotate(String path, InputStream content, String contentType)
             throws ROSRSException, ROException {

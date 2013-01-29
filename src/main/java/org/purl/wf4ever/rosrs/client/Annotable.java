@@ -32,8 +32,10 @@ public interface Annotable extends Displayable {
      * @param bodyContentType
      *            RDF graph content type
      * @return the annotation instance
-     * @throws ROException
      * @throws ROSRSException
+     *             server returned an unexpected response
+     * @throws ROException
+     *             the manifest is incorrect
      */
     Annotation annotate(String bodyPath, InputStream body, String bodyContentType)
             throws ROSRSException, ROException;
