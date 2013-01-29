@@ -98,7 +98,7 @@ public class Thing implements Serializable {
         if (uri == null) {
             return null;
         }
-        if (uri.getPath().isEmpty() || uri.getPath().equals("/")) {
+        if (uri.getPath() == null || uri.getPath().isEmpty() || uri.getPath().equals("/")) {
             return uri.toString();
         }
         String[] segments = uri.getPath().split("/");
