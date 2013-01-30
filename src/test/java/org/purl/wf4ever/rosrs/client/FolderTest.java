@@ -164,12 +164,12 @@ public class FolderTest {
         }
 
         FolderEntry entry = f.addEntry(res, "res1.txt");
-        Assert.assertTrue(f.getFolderEntries().contains(entry));
+        Assert.assertTrue(f.getFolderEntries().containsValue(entry));
 
         Folder f2 = new Folder(ro, ro.getUri().resolve("folder1/"), f.getProxyUri(), f.getResourceMap(), null, null,
                 f.isRootFolder());
         f2.load(false);
-        Assert.assertTrue(f2.getFolderEntries().contains(entry));
+        Assert.assertTrue(f2.getFolderEntries().containsValue(entry));
 
         f.delete();
         ro.delete();
@@ -212,12 +212,12 @@ public class FolderTest {
 
         FolderEntry entry = f.addSubFolder("folder2/");
         Assert.assertEquals(f.getUri().resolve("folder2/"), entry.getResourceUri());
-        Assert.assertTrue(f.getFolderEntries().contains(entry));
+        Assert.assertTrue(f.getFolderEntries().containsValue(entry));
 
         Folder f2 = new Folder(ro, ro.getUri().resolve("folder1/"), f.getProxyUri(), f.getResourceMap(), null, null,
                 f.isRootFolder());
         f2.load(false);
-        Assert.assertTrue(f2.getFolderEntries().contains(entry));
+        Assert.assertTrue(f2.getFolderEntries().containsValue(entry));
 
         f.delete();
         ro.delete();
@@ -263,6 +263,6 @@ public class FolderTest {
         ex.add(new FolderEntry(fol1, entry2, RO_PREFIX.resolve("res2"), "res2"));
         URI entry3 = UriBuilder.fromUri(FOLDER_URI).fragment("entry3").build();
         ex.add(new FolderEntry(fol1, entry3, FOLDER_URI.resolve("folder2/"), "folder2"));
-        Assert.assertEquals(ex, fol1.getFolderEntries());
+        Assert.assertEquals(ex, new HashSet<FolderEntry>(fol1.getFolderEntries().values()));
     }
 }
