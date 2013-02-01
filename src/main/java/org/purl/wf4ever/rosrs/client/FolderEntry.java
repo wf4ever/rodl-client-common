@@ -1,5 +1,6 @@
 package org.purl.wf4ever.rosrs.client;
 
+import java.io.Serializable;
 import java.net.URI;
 
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
@@ -10,7 +11,10 @@ import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
  * @author piotrekhol
  * 
  */
-public class FolderEntry {
+public class FolderEntry implements Serializable {
+
+    /** id. */
+    private static final long serialVersionUID = 3984592381741315385L;
 
     /** aggregating folder. */
     private Folder folder;
