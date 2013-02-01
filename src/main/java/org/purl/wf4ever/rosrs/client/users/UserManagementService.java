@@ -3,11 +3,19 @@ package org.purl.wf4ever.rosrs.client.users;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
+import pl.psnc.dl.wf4ever.vocabulary.FOAF;
+
+import com.hp.hpl.jena.ontology.Individual;
+import com.hp.hpl.jena.ontology.OntModel;
+import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -210,16 +218,31 @@ public final class UserManagementService {
      * @return RDF graph input stream
      * @throws ROSRSException
      *             when the response code is not 2xx
+     * @throws URISyntaxException
+     *             the URI of the user is not correct
      */
-    public InputStream getWhoAmi(String token)
-            throws ROSRSException {
+    public User getWhoAmi(String token)
+            throws ROSRSException, URISyntaxException {
         WebResource webResource = client.resource(rodlURI.toString()).path("whoami");
         try {
-            return webResource.header("Authorization", "Bearer " + token).get(InputStream.class);
+            InputStream data = webResource.header("Authorization", "Bearer " + token).get(InputStream.class);
+            OntModel userModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
+            userModel.read(data, null);
+            ExtendedIterator<Individual> it = userModel.listIndividuals(FOAF.Agent);
+            userModel.write(System.out);
+            Individual userInd = it.next();
+            if (userInd != null && userInd.hasProperty(FOAF.name)) {
+                URI userURI = new URI(userInd.getURI());
+                String username = userInd.as(Individual.class).getPropertyValue(FOAF.name).asLiteral().getString();
+                return new User(userURI, username);
+            } else {
+                throw new IllegalArgumentException("No user data found");
+            }
         } catch (UniformInterfaceException e) {
             throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
                     .getClientResponseStatus().getReasonPhrase());
         }
+
     }
 
 }

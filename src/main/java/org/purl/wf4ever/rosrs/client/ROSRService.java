@@ -68,7 +68,7 @@ public class ROSRService implements Serializable {
     private String token;
 
     /** web client. */
-    private Client client;
+    private transient Client client;
 
 
     /**
@@ -82,7 +82,19 @@ public class ROSRService implements Serializable {
     public ROSRService(URI rodlURI, String token) {
         this.rosrsURI = rodlURI;
         this.token = token;
-        this.client = Client.create();
+    }
+
+
+    /**
+     * Return an HTTP client, creating it if necessary.
+     * 
+     * @return an HTTP client
+     */
+    private Client getClient() {
+        if (client == null) {
+            client = Client.create();
+        }
+        return client;
     }
 
 
@@ -107,7 +119,7 @@ public class ROSRService implements Serializable {
      */
     public ClientResponse createResearchObject(String roId)
             throws ROSRSException {
-        WebResource webResource = client.resource(rosrsURI.toString());
+        WebResource webResource = getClient().resource(rosrsURI.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).header("Slug", roId)
                 .type("text/plain").post(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_CREATED) {
@@ -130,7 +142,7 @@ public class ROSRService implements Serializable {
      */
     public ClientResponse deleteResearchObject(URI researchObjectURI)
             throws ROSRSException {
-        WebResource webResource = client.resource(researchObjectURI.toString());
+        WebResource webResource = getClient().resource(researchObjectURI.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).delete(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return response;
@@ -154,7 +166,7 @@ public class ROSRService implements Serializable {
      */
     public ClientResponse getResource(URI resourceURI, String accept)
             throws ROSRSException {
-        WebResource webResource = client.resource(resourceURI.toString());
+        WebResource webResource = getClient().resource(resourceURI.toString());
         ClientResponse response = webResource.accept(accept).get(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_OK) {
             return response;
@@ -176,7 +188,7 @@ public class ROSRService implements Serializable {
      */
     public ClientResponse getResourceHead(URI resource)
             throws ROSRSException {
-        WebResource webResource = client.resource(resource.toString());
+        WebResource webResource = getClient().resource(resource.toString());
         ClientResponse response = webResource.head();
         if (response.getStatus() == HttpStatus.SC_OK || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return response;
@@ -205,7 +217,7 @@ public class ROSRService implements Serializable {
     public ClientResponse aggregateInternalResource(URI researchObject, String resourcePath, InputStream content,
             String contentType)
             throws ROSRSException {
-        WebResource webResource = client.resource(researchObject.toString());
+        WebResource webResource = getClient().resource(researchObject.toString());
         if (!contentType.equals(PROXY_MIME_TYPE)) {
             ClientResponse response = webResource.header("Authorization", "Bearer " + token)
                     .header("Slug", resourcePath).type(contentType).post(ClientResponse.class, content);
@@ -237,7 +249,7 @@ public class ROSRService implements Serializable {
      */
     public ClientResponse aggregateExternalResource(URI researchObject, URI resource)
             throws ROSRSException {
-        WebResource webResource = client.resource(researchObject.toString());
+        WebResource webResource = getClient().resource(researchObject.toString());
         OntModel model = ModelFactory.createOntologyModel();
         Individual proxy = model.createIndividual(ORE.Proxy);
         Resource proxyFor = model.createResource(resource.toString());
@@ -271,7 +283,7 @@ public class ROSRService implements Serializable {
      */
     public ClientResponse updateResource(URI resourceURI, InputStream content, String contentType)
             throws ROSRSException {
-        WebResource webResource = client.resource(resourceURI.toString());
+        WebResource webResource = getClient().resource(resourceURI.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).type(contentType)
                 .put(ClientResponse.class, content);
         if (response.getStatus() == HttpStatus.SC_OK) {
@@ -294,7 +306,7 @@ public class ROSRService implements Serializable {
      */
     public ClientResponse deleteResource(URI resourceURI)
             throws ROSRSException {
-        WebResource webResource = client.resource(resourceURI.toString());
+        WebResource webResource = getClient().resource(resourceURI.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).delete(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return response;
@@ -318,7 +330,7 @@ public class ROSRService implements Serializable {
      */
     public List<URI> getROList(boolean all)
             throws URISyntaxException, ROSRSException {
-        WebResource webResource = client.resource(rosrsURI.toString());
+        WebResource webResource = getClient().resource(rosrsURI.toString());
         String response;
         try {
             if (all) {
@@ -355,7 +367,7 @@ public class ROSRService implements Serializable {
      */
     public ClientResponse addAnnotation(URI researchObject, Set<URI> targets, URI bodyURI)
             throws ROSRSException {
-        WebResource webResource = client.resource(researchObject.toString());
+        WebResource webResource = getClient().resource(researchObject.toString());
         OntModel model = ModelFactory.createOntologyModel();
         Individual annotation = model.createIndividual(RO.AggregatedAnnotation);
         Resource body = model.createResource(bodyURI.toString());
@@ -398,7 +410,7 @@ public class ROSRService implements Serializable {
             String contentType)
             throws ROSRSException {
         if (!ANNOTATION_MIME_TYPE.equals(contentType)) {
-            WebResource webResource = client.resource(researchObject.toString());
+            WebResource webResource = getClient().resource(researchObject.toString());
             Builder builder = webResource.header("Authorization", "Bearer " + token).header("Slug", bodyPath)
                     .type(contentType);
             for (URI target : targets) {
@@ -431,17 +443,17 @@ public class ROSRService implements Serializable {
      */
     public ClientResponse deleteAnnotationAndBody(URI annURI)
             throws ROSRSException {
-        client.setFollowRedirects(false);
-        ClientResponse response = client.resource(annURI.toString()).get(ClientResponse.class);
-        client.setFollowRedirects(true);
+        getClient().setFollowRedirects(false);
+        ClientResponse response = getClient().resource(annURI.toString()).get(ClientResponse.class);
+        getClient().setFollowRedirects(true);
         if (response.getClientResponseStatus().getStatusCode() == HttpStatus.SC_SEE_OTHER) {
-            ClientResponse bodyResponse = client.resource(response.getLocation())
+            ClientResponse bodyResponse = getClient().resource(response.getLocation())
                     .header("Authorization", "Bearer " + token).delete(ClientResponse.class);
             if (bodyResponse.getStatus() != HttpStatus.SC_NO_CONTENT) {
                 LOG.warn("Unexpected response when deleting the annotation body: " + bodyResponse.toString());
             }
         }
-        response = client.resource(annURI).header("Authorization", "Bearer " + token).delete(ClientResponse.class);
+        response = getClient().resource(annURI).header("Authorization", "Bearer " + token).delete(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return response;
         } else {
@@ -490,7 +502,7 @@ public class ROSRService implements Serializable {
         model.write(out, "RDF/XML");
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 
-        WebResource webResource = client.resource(researchObject.toString());
+        WebResource webResource = getClient().resource(researchObject.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).header("Slug", path)
                 .type(FOLDER_MIME_TYPE).post(ClientResponse.class, in);
         if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
@@ -527,7 +539,7 @@ public class ROSRService implements Serializable {
         model.write(out, "RDF/XML");
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 
-        WebResource webResource = client.resource(folder.toString());
+        WebResource webResource = getClient().resource(folder.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).type(FOLDER_ENTRY_MIME_TYPE)
                 .post(ClientResponse.class, in);
         if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
