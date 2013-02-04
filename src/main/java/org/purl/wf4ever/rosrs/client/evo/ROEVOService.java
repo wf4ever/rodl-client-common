@@ -1,6 +1,7 @@
 package org.purl.wf4ever.rosrs.client.evo;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.URI;
 
 import javax.ws.rs.core.MediaType;
@@ -22,7 +23,10 @@ import com.sun.jersey.api.client.ClientResponse;
  * @author piotrekhol
  * 
  */
-public class ROEVOService {
+public class ROEVOService implements Serializable {
+
+    /** id. */
+    private static final long serialVersionUID = -8999917522891485806L;
 
     /** Logger. */
     private static final Logger LOG = Logger.getLogger(ROEVOService.class);
