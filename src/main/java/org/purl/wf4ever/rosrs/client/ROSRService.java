@@ -74,13 +74,13 @@ public class ROSRService implements Serializable {
     /**
      * Constructor.
      * 
-     * @param rodlURI
+     * @param rosrsUri
      *            ROSRS URI
      * @param token
      *            RODL access token
      */
-    public ROSRService(URI rodlURI, String token) {
-        this.rosrsURI = rodlURI;
+    public ROSRService(URI rosrsUri, String token) {
+        this.rosrsURI = rosrsUri;
         this.token = token;
     }
 

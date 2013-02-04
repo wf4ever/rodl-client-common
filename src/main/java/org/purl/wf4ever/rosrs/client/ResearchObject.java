@@ -14,6 +14,8 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.purl.wf4ever.rosrs.client.evo.JobStatus;
+import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
@@ -55,6 +57,9 @@ public class ResearchObject extends Thing implements Annotable {
     /** ROSRS client. */
     private final ROSRService rosrs;
 
+    /** ROEVO client. */
+    private final ROEVOService roevo;
+
     /** has the RO been loaded from ROSRS. */
     private boolean loaded;
 
@@ -82,6 +87,7 @@ public class ResearchObject extends Thing implements Annotable {
     public ResearchObject(URI uri, ROSRService rosrs) {
         super(uri, null, null);
         this.rosrs = rosrs;
+        this.roevo = new ROEVOService(rosrs.getRosrsURI().resolve("../evo"), rosrs.getToken());
         this.loaded = false;
     }
 
@@ -609,4 +615,15 @@ public class ResearchObject extends Thing implements Annotable {
         return getAllAnnotations().get(uri);
     }
 
+
+    /**
+     * Start the snapshotting operation. The snapshot will be immediately frozen.
+     * 
+     * @param target
+     *            id of the snapshot
+     * @return the job status describing the progress of the operation
+     */
+    public JobStatus snapshot(String target) {
+        return roevo.createSnapshot(uri, target, true);
+    }
 }
