@@ -44,7 +44,7 @@ public class ROEVOService implements Serializable {
     private URI finalizeUri;
 
     /** URI template of the evo info service. The first param must be replaced with the RO URI. */
-    private UriTemplate infoUriTemplate;
+    private String infoUriTemplateString;
 
 
     /**
@@ -67,12 +67,16 @@ public class ROEVOService implements Serializable {
                     .getURI());
             this.finalizeUri = URI.create(roevo.getPropertyResourceValue(
                 pl.psnc.dl.wf4ever.vocabulary.ROEVOService.finalize).getURI());
-            this.infoUriTemplate = UriTemplate.fromTemplate(roevo
-                    .listProperties(pl.psnc.dl.wf4ever.vocabulary.ROEVOService.info).next().getObject().asLiteral()
-                    .getString());
+            this.infoUriTemplateString = roevo.listProperties(pl.psnc.dl.wf4ever.vocabulary.ROEVOService.info).next()
+                    .getObject().asLiteral().getString();
         } catch (JenaException e) {
             LOG.warn("Could not initialize the roevo service: " + e.getLocalizedMessage());
         }
+    }
+
+
+    public UriTemplate getInfoUriTemplate() {
+        return UriTemplate.fromTemplate(infoUriTemplateString);
     }
 
 
