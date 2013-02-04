@@ -87,7 +87,7 @@ public class ResearchObject extends Thing implements Annotable {
     public ResearchObject(URI uri, ROSRService rosrs) {
         super(uri, null, null);
         this.rosrs = rosrs;
-        this.roevo = new ROEVOService(rosrs.getRosrsURI().resolve("../evo"), rosrs.getToken());
+        this.roevo = rosrs != null ? new ROEVOService(rosrs.getRosrsURI().resolve("../evo"), rosrs.getToken()) : null;
         this.loaded = false;
     }
 

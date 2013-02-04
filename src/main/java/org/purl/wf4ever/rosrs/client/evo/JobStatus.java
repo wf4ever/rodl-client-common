@@ -1,9 +1,11 @@
 package org.purl.wf4ever.rosrs.client.evo;
 
+import java.io.Serializable;
 import java.net.URI;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Job status as JSON.
@@ -12,7 +14,11 @@ import javax.xml.bind.annotation.XmlRootElement;
  * 
  */
 @XmlRootElement
-public class JobStatus {
+public class JobStatus implements Serializable {
+
+    /** id. */
+    private static final long serialVersionUID = 4168448397936150150L;
+
 
     /**
      * The job state.
@@ -39,6 +45,9 @@ public class JobStatus {
     }
 
 
+    /** job URI. */
+    private URI uri;
+
     /** RO to copy from. */
     private URI copyfrom;
 
@@ -56,6 +65,9 @@ public class JobStatus {
 
     /** Justification of the current state, useful in case of error. */
     private String reason;
+
+    /** ROEVO client. */
+    private ROEVOService roevo;
 
 
     /**
@@ -83,27 +95,48 @@ public class JobStatus {
     }
 
 
-    public synchronized URI getCopyfrom() {
+    @XmlTransient
+    public ROEVOService getRoevo() {
+        return roevo;
+    }
+
+
+    public void setRoevo(ROEVOService roevo) {
+        this.roevo = roevo;
+    }
+
+
+    public URI getUri() {
+        return uri;
+    }
+
+
+    public void setUri(URI uri) {
+        this.uri = uri;
+    }
+
+
+    public URI getCopyfrom() {
         return copyfrom;
     }
 
 
-    public synchronized void setCopyfrom(URI copyfrom) {
+    public void setCopyfrom(URI copyfrom) {
         this.copyfrom = copyfrom;
     }
 
 
-    public synchronized EvoType getType() {
+    public EvoType getType() {
         return type;
     }
 
 
-    public synchronized void setType(EvoType type) {
+    public void setType(EvoType type) {
         this.type = type;
     }
 
 
-    public synchronized boolean isFinalize() {
+    public boolean isFinalize() {
         return finalize;
     }
 
@@ -113,48 +146,48 @@ public class JobStatus {
     }
 
 
-    public synchronized String getTarget() {
+    public String getTarget() {
         return target;
     }
 
 
-    public synchronized void setTarget(String target) {
+    public void setTarget(String target) {
         this.target = target;
     }
 
 
     @XmlElement(name = "status")
-    public synchronized State getState() {
+    public State getState() {
         return state;
     }
 
 
-    public synchronized void setState(State state) {
+    public void setState(State state) {
         this.state = state;
     }
 
 
-    public synchronized String getReason() {
+    public String getReason() {
         return reason;
     }
 
 
-    public synchronized void setReason(String reason) {
+    public void setReason(String reason) {
         this.reason = reason;
     }
 
 
     /**
-     * A synchronized method for setting the job status state.
-     * 
-     * @param state
-     *            state
-     * @param message
-     *            explanation
+     * Reload the properties from the ROEVO server.
      */
-    public synchronized void setStateAndReason(State state, String message) {
-        this.state = state;
-        this.reason = message;
+    public void refresh() {
+        JobStatus status = roevo.getStatus(uri);
+        this.copyfrom = status.getCopyfrom();
+        this.finalize = status.isFinalize();
+        this.reason = status.getReason();
+        this.target = status.getTarget();
+        this.type = status.getType();
+        this.state = status.getState();
     }
 
 }

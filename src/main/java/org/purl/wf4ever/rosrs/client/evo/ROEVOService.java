@@ -5,13 +5,16 @@ import java.net.URI;
 
 import javax.ws.rs.core.MediaType;
 
+import org.apache.log4j.Logger;
 import org.openrdf.rio.RDFFormat;
 
 import com.damnhandy.uri.template.UriTemplate;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.shared.JenaException;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
 
 /**
  * RO evolution service.
@@ -20,6 +23,9 @@ import com.sun.jersey.api.client.Client;
  * 
  */
 public class ROEVOService {
+
+    /** Logger. */
+    private static final Logger LOG = Logger.getLogger(ROEVOService.class);
 
     /** RODL access token. */
     private String token;
@@ -47,18 +53,22 @@ public class ROEVOService {
      */
     public ROEVOService(URI roevoUri, String token) {
         this.token = token;
-        InputStream serviceDesc = getClient().resource(roevoUri).accept(RDFFormat.RDFXML.getDefaultMIMEType())
-                .get(InputStream.class);
-        Model model = ModelFactory.createDefaultModel();
-        model.read(serviceDesc, roevoUri.toString());
-        Resource roevo = model.getResource(roevoUri.toString());
-        this.copyUri = URI.create(roevo.getPropertyResourceValue(pl.psnc.dl.wf4ever.vocabulary.ROEVOService.copy)
-                .getURI());
-        this.finalizeUri = URI.create(roevo.getPropertyResourceValue(
-            pl.psnc.dl.wf4ever.vocabulary.ROEVOService.finalize).getURI());
-        this.infoUriTemplate = UriTemplate.fromTemplate(roevo
-                .listProperties(pl.psnc.dl.wf4ever.vocabulary.ROEVOService.info).next().getObject().asLiteral()
-                .getString());
+        try {
+            InputStream serviceDesc = getClient().resource(roevoUri).accept(RDFFormat.RDFXML.getDefaultMIMEType())
+                    .get(InputStream.class);
+            Model model = ModelFactory.createDefaultModel();
+            model.read(serviceDesc, roevoUri.toString());
+            Resource roevo = model.getResource(roevoUri.toString());
+            this.copyUri = URI.create(roevo.getPropertyResourceValue(pl.psnc.dl.wf4ever.vocabulary.ROEVOService.copy)
+                    .getURI());
+            this.finalizeUri = URI.create(roevo.getPropertyResourceValue(
+                pl.psnc.dl.wf4ever.vocabulary.ROEVOService.finalize).getURI());
+            this.infoUriTemplate = UriTemplate.fromTemplate(roevo
+                    .listProperties(pl.psnc.dl.wf4ever.vocabulary.ROEVOService.info).next().getObject().asLiteral()
+                    .getString());
+        } catch (JenaException e) {
+            LOG.warn("Could not initialize the roevo service: " + e.getLocalizedMessage());
+        }
     }
 
 
@@ -77,9 +87,21 @@ public class ROEVOService {
 
     public JobStatus createSnapshot(URI roUri, String target, boolean finalize) {
         JobStatus statusIn = new JobStatus(roUri, EvoType.SNAPSHOT, finalize);
-        statusIn.setTarget(target);
-        JobStatus statusOut = getClient().resource(copyUri).type(MediaType.APPLICATION_JSON_TYPE)
-                .accept(MediaType.APPLICATION_JSON_TYPE).post(JobStatus.class, statusIn);
+        ClientResponse response = getClient().resource(copyUri).header("Slug", target)
+                .type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, statusIn);
+        JobStatus statusOut = response.getEntity(JobStatus.class);
+        statusOut.setUri(response.getLocation());
+        statusOut.setRoevo(this);
+        response.close();
+        return statusOut;
+    }
+
+
+    public JobStatus getStatus(URI jobUri) {
+        JobStatus statusOut = getClient().resource(jobUri).accept(MediaType.APPLICATION_JSON_TYPE).get(JobStatus.class);
+        statusOut.setUri(jobUri);
+        statusOut.setRoevo(this);
         return statusOut;
     }
 }
