@@ -14,6 +14,9 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.purl.wf4ever.rosrs.client.evo.EvoType;
+import org.purl.wf4ever.rosrs.client.evo.JobStatus;
+import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
@@ -55,6 +58,9 @@ public class ResearchObject extends Thing implements Annotable {
     /** ROSRS client. */
     private final ROSRService rosrs;
 
+    /** ROEVO client. */
+    private final ROEVOService roevo;
+
     /** has the RO been loaded from ROSRS. */
     private boolean loaded;
 
@@ -70,6 +76,15 @@ public class ResearchObject extends Thing implements Annotable {
     /** root folders of the RO. */
     private Set<Folder> rootFolders;
 
+    /** RO title from annotations (any one in case of many). */
+    private String title = "A title placeholder";
+
+    /** RO description from annotations (any one in case of many). */
+    private String description = "A description placeholder. This pack is for a workflow that finds KEGG pathways for genes from a GWAS";
+
+    /** RO evolution class from annotations (any one in case of many). */
+    private EvoType evoType = EvoType.LIVE;
+
 
     /**
      * Constructor.
@@ -82,6 +97,7 @@ public class ResearchObject extends Thing implements Annotable {
     public ResearchObject(URI uri, ROSRService rosrs) {
         super(uri, null, null);
         this.rosrs = rosrs;
+        this.roevo = rosrs != null ? new ROEVOService(rosrs.getRosrsURI().resolve("../evo"), rosrs.getToken()) : null;
         this.loaded = false;
     }
 
@@ -235,6 +251,21 @@ public class ResearchObject extends Thing implements Annotable {
 
     public Multimap<URI, Annotation> getAllAnnotations() {
         return annotations;
+    }
+
+
+    public String getTitle() {
+        return title;
+    }
+
+
+    public String getDescription() {
+        return description;
+    }
+
+
+    public EvoType getEvoType() {
+        return evoType;
     }
 
 
@@ -609,4 +640,27 @@ public class ResearchObject extends Thing implements Annotable {
         return getAllAnnotations().get(uri);
     }
 
+
+    /**
+     * Start the snapshotting operation. The snapshot will be immediately frozen.
+     * 
+     * @param target
+     *            id of the snapshot
+     * @return the job status describing the progress of the operation
+     */
+    public JobStatus snapshot(String target) {
+        return roevo.createSnapshot(uri, target, true);
+    }
+
+
+    /**
+     * Start the archival operation. The archive will be immediately frozen.
+     * 
+     * @param target
+     *            id of the archive
+     * @return the job status describing the progress of the operation
+     */
+    public JobStatus archive(String target) {
+        return roevo.createArchive(uri, target, true);
+    }
 }
