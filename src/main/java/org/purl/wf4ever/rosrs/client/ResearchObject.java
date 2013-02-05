@@ -1,5 +1,6 @@
 package org.purl.wf4ever.rosrs.client;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -23,6 +24,7 @@ import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 import pl.psnc.dl.wf4ever.vocabulary.AO;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 import pl.psnc.dl.wf4ever.vocabulary.RO;
+import pl.psnc.dl.wf4ever.vocabulary.ROEVO;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -35,8 +37,10 @@ import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.util.FileManager;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
@@ -77,13 +81,13 @@ public class ResearchObject extends Thing implements Annotable {
     private Set<Folder> rootFolders;
 
     /** RO title from annotations (any one in case of many). */
-    private String title = "A title placeholder";
+    private String title;
 
     /** RO description from annotations (any one in case of many). */
-    private String description = "A description placeholder. This pack is for a workflow that finds KEGG pathways for genes from a GWAS";
+    private String description;
 
     /** RO evolution class from annotations (any one in case of many). */
-    private EvoType evoType = EvoType.LIVE;
+    private EvoType evoType;
 
 
     /**
@@ -97,6 +101,7 @@ public class ResearchObject extends Thing implements Annotable {
     public ResearchObject(URI uri, ROSRService rosrs) {
         super(uri, null, null);
         this.rosrs = rosrs;
+        //HACK
         this.roevo = rosrs != null ? new ROEVOService(rosrs.getRosrsURI().resolve("../evo"), rosrs.getToken()) : null;
         this.loaded = false;
     }
@@ -168,7 +173,78 @@ public class ResearchObject extends Thing implements Annotable {
             }
         }
         this.annotations = extractAnnotations(model);
+        for (Annotation annotation : this.getAnnotations()) {
+            try {
+                annotation.load();
+                model.read(new ByteArrayInputStream(annotation.getBodySerializedAsString().getBytes()), null);
+            } catch (ROSRSException | IOException e) {
+                LOG.error("Can't load annotation: " + annotation.getUri(), e);
+            }
+        }
+        this.title = findTitle(model);
+        this.description = findDescription(model);
+        this.evoType = findEvoType(model);
         this.loaded = true;
+    }
+
+
+    /**
+     * Look for the title of the RO.
+     * 
+     * @param model
+     *            model to search in
+     * @return any RO title found, null if not found
+     */
+    private String findTitle(Model model) {
+        com.hp.hpl.jena.rdf.model.Resource ro = model.getResource(uri.toString());
+        Set<Statement> titles = ro.listProperties(DCTerms.title).toSet();
+        for (Statement titleStmt : titles) {
+            if (titleStmt.getObject().isLiteral()) {
+                return titleStmt.getObject().asLiteral().getString();
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * Look for the description of the RO.
+     * 
+     * @param model
+     *            model to search in
+     * @return any RO title found, null if not found
+     */
+    private String findDescription(Model model) {
+        com.hp.hpl.jena.rdf.model.Resource ro = model.getResource(uri.toString());
+        Set<Statement> descs = ro.listProperties(DCTerms.description).toSet();
+        for (Statement descStmt : descs) {
+            if (descStmt.getObject().isLiteral()) {
+                return descStmt.getObject().asLiteral().getString();
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * Look for the evo class of the RO.
+     * 
+     * @param model
+     *            model to search in
+     * @return any RO title found, null if not found
+     */
+    private EvoType findEvoType(OntModel model) {
+        Individual ro = model.getIndividual(uri.toString());
+        for (com.hp.hpl.jena.rdf.model.Resource clazz : ro.listRDFTypes(true).toSet()) {
+            if (clazz.equals(ROEVO.LiveRO)) {
+                return EvoType.LIVE;
+            } else if (clazz.equals(ROEVO.SnapshotRO)) {
+                return EvoType.SNAPSHOT;
+            } else if (clazz.equals(ROEVO.ArchivedRO)) {
+                return EvoType.ARCHIVE;
+            }
+        }
+        return null;
     }
 
 
