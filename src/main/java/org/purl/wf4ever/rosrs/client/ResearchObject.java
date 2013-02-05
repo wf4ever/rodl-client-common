@@ -626,4 +626,16 @@ public class ResearchObject extends Thing implements Annotable {
     public JobStatus snapshot(String target) {
         return roevo.createSnapshot(uri, target, true);
     }
+
+
+    /**
+     * Start the archival operation. The archive will be immediately frozen.
+     * 
+     * @param target
+     *            id of the archive
+     * @return the job status describing the progress of the operation
+     */
+    public JobStatus archive(String target) {
+        return roevo.createArchive(uri, target, true);
+    }
 }

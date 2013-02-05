@@ -106,10 +106,24 @@ public class ROEVOService implements Serializable {
     }
 
 
+    public JobStatus createArchive(URI roUri, String target, boolean finalize) {
+        JobStatus statusIn = new JobStatus(roUri, EvoType.ARCHIVE, finalize);
+        ClientResponse response = getClient().resource(copyUri).header("Slug", target)
+                .type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, statusIn);
+        JobStatus statusOut = response.getEntity(JobStatus.class);
+        statusOut.setUri(response.getLocation());
+        statusOut.setRoevo(this);
+        response.close();
+        return statusOut;
+    }
+
+
     public JobStatus getStatus(URI jobUri) {
         JobStatus statusOut = getClient().resource(jobUri).accept(MediaType.APPLICATION_JSON_TYPE).get(JobStatus.class);
         statusOut.setUri(jobUri);
         statusOut.setRoevo(this);
         return statusOut;
     }
+
 }
