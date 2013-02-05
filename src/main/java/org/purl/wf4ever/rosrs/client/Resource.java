@@ -245,7 +245,7 @@ public class Resource extends Thing implements Annotable {
 
     @Override
     public Collection<Annotation> getAnnotations() {
-        return this.researchObject.getAllAnnotations().get(uri);
+        return researchObject.getAllAnnotations() != null ? researchObject.getAllAnnotations().get(uri) : null;
     }
 
 
