@@ -713,7 +713,7 @@ public class ResearchObject extends Thing implements Annotable {
 
     @Override
     public Collection<Annotation> getAnnotations() {
-        return getAllAnnotations().get(uri);
+        return getAllAnnotations() != null ? getAllAnnotations().get(uri) : null;
     }
 
 
