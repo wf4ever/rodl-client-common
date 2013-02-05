@@ -14,6 +14,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.purl.wf4ever.rosrs.client.evo.EvoType;
 import org.purl.wf4ever.rosrs.client.evo.JobStatus;
 import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
@@ -74,6 +75,15 @@ public class ResearchObject extends Thing implements Annotable {
 
     /** root folders of the RO. */
     private Set<Folder> rootFolders;
+
+    /** RO title from annotations (any one in case of many). */
+    private String title = "A title placeholder";
+
+    /** RO description from annotations (any one in case of many). */
+    private String description = "A description placeholder. This pack is for a workflow that finds KEGG pathways for genes from a GWAS";
+
+    /** RO evolution class from annotations (any one in case of many). */
+    private EvoType evoType = EvoType.LIVE;
 
 
     /**
@@ -241,6 +251,21 @@ public class ResearchObject extends Thing implements Annotable {
 
     public Multimap<URI, Annotation> getAllAnnotations() {
         return annotations;
+    }
+
+
+    public String getTitle() {
+        return title;
+    }
+
+
+    public String getDescription() {
+        return description;
+    }
+
+
+    public EvoType getEvoType() {
+        return evoType;
     }
 
 
