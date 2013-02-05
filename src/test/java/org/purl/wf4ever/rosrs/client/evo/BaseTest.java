@@ -30,10 +30,8 @@ public class BaseTest {
     private static final String TOKEN = "32801fc0-1df1-4e34-b";
 
     /** RODL URI for testing. */
-    private static final URI RODL_URI = URI.create("http://localhost:8082/");
+    private static final URI RODL_URI = URI.create("http://sandbox.wf4ever-project.org/rodl/");
 
-    //    /** RODL URI for testing. */
-    //    private static final URI RODL_URI = URI.create("http://sandbox.wf4ever-project.org/rodl/");
     /** ROs to delete after a test. */
     protected static List<ResearchObject> rosToDelete = new ArrayList<>();
 
