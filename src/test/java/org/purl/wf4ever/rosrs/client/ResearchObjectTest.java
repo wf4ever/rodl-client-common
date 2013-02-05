@@ -12,6 +12,7 @@ import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.purl.wf4ever.rosrs.client.evo.EvoType;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
@@ -252,5 +253,14 @@ public class ResearchObjectTest {
     @Test
     public final void testGetDescription() {
         Assert.assertEquals("This RO rocks.", ro1.getDescription());
+    }
+
+
+    /**
+     * Test RO evo class taken from an annotation.
+     */
+    @Test
+    public final void testGetEvoType() {
+        Assert.assertEquals(EvoType.SNAPSHOT, ro1.getEvoType());
     }
 }

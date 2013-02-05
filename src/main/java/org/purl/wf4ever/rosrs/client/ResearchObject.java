@@ -24,6 +24,7 @@ import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 import pl.psnc.dl.wf4ever.vocabulary.AO;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 import pl.psnc.dl.wf4ever.vocabulary.RO;
+import pl.psnc.dl.wf4ever.vocabulary.ROEVO;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -80,16 +81,13 @@ public class ResearchObject extends Thing implements Annotable {
     private Set<Folder> rootFolders;
 
     /** RO title from annotations (any one in case of many). */
-    private String title = "A title placeholder";
+    private String title;
 
     /** RO description from annotations (any one in case of many). */
-    private String description = "A description placeholder. This pack is for a workflow that finds KEGG pathways for genes from a GWAS";
+    private String description;
 
     /** RO evolution class from annotations (any one in case of many). */
-    private EvoType evoType = EvoType.LIVE;
-
-    /** SPARQL endpoint URI. */
-    private URI sparqlEndpoint;
+    private EvoType evoType;
 
 
     /**
@@ -105,8 +103,6 @@ public class ResearchObject extends Thing implements Annotable {
         this.rosrs = rosrs;
         //HACK
         this.roevo = rosrs != null ? new ROEVOService(rosrs.getRosrsURI().resolve("../evo"), rosrs.getToken()) : null;
-        //HACK
-        this.sparqlEndpoint = rosrs != null ? rosrs.getRosrsURI().resolve("../sparql") : null;
         this.loaded = false;
     }
 
@@ -177,18 +173,6 @@ public class ResearchObject extends Thing implements Annotable {
             }
         }
         this.annotations = extractAnnotations(model);
-        this.title = findTitle();
-        this.loaded = true;
-    }
-
-
-    /**
-     * Look for the title of the RO.
-     * 
-     * @return any RO title found, null if not found
-     */
-    private String findTitle() {
-        Model model = ModelFactory.createDefaultModel();
         for (Annotation annotation : this.getAnnotations()) {
             try {
                 annotation.load();
@@ -197,6 +181,21 @@ public class ResearchObject extends Thing implements Annotable {
                 LOG.error("Can't load annotation: " + annotation.getUri(), e);
             }
         }
+        this.title = findTitle(model);
+        this.description = findDescription(model);
+        this.evoType = findEvoType(model);
+        this.loaded = true;
+    }
+
+
+    /**
+     * Look for the title of the RO.
+     * 
+     * @param model
+     *            model to search in
+     * @return any RO title found, null if not found
+     */
+    private String findTitle(Model model) {
         com.hp.hpl.jena.rdf.model.Resource ro = model.getResource(uri.toString());
         Set<Statement> titles = ro.listProperties(DCTerms.title).toSet();
         for (Statement titleStmt : titles) {
@@ -205,15 +204,47 @@ public class ResearchObject extends Thing implements Annotable {
             }
         }
         return null;
+    }
 
-        //        String query = String.format("PREFIX dcterms: <http://purl.org/dc/terms/>\n" + "SELECT ?title\n"
-        //                + "WHERE { <%s> dcterms:title ?title . }\n", uri);
-        //        ResultSet results = QueryExecutionFactory.sparqlService(sparqlEndpoint.toString(), query).execSelect();
-        //        if (results.hasNext()) {
-        //            QuerySolution solution = results.next();
-        //            return solution.getLiteral("title").getString();
-        //        }
-        //        return null;
+
+    /**
+     * Look for the description of the RO.
+     * 
+     * @param model
+     *            model to search in
+     * @return any RO title found, null if not found
+     */
+    private String findDescription(Model model) {
+        com.hp.hpl.jena.rdf.model.Resource ro = model.getResource(uri.toString());
+        Set<Statement> descs = ro.listProperties(DCTerms.description).toSet();
+        for (Statement descStmt : descs) {
+            if (descStmt.getObject().isLiteral()) {
+                return descStmt.getObject().asLiteral().getString();
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * Look for the evo class of the RO.
+     * 
+     * @param model
+     *            model to search in
+     * @return any RO title found, null if not found
+     */
+    private EvoType findEvoType(OntModel model) {
+        Individual ro = model.getIndividual(uri.toString());
+        for (com.hp.hpl.jena.rdf.model.Resource clazz : ro.listRDFTypes(true).toSet()) {
+            if (clazz.equals(ROEVO.LiveRO)) {
+                return EvoType.LIVE;
+            } else if (clazz.equals(ROEVO.SnapshotRO)) {
+                return EvoType.SNAPSHOT;
+            } else if (clazz.equals(ROEVO.ArchivedRO)) {
+                return EvoType.ARCHIVE;
+            }
+        }
+        return null;
     }
 
 

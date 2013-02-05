@@ -14,5 +14,6 @@
   <rdf:Description rdf:about=".">
     <dct:description>This RO rocks.</dct:description>
     <dct:title>The rocking RO</dct:title>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/roevo#SnapshotRO"/>
   </rdf:Description>
 </rdf:RDF>
