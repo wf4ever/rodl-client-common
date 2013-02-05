@@ -235,4 +235,22 @@ public class ResearchObjectTest {
         //2011-12-02T16:01:10Z
         Assert.assertEquals(new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC), ro1.getCreated());
     }
+
+
+    /**
+     * Test RO dcterms:title taken from an annotation.
+     */
+    @Test
+    public final void testGetTitle() {
+        Assert.assertEquals("The rocking RO", ro1.getTitle());
+    }
+
+
+    /**
+     * Test RO dcterms:description taken from an annotation.
+     */
+    @Test
+    public final void testGetDescription() {
+        Assert.assertEquals("This RO rocks.", ro1.getDescription());
+    }
 }

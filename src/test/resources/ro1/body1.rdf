@@ -11,7 +11,8 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
     xmlns:rdfg="http://www.w3.org/2004/03/trix/rdfg-1/"
     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" > 
-  <rdf:Description rdf:about="..">
+  <rdf:Description rdf:about=".">
     <dct:description>This RO rocks.</dct:description>
+    <dct:title>The rocking RO</dct:title>
   </rdf:Description>
 </rdf:RDF>

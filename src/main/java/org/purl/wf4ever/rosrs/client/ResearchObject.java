@@ -1,5 +1,6 @@
 package org.purl.wf4ever.rosrs.client;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -35,8 +36,10 @@ import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.util.FileManager;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
@@ -85,6 +88,9 @@ public class ResearchObject extends Thing implements Annotable {
     /** RO evolution class from annotations (any one in case of many). */
     private EvoType evoType = EvoType.LIVE;
 
+    /** SPARQL endpoint URI. */
+    private URI sparqlEndpoint;
+
 
     /**
      * Constructor.
@@ -97,7 +103,10 @@ public class ResearchObject extends Thing implements Annotable {
     public ResearchObject(URI uri, ROSRService rosrs) {
         super(uri, null, null);
         this.rosrs = rosrs;
+        //HACK
         this.roevo = rosrs != null ? new ROEVOService(rosrs.getRosrsURI().resolve("../evo"), rosrs.getToken()) : null;
+        //HACK
+        this.sparqlEndpoint = rosrs != null ? rosrs.getRosrsURI().resolve("../sparql") : null;
         this.loaded = false;
     }
 
@@ -168,7 +177,43 @@ public class ResearchObject extends Thing implements Annotable {
             }
         }
         this.annotations = extractAnnotations(model);
+        this.title = findTitle();
         this.loaded = true;
+    }
+
+
+    /**
+     * Look for the title of the RO.
+     * 
+     * @return any RO title found, null if not found
+     */
+    private String findTitle() {
+        Model model = ModelFactory.createDefaultModel();
+        for (Annotation annotation : this.getAnnotations()) {
+            try {
+                annotation.load();
+                model.read(new ByteArrayInputStream(annotation.getBodySerializedAsString().getBytes()), null);
+            } catch (ROSRSException | IOException e) {
+                LOG.error("Can't load annotation: " + annotation.getUri(), e);
+            }
+        }
+        com.hp.hpl.jena.rdf.model.Resource ro = model.getResource(uri.toString());
+        Set<Statement> titles = ro.listProperties(DCTerms.title).toSet();
+        for (Statement titleStmt : titles) {
+            if (titleStmt.getObject().isLiteral()) {
+                return titleStmt.getObject().asLiteral().getString();
+            }
+        }
+        return null;
+
+        //        String query = String.format("PREFIX dcterms: <http://purl.org/dc/terms/>\n" + "SELECT ?title\n"
+        //                + "WHERE { <%s> dcterms:title ?title . }\n", uri);
+        //        ResultSet results = QueryExecutionFactory.sparqlService(sparqlEndpoint.toString(), query).execSelect();
+        //        if (results.hasNext()) {
+        //            QuerySolution solution = results.next();
+        //            return solution.getLiteral("title").getString();
+        //        }
+        //        return null;
     }
 
 
