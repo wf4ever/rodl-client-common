@@ -23,6 +23,7 @@ import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import pl.psnc.dl.wf4ever.vocabulary.AO;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
+import pl.psnc.dl.wf4ever.vocabulary.PROV;
 import pl.psnc.dl.wf4ever.vocabulary.RO;
 import pl.psnc.dl.wf4ever.vocabulary.ROEVO;
 
@@ -88,6 +89,21 @@ public class ResearchObject extends Thing implements Annotable {
 
     /** RO evolution class from annotations (any one in case of many). */
     private EvoType evoType;
+
+    /** All snapshots of this RO. */
+    private Set<ResearchObject> snapshots;
+
+    /** All archives of this RO. */
+    private Set<ResearchObject> archives;
+
+    /** Any live RO that this RO comes from. */
+    private ResearchObject liveRO;
+
+    /** A previous snapshot of this RO. */
+    private ResearchObject previousSnapshot;
+
+    /** Has the evolution information been loaded. */
+    private boolean evolutionInformationLoaded;
 
 
     /**
@@ -738,5 +754,75 @@ public class ResearchObject extends Thing implements Annotable {
      */
     public JobStatus archive(String target) {
         return roevo.createArchive(uri, target, true);
+    }
+
+
+    /**
+     * Get the ontology model with the evolution information.
+     */
+    public void loadEvolutionInformation() {
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
+        try (InputStream in = roevo.getEvolutionInformationInputStream(uri)) {
+            model.read(in, null, "TURTLE");
+        } catch (IOException e) {
+            LOG.error("Could not close the input stream", e);
+        }
+        this.evoType = findEvoType(model);
+        Individual thisRO = model.getIndividual(uri.toString());
+        if (thisRO == null) {
+            LOG.warn("The evolution information has no info about this RO (" + uri + ")");
+            return;
+        }
+        com.hp.hpl.jena.rdf.model.Resource liveR = thisRO.getPropertyResourceValue(ROEVO.isArchiveOf);
+        if (liveR == null) {
+            liveR = thisRO.getPropertyResourceValue(ROEVO.isSnapshotOf);
+        }
+        if (liveR != null && liveR.isURIResource()) {
+            liveRO = new ResearchObject(URI.create(liveR.getURI()), rosrs);
+        }
+        Set<RDFNode> archivesR = thisRO.listPropertyValues(ROEVO.hasArchive).toSet();
+        archives = new HashSet<>();
+        for (RDFNode node : archivesR) {
+            if (node.isURIResource()) {
+                archives.add(new ResearchObject(URI.create(node.asResource().getURI()), rosrs));
+            }
+        }
+        Set<RDFNode> snapshotsR = thisRO.listPropertyValues(ROEVO.hasSnapshot).toSet();
+        snapshots = new HashSet<>();
+        for (RDFNode node : snapshotsR) {
+            if (node.isURIResource()) {
+                snapshots.add(new ResearchObject(URI.create(node.asResource().getURI()), rosrs));
+            }
+        }
+        com.hp.hpl.jena.rdf.model.Resource previousR = thisRO.getPropertyResourceValue(PROV.wasRevisionOf);
+        if (previousR != null && previousR.isURIResource()) {
+            previousSnapshot = new ResearchObject(URI.create(previousR.getURI()), rosrs);
+        }
+        evolutionInformationLoaded = true;
+    }
+
+
+    public boolean isEvolutionInformationLoaded() {
+        return evolutionInformationLoaded;
+    }
+
+
+    public Set<ResearchObject> getSnapshots() {
+        return snapshots;
+    }
+
+
+    public Set<ResearchObject> getArchives() {
+        return archives;
+    }
+
+
+    public ResearchObject getLiveRO() {
+        return liveRO;
+    }
+
+
+    public ResearchObject getPreviousSnapshot() {
+        return previousSnapshot;
     }
 }

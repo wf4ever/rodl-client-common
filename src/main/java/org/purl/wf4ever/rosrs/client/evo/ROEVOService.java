@@ -126,4 +126,10 @@ public class ROEVOService implements Serializable {
         return statusOut;
     }
 
+
+    public InputStream getEvolutionInformationInputStream(URI roUri) {
+        return getClient().resource(getInfoUriTemplate().set("ro", roUri.toString()).expand())
+                .accept(RDFFormat.TURTLE.getDefaultMIMEType()).get(InputStream.class);
+    }
+
 }
