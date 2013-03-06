@@ -71,6 +71,21 @@
 			<artifactId>handy-uri-templates</artifactId>
 			<version>1.1.7</version>
 		</dependency>
+		<dependency>
+			<groupId>rome</groupId>
+			<artifactId>opensearch</artifactId>
+			<version>0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>rome</groupId>
+			<artifactId>rome</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.0.1</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
