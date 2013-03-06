@@ -351,6 +351,11 @@ public class ResearchObject extends Thing implements Annotable {
     }
 
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+
     public String getDescription() {
         return description;
     }
