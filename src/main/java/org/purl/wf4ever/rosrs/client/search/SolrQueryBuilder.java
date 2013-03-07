@@ -170,7 +170,7 @@ public class SolrQueryBuilder {
      *            queryString
      * @return escaped string
      */
-    private String escapeQueryString(String queryString) {
+    public static String escapeQueryString(String queryString) {
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < queryString.length(); i++) {

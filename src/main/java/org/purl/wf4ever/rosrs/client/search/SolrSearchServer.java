@@ -47,7 +47,8 @@ public class SolrSearchServer implements SearchServer {
     public List<SearchResult> search(String queryString)
             throws SearchException {
         try {
-            SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
+            SolrQuery query = new SolrQuery(SolrQueryBuilder.escapeQueryString(queryString))
+                    .setRows(DEFAULT_MAX_RESULTS);
             QueryResponse response = server.query(query);
             SolrDocumentList results = response.getResults();
             List<SearchResult> searchResults = getResultList(results);
