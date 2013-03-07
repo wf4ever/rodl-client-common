@@ -20,7 +20,7 @@ import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 
 /**
- * This service fetches prepares a query using the OpenSearch API and sends it to dLibra, later it parses the responses.
+ * A search client implementation using the RODL SPARQL endpoint.
  * 
  * @author piotrek
  * 
@@ -33,10 +33,13 @@ public class SparqlSearchServer implements SearchServer {
     /** date format for parsing the dates in search results. */
     public static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z");
 
+    /** The regex part of the filter. */
     private static final String SPARQL_REGEX = " REGEX(%s, \"%s\",\"i\") ";
 
+    /** The filter in the SPARQL query, where the keywords go. */
     private static final String SPARQL_FILTER = "FILTER (%s).";
 
+    /** The SPARQL query template. */
     private static final String SPARQL = "PREFIX ro: <http://purl.org/wf4ever/ro#>\n"
             + "PREFIX dcterms: <http://purl.org/dc/terms/>\n" + "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
             + "PREFIX ore: <http://www.openarchives.org/ore/terms/>\n" + "\n"
@@ -45,9 +48,16 @@ public class SparqlSearchServer implements SearchServer {
             + "        dcterms:created ?created .\n" + "  OPTIONAL {?ro dcterms:title  ?title . }\n" + "  %s \n"
             + "}\n" + "GROUP BY ?ro \n" + "ORDER BY DESC(?mincreated)\n" + "LIMIT 20";
 
+    /** SPARQL endpoint URI. */
     private URI sparqlEndpointUri;
 
 
+    /**
+     * Constructor.
+     * 
+     * @param sparqlEndpointUri
+     *            SPARQL endpoint URI
+     */
     public SparqlSearchServer(URI sparqlEndpointUri) {
         this.sparqlEndpointUri = sparqlEndpointUri;
     }

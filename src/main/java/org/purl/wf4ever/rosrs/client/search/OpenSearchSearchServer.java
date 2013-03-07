@@ -27,7 +27,7 @@ import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
 
 /**
- * This service fetches prepares a query using the OpenSearch API and sends it to dLibra, later it parses the responses.
+ * A search client implementation using the OpenSearch module of dLibra.
  * 
  * @author piotrek
  * 
@@ -64,6 +64,8 @@ public class OpenSearchSearchServer implements SearchServer {
      * @param keywords
      *            words to look for
      * @return list of search results
+     * @throws SearchException
+     *             when it could not load the search results
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -129,7 +131,7 @@ public class OpenSearchSearchServer implements SearchServer {
                 ResearchObject ro = new ResearchObject(researchObjectURI, null);
                 ro.setCreated(created);
                 ro.setCreators(creators);
-                //                ro.setTitle(title);
+                ro.setTitle(title);
                 ros.add(new SearchResult(ro, score));
             }
         }
