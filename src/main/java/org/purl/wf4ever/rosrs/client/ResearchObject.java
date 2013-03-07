@@ -91,10 +91,10 @@ public class ResearchObject extends Thing implements Annotable {
     private EvoType evoType;
 
     /** All snapshots of this RO. */
-    private Set<ResearchObject> snapshots;
+    private Set<ResearchObject> snapshots = new HashSet<>();;
 
     /** All archives of this RO. */
-    private Set<ResearchObject> archives;
+    private Set<ResearchObject> archives = new HashSet<>();;
 
     /** Any live RO that this RO comes from. */
     private ResearchObject liveRO;
@@ -348,6 +348,11 @@ public class ResearchObject extends Thing implements Annotable {
 
     public String getTitle() {
         return title;
+    }
+
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
 
@@ -781,14 +786,12 @@ public class ResearchObject extends Thing implements Annotable {
             liveRO = new ResearchObject(URI.create(liveR.getURI()), rosrs);
         }
         Set<RDFNode> archivesR = thisRO.listPropertyValues(ROEVO.hasArchive).toSet();
-        archives = new HashSet<>();
         for (RDFNode node : archivesR) {
             if (node.isURIResource()) {
                 archives.add(new ResearchObject(URI.create(node.asResource().getURI()), rosrs));
             }
         }
         Set<RDFNode> snapshotsR = thisRO.listPropertyValues(ROEVO.hasSnapshot).toSet();
-        snapshots = new HashSet<>();
         for (RDFNode node : snapshotsR) {
             if (node.isURIResource()) {
                 snapshots.add(new ResearchObject(URI.create(node.asResource().getURI()), rosrs));

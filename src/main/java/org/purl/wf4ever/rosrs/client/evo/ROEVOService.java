@@ -41,6 +41,7 @@ public class ROEVOService implements Serializable {
     private URI copyUri;
 
     /** URI of the finalize service. */
+    @SuppressWarnings("unused")
     private URI finalizeUri;
 
     /** URI template of the evo info service. The first param must be replaced with the RO URI. */
@@ -93,24 +94,56 @@ public class ROEVOService implements Serializable {
     }
 
 
+    /**
+     * Create a new snapshot RO.
+     * 
+     * @param roUri
+     *            live RO URI
+     * @param target
+     *            snapshot identifier
+     * @param finalize
+     *            freeze the snapshot after creating?
+     * @return a status of the snapshotting job, which can later be refreshed
+     */
     public JobStatus createSnapshot(URI roUri, String target, boolean finalize) {
-        JobStatus statusIn = new JobStatus(roUri, EvoType.SNAPSHOT, finalize);
-        ClientResponse response = getClient().resource(copyUri).header("Slug", target)
-                .type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, statusIn);
-        JobStatus statusOut = response.getEntity(JobStatus.class);
-        statusOut.setUri(response.getLocation());
-        statusOut.setRoevo(this);
-        response.close();
-        return statusOut;
+        return createImmutable(roUri, target, finalize, EvoType.SNAPSHOT);
     }
 
 
+    /**
+     * Create a new archive RO.
+     * 
+     * @param roUri
+     *            live RO URI
+     * @param target
+     *            archive identifier
+     * @param finalize
+     *            freeze the archive after creating?
+     * @return a status of the archival job, which can later be refreshed
+     */
     public JobStatus createArchive(URI roUri, String target, boolean finalize) {
-        JobStatus statusIn = new JobStatus(roUri, EvoType.ARCHIVE, finalize);
+        return createImmutable(roUri, target, finalize, EvoType.ARCHIVE);
+    }
+
+
+    /**
+     * Create a new archive or snapshot RO.
+     * 
+     * @param roUri
+     *            live RO URI
+     * @param target
+     *            new RO identifier
+     * @param finalize
+     *            freeze the RO after creating?
+     * @param evoType
+     *            snapshot or archive
+     * @return a status of the job, which can later be refreshed
+     */
+    private JobStatus createImmutable(URI roUri, String target, boolean finalize, EvoType evoType) {
+        JobStatus statusIn = new JobStatus(roUri, evoType, finalize);
         ClientResponse response = getClient().resource(copyUri).header("Slug", target)
-                .type(MediaType.APPLICATION_JSON_TYPE).accept(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, statusIn);
+                .header("Authorization", "Bearer " + token).type(MediaType.APPLICATION_JSON_TYPE)
+                .accept(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, statusIn);
         JobStatus statusOut = response.getEntity(JobStatus.class);
         statusOut.setUri(response.getLocation());
         statusOut.setRoevo(this);
@@ -119,6 +152,13 @@ public class ROEVOService implements Serializable {
     }
 
 
+    /**
+     * Get a new status of a snapshotting/archival job.
+     * 
+     * @param jobUri
+     *            URI of an existing job
+     * @return the job status
+     */
     public JobStatus getStatus(URI jobUri) {
         JobStatus statusOut = getClient().resource(jobUri).accept(MediaType.APPLICATION_JSON_TYPE).get(JobStatus.class);
         statusOut.setUri(jobUri);
@@ -127,6 +167,13 @@ public class ROEVOService implements Serializable {
     }
 
 
+    /**
+     * Get the evolution information as a Turtle graph.
+     * 
+     * @param roUri
+     *            URI of the RO that the information should be about
+     * @return an input stream of an RDF graph in the Turtle format
+     */
     public InputStream getEvolutionInformationInputStream(URI roUri) {
         return getClient().resource(getInfoUriTemplate().set("ro", roUri.toString()).expand())
                 .accept(RDFFormat.TURTLE.getDefaultMIMEType()).get(InputStream.class);
