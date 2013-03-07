@@ -27,12 +27,12 @@ public class SolrSearchServer implements SearchServer {
 
 
     @Override
-    public List<SearchResult> search(String query)
+    public List<SearchResult> search(String queryString)
             throws SearchException {
         try {
-            QueryResponse response = server.query(new SolrQuery(query));
-            SolrDocumentList allResults = response.getResults();
-            List<SolrDocument> results = allResults.subList(0, DEFAULT_MAX_RESULTS);
+            SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
+            QueryResponse response = server.query(query);
+            SolrDocumentList results = response.getResults();
             List<SearchResult> searchResults = new ArrayList<>();
             for (SolrDocument document : results) {
                 URI researchObjectUri = URI.create(document.getFieldValue(FIELD_RO_URI).toString());
