@@ -43,17 +43,18 @@ public class OpenSearchSearchServer implements SearchServer {
     /** date format for parsing the dates in search results. */
     public static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z");
 
-    private URI baseURI;
+    /** search module URI. */
+    private URI endpointUri;
 
 
     /**
      * Constructor.
      * 
-     * @param baseURI
+     * @param endpointUri
      *            search module URI
      */
-    public OpenSearchSearchServer(URI baseURI) {
-        this.baseURI = baseURI;
+    public OpenSearchSearchServer(URI endpointUri) {
+        this.endpointUri = endpointUri;
     }
 
 
@@ -68,7 +69,7 @@ public class OpenSearchSearchServer implements SearchServer {
     @Override
     public List<SearchResult> search(String keywords)
             throws SearchException {
-        URI queryURI = new UriBuilderImpl().uri(baseURI).queryParam("searchTerms", keywords)
+        URI queryURI = new UriBuilderImpl().uri(endpointUri).queryParam("searchTerms", keywords)
                 .queryParam("aggregate", "false").queryParam("count", 50).build();
 
         SyndFeedInput input = new SyndFeedInput();
