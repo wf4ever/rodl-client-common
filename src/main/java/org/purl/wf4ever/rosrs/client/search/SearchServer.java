@@ -1,6 +1,7 @@
 package org.purl.wf4ever.rosrs.client.search;
 
 import java.util.List;
+import java.util.Map;
 
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 
@@ -29,4 +30,15 @@ public interface SearchServer {
     List<SearchResult> search(String query)
             throws SearchException;
 
+
+    /**
+     * Find the research objects for a provided maps values.
+     * 
+     * @param fieldsMap
+     *            the map of properties listed in solr schema.xml file
+     * @param rdfPropertiesFieldsMap
+     *            the map of rdf properties indexed automatically
+     * @return a list of results
+     */
+    List<SearchResult> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap);
 }

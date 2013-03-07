@@ -7,6 +7,7 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -103,5 +104,11 @@ public class SparqlSearchServer implements SearchServer {
             searchResults.add(result);
         }
         return searchResults;
+    }
+
+
+    @Override
+    public List<SearchResult> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap) {
+        throw new UnsupportedOperationException("not implemented yet");
     }
 }

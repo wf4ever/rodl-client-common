@@ -3,7 +3,9 @@ package org.purl.wf4ever.rosrs.client.search;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -26,6 +28,8 @@ public class SolrSearchServer implements SearchServer {
 
     /** Solr instance. */
     private HttpSolrServer server;
+    /** Logger. */
+    private static final Logger LOG = Logger.getLogger(SolrSearchServer.class);
 
 
     /**
@@ -46,16 +50,40 @@ public class SolrSearchServer implements SearchServer {
             SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
             QueryResponse response = server.query(query);
             SolrDocumentList results = response.getResults();
-            List<SearchResult> searchResults = new ArrayList<>();
-            for (SolrDocument document : results) {
-                URI researchObjectUri = URI.create(document.getFieldValue(FIELD_RO_URI).toString());
-                ResearchObject researchObject = new ResearchObject(researchObjectUri, null);
-                SearchResult searchResult = new SearchResult(researchObject, -1);
-                searchResults.add(searchResult);
-            }
+            List<SearchResult> searchResults = getResultList(results);
             return searchResults;
         } catch (SolrServerException e) {
             throw new SearchException("Exception when performing a Solr query", e);
         }
+    }
+
+
+    @Override
+    public List<SearchResult> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap) {
+        SolrQueryBuilder queryBuilder = new SolrQueryBuilder();
+        QueryResponse response;
+        queryBuilder.addQueryProperties(fieldsMap);
+        queryBuilder.addRDFQueryProperties(rdfPropertiesFieldsMap);
+        try {
+            response = server.query(queryBuilder.build());
+        } catch (SolrServerException e) {
+            LOG.error(e);
+            return null;
+        }
+        SolrDocumentList results = response.getResults();
+        List<SearchResult> searchResults = getResultList(results);
+        return searchResults;
+    }
+
+
+    private List<SearchResult> getResultList(SolrDocumentList list) {
+        List<SearchResult> searchResults = new ArrayList<>();
+        for (SolrDocument document : list) {
+            URI researchObjectUri = URI.create(document.getFieldValue(FIELD_RO_URI).toString());
+            ResearchObject researchObject = new ResearchObject(researchObjectUri, null);
+            SearchResult searchResult = new SearchResult(researchObject, -1);
+            searchResults.add(searchResult);
+        }
+        return searchResults;
     }
 }

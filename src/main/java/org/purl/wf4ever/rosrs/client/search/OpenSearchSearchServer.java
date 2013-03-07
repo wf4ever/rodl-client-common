@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -137,5 +138,11 @@ public class OpenSearchSearchServer implements SearchServer {
         }
 
         return ros;
+    }
+
+
+    @Override
+    public List<SearchResult> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap) {
+        throw new UnsupportedOperationException("not implemented yet");
     }
 }
