@@ -42,8 +42,21 @@ public class SolrSearchServer implements SearchServer {
     @Override
     public List<SearchResult> search(String queryString)
             throws SearchException {
+        return search(queryString, 0, DEFAULT_MAX_RESULTS);
+    }
+
+
+    @Override
+    public boolean supportsPagination() {
+        return true;
+    }
+
+
+    @Override
+    public List<SearchResult> search(String queryString, int offset, int limit)
+            throws SearchException {
         try {
-            SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
+            SolrQuery query = new SolrQuery(queryString).setStart(offset).setRows(DEFAULT_MAX_RESULTS);
             QueryResponse response = server.query(query);
             SolrDocumentList results = response.getResults();
             List<SearchResult> searchResults = new ArrayList<>();
@@ -58,4 +71,5 @@ public class SolrSearchServer implements SearchServer {
             throw new SearchException("Exception when performing a Solr query", e);
         }
     }
+
 }

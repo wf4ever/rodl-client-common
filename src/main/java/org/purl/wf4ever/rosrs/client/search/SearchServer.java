@@ -29,4 +29,29 @@ public interface SearchServer {
     List<SearchResult> search(String query)
             throws SearchException;
 
+
+    /**
+     * True if the search server provides a search method with offset and limit parameters.
+     * 
+     * @return true if pagination is supported, false otherwise
+     */
+    boolean supportsPagination();
+
+
+    /**
+     * Find the research objects for a provided query. Return a list starting with the "offset" position on the list,
+     * and containing no more than "limit" results.
+     * 
+     * @param query
+     *            a query, where keywords are separated by spaces
+     * @param offset
+     *            how many first results to skip (0 to skip none)
+     * @param limit
+     *            the maximum number of results
+     * @return a list of results
+     * @throws SearchException
+     *             when the search finished with an exception
+     */
+    List<SearchResult> search(String query, int offset, int limit)
+            throws SearchException;
 }

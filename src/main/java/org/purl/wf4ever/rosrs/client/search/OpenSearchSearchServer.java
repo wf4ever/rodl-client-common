@@ -67,12 +67,26 @@ public class OpenSearchSearchServer implements SearchServer {
      * @throws SearchException
      *             when it could not load the search results
      */
-    @SuppressWarnings("unchecked")
     @Override
     public List<SearchResult> search(String keywords)
             throws SearchException {
-        URI queryURI = new UriBuilderImpl().uri(endpointUri).queryParam("searchTerms", keywords)
-                .queryParam("aggregate", "false").queryParam("count", 50).build();
+        return search(keywords, 0, DEFAULT_MAX_RESULTS);
+    }
+
+
+    @Override
+    public boolean supportsPagination() {
+        return true;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<SearchResult> search(String query, int offset, int limit)
+            throws SearchException {
+        URI queryURI = new UriBuilderImpl().uri(endpointUri).queryParam("searchTerms", query)
+                .queryParam("aggregate", "false").queryParam("startIndex", offset + 1)
+                .queryParam("count", DEFAULT_MAX_RESULTS).build();
 
         SyndFeedInput input = new SyndFeedInput();
         SyndFeed feed;

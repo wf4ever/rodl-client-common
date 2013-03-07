@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
+import org.purl.wf4ever.rosrs.client.exception.SearchException;
 
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -94,14 +95,27 @@ public class SparqlSearchServer implements SearchServer {
                     LOG.warn("Don't know how to parse date: " + date);
                 }
             }
-            //            String title = solution.getLiteral("title") != null ? solution.getLiteral("title").getString() : null;
+            String title = solution.getLiteral("title") != null ? solution.getLiteral("title").getString() : null;
             ResearchObject ro = new ResearchObject(uri, null);
             ro.setCreator(creator);
             ro.setCreated(created);
-            //            ro.setTitle(title);
+            ro.setTitle(title);
             SearchResult result = new SearchResult(ro, -1);
             searchResults.add(result);
         }
         return searchResults;
+    }
+
+
+    @Override
+    public boolean supportsPagination() {
+        return false;
+    }
+
+
+    @Override
+    public List<SearchResult> search(String query, int offset, int limit)
+            throws SearchException {
+        throw new SearchException("Unsupported operation");
     }
 }
