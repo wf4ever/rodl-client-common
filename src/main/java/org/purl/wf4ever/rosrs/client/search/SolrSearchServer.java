@@ -1,5 +1,6 @@
 package org.purl.wf4ever.rosrs.client.search;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,13 +20,19 @@ import org.purl.wf4ever.rosrs.client.exception.SearchException;
  * @author piotrekhol
  * 
  */
-public class SolrSearchServer implements SearchServer {
+public class SolrSearchServer implements SearchServer, Serializable {
+
+    /** id. */
+    private static final long serialVersionUID = -276599078305951556L;
 
     /** Field for the RO URI in the response from Solr. */
     private static final String FIELD_RO_URI = "ro_uri";
 
     /** Solr instance. */
-    private HttpSolrServer server;
+    private transient HttpSolrServer server;
+
+    /** Solr server URI, necessary for reinitializing the instance. */
+    private URI solrUri;
 
 
     /**
@@ -35,7 +42,20 @@ public class SolrSearchServer implements SearchServer {
      *            URI for the Solr instance, for example http://sandbox.wf4ever-project.org/solr/
      */
     public SolrSearchServer(URI solrUri) {
-        server = new HttpSolrServer(solrUri.toString());
+        this.solrUri = solrUri;
+    }
+
+
+    /**
+     * Get the solr server instance, creating it if necessary.
+     * 
+     * @return the solr server
+     */
+    private HttpSolrServer getServer() {
+        if (server == null) {
+            server = new HttpSolrServer(solrUri.toString());
+        }
+        return server;
     }
 
 
@@ -57,7 +77,7 @@ public class SolrSearchServer implements SearchServer {
             throws SearchException {
         try {
             SolrQuery query = new SolrQuery(queryString).setStart(offset).setRows(DEFAULT_MAX_RESULTS);
-            QueryResponse response = server.query(query);
+            QueryResponse response = getServer().query(query);
             SolrDocumentList results = response.getResults();
             List<SearchResult> searchResults = new ArrayList<>();
             for (SolrDocument document : results) {
