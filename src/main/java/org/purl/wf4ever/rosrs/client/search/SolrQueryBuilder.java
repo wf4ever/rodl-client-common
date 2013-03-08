@@ -63,11 +63,23 @@ public class SolrQueryBuilder {
     }
 
 
+    /**
+     * Add a list of properties to build a query.
+     * 
+     * @param map
+     *            properties map
+     */
     public void addQueryProperties(Map<String, String> map) {
         queryParams.putAll(map);
     }
 
 
+    /**
+     * Add a list of rdf properties to build a query.
+     * 
+     * @param map
+     *            rdf properties map
+     */
     public void addRDFQueryProperties(Map<String, String> map) {
         for (String key : map.keySet()) {
             map.put(RDF_PROPERTY_PREFIX + key, map.get(key));
@@ -118,6 +130,12 @@ public class SolrQueryBuilder {
      */
     public SolrQuery build() {
         return build(false);
+    }
+
+
+    public SolrQuery Build(String query) {
+        SolrQuery solrQuery = new SolrQuery(query);
+        return solrQuery;
     }
 
 

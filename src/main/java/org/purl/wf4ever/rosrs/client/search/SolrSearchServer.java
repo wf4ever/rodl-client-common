@@ -47,8 +47,15 @@ public class SolrSearchServer implements SearchServer {
     public List<SearchResult> search(String queryString)
             throws SearchException {
         try {
+
             SolrQuery query = new SolrQuery(SolrQueryBuilder.escapeQueryString(queryString))
                     .setRows(DEFAULT_MAX_RESULTS);
+
+            query.addFacetField("evo_type");
+            query.addFacetField("creator");
+            query.addDateRangeFacet("created", null, null, "1YEAR");
+            query.addNumericRangeFacet("size", null, null, 10);
+
             QueryResponse response = server.query(query);
             SolrDocumentList results = response.getResults();
             List<SearchResult> searchResults = getResultList(results);
