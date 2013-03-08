@@ -5,12 +5,14 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.joda.time.DateTime;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 
@@ -33,6 +35,9 @@ public class SolrSearchServer implements SearchServer, Serializable {
 
     /** Solr server URI, necessary for reinitializing the instance. */
     private URI solrUri;
+
+    /** Logger. */
+    private static final Logger LOG = Logger.getLogger(SolrSearchServer.class);
 
 
     /**
@@ -60,7 +65,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
 
 
     @Override
-    public List<SearchResult> search(String queryString)
+    public SearchResult search(String queryString)
             throws SearchException {
         return search(queryString, 0, DEFAULT_MAX_RESULTS);
     }
@@ -73,23 +78,54 @@ public class SolrSearchServer implements SearchServer, Serializable {
 
 
     @Override
-    public List<SearchResult> search(String queryString, int offset, int limit)
+    public SearchResult search(String queryString, int offset, int limit)
             throws SearchException {
         try {
-            SolrQuery query = new SolrQuery(queryString).setStart(offset).setRows(DEFAULT_MAX_RESULTS);
+
+            SolrQuery query = new SolrQuery(SolrQueryBuilder.escapeQueryString(queryString))
+                    .setRows(DEFAULT_MAX_RESULTS);
+
+            query.addFacetField("evo_type");
+            query.addFacetField("creator");
+            query.addNumericRangeFacet("annotations_size", 0, 100, 10);
+            query.addNumericRangeFacet("resources_size", 0, 200, 20);
+            query.addDateRangeFacet("created", DateTime.now().minusYears(5).toDate(), DateTime.now().toDate(), "1YEAR");
+
             QueryResponse response = getServer().query(query);
+
             SolrDocumentList results = response.getResults();
-            List<SearchResult> searchResults = new ArrayList<>();
-            for (SolrDocument document : results) {
-                URI researchObjectUri = URI.create(document.getFieldValue(FIELD_RO_URI).toString());
-                ResearchObject researchObject = new ResearchObject(researchObjectUri, null);
-                SearchResult searchResult = new SearchResult(researchObject, -1);
-                searchResults.add(searchResult);
-            }
-            return searchResults;
+            List<FoundRO> searchResults = getROsList(results);
+
+            //response.getFacetDate("created");
+            response.getFacetField("creator");
+            response.getFacetField("evo_type");
+            response.getFacetRanges().get(0);
+
+            SearchResult result = new SearchResult();
+            result.setROsList(searchResults);
+
+            return result;
+
         } catch (SolrServerException e) {
             throw new SearchException("Exception when performing a Solr query", e);
         }
     }
 
+
+    /**
+     * Get ROs list from solr document.
+     * 
+     * @param list
+     * @return
+     */
+    private List<FoundRO> getROsList(SolrDocumentList list) {
+        List<FoundRO> searchResults = new ArrayList<>();
+        for (SolrDocument document : list) {
+            URI researchObjectUri = URI.create(document.getFieldValue(FIELD_RO_URI).toString());
+            ResearchObject researchObject = new ResearchObject(researchObjectUri, null);
+            FoundRO searchResult = new FoundRO(researchObject, -1);
+            searchResults.add(searchResult);
+        }
+        return searchResults;
+    }
 }

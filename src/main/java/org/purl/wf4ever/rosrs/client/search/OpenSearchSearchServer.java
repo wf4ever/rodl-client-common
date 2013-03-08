@@ -68,7 +68,7 @@ public class OpenSearchSearchServer implements SearchServer {
      *             when it could not load the search results
      */
     @Override
-    public List<SearchResult> search(String keywords)
+    public SearchResult search(String keywords)
             throws SearchException {
         return search(keywords, 0, DEFAULT_MAX_RESULTS);
     }
@@ -82,7 +82,7 @@ public class OpenSearchSearchServer implements SearchServer {
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<SearchResult> search(String query, int offset, int limit)
+    public SearchResult search(String query, int offset, int limit)
             throws SearchException {
         URI queryURI = new UriBuilderImpl().uri(endpointUri).queryParam("searchTerms", query)
                 .queryParam("aggregate", "false").queryParam("startIndex", offset + 1)
@@ -97,7 +97,7 @@ public class OpenSearchSearchServer implements SearchServer {
         }
 
         List<SyndEntry> entries = feed.getEntries();
-        List<SearchResult> ros = new ArrayList<>();
+        List<FoundRO> ros = new ArrayList<>();
         for (SyndEntry entry : entries) {
             URI researchObjectURI = null;
             DateTime created = null;
@@ -146,10 +146,11 @@ public class OpenSearchSearchServer implements SearchServer {
                 ro.setCreated(created);
                 ro.setCreators(creators);
                 ro.setTitle(title);
-                ros.add(new SearchResult(ro, score));
+                ros.add(new FoundRO(ro, score));
             }
         }
-
-        return ros;
+        SearchResult sr = new SearchResult();
+        sr.setROsList(ros);
+        return sr;
     }
 }

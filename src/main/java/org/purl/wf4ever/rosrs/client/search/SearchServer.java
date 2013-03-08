@@ -1,7 +1,5 @@
 package org.purl.wf4ever.rosrs.client.search;
 
-import java.util.List;
-
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 
 /**
@@ -26,7 +24,7 @@ public interface SearchServer {
      * @throws SearchException
      *             when the search finished with an exception
      */
-    List<SearchResult> search(String query)
+    SearchResult search(String query)
             throws SearchException;
 
 
@@ -52,6 +50,7 @@ public interface SearchServer {
      * @throws SearchException
      *             when the search finished with an exception
      */
-    List<SearchResult> search(String query, int offset, int limit)
+    SearchResult search(String query, int offset, int limit)
             throws SearchException;
+
 }

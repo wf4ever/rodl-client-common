@@ -65,9 +65,9 @@ public class SparqlSearchServer implements SearchServer {
 
 
     @Override
-    public List<SearchResult> search(String query) {
+    public SearchResult search(String query) {
         String[] keywords = query.split(" ");
-        List<SearchResult> searchResults = new ArrayList<>();
+        List<FoundRO> searchResults = new ArrayList<>();
         StringBuilder filter = new StringBuilder();
         for (String keyword : keywords) {
             String[] regex = { String.format(SPARQL_REGEX, "?title", keyword),
@@ -100,10 +100,12 @@ public class SparqlSearchServer implements SearchServer {
             ro.setCreator(creator);
             ro.setCreated(created);
             ro.setTitle(title);
-            SearchResult result = new SearchResult(ro, -1);
+            FoundRO result = new FoundRO(ro, -1);
             searchResults.add(result);
         }
-        return searchResults;
+        SearchResult sr = new SearchResult();
+        sr.setROsList(searchResults);
+        return sr;
     }
 
 
@@ -114,7 +116,7 @@ public class SparqlSearchServer implements SearchServer {
 
 
     @Override
-    public List<SearchResult> search(String query, int offset, int limit)
+    public SearchResult search(String query, int offset, int limit)
             throws SearchException {
         throw new SearchException("Unsupported operation");
     }
