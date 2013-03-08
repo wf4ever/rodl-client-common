@@ -12,6 +12,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.joda.time.DateTime;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 
@@ -53,8 +54,9 @@ public class SolrSearchServer implements SearchServer {
 
             query.addFacetField("evo_type");
             query.addFacetField("creator");
-            //query.addNumericRangeFacet("size", null, null, 10);
-            //query.addDateRangeFacet("created", null, null, "1YEAR");
+            query.addNumericRangeFacet("annotations_size", 0, 100, 10);
+            query.addNumericRangeFacet("resources_size", 0, 200, 20);
+            query.addDateRangeFacet("created", DateTime.now().minusYears(5).toDate(), DateTime.now().toDate(), "1YEAR");
 
             QueryResponse response = server.query(query);
             SolrDocumentList results = response.getResults();
@@ -63,7 +65,7 @@ public class SolrSearchServer implements SearchServer {
             //response.getFacetDate("created");
             response.getFacetField("creator");
             response.getFacetField("evo_type");
-            //response.getFacetRanges().get(0);
+            response.getFacetRanges().get(0);
 
             SearchResult result = new SearchResult();
             result.setROsList(searchResults);

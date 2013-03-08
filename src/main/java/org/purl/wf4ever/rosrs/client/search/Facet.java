@@ -1,26 +1,31 @@
 package org.purl.wf4ever.rosrs.client.search;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.solr.client.solrj.response.FacetField;
 
 public class Facet {
 
-    private String indexName;
-    private String name;
-    private FacetField field;
+    protected String fieldName;
+    protected String name;
+    protected FacetField field;
+    protected List<FacetValue> values;
 
 
     public Facet(FacetField field) {
         this.setField(field);
+        this.values = new ArrayList<FacetValue>();
     }
 
 
-    public String getIndexName() {
-        return indexName;
+    public String getFieldName() {
+        return fieldName;
     }
 
 
-    public void setIndexName(String indexName) {
-        this.indexName = indexName;
+    public void setFieldName(String indexName) {
+        this.fieldName = indexName;
     }
 
 
