@@ -44,7 +44,7 @@ public class SolrSearchServer implements SearchServer {
 
 
     @Override
-    public List<SearchResult> search(String queryString)
+    public SearchResult search(String queryString)
             throws SearchException {
         try {
 
@@ -53,13 +53,23 @@ public class SolrSearchServer implements SearchServer {
 
             query.addFacetField("evo_type");
             query.addFacetField("creator");
-            query.addDateRangeFacet("created", null, null, "1YEAR");
-            query.addNumericRangeFacet("size", null, null, 10);
+            //query.addNumericRangeFacet("size", null, null, 10);
+            //query.addDateRangeFacet("created", null, null, "1YEAR");
 
             QueryResponse response = server.query(query);
             SolrDocumentList results = response.getResults();
-            List<SearchResult> searchResults = getResultList(results);
-            return searchResults;
+            List<FoundRO> searchResults = getROsList(results);
+
+            //response.getFacetDate("created");
+            response.getFacetField("creator");
+            response.getFacetField("evo_type");
+            //response.getFacetRanges().get(0);
+
+            SearchResult result = new SearchResult();
+            result.setROsList(searchResults);
+
+            return result;
+
         } catch (SolrServerException e) {
             throw new SearchException("Exception when performing a Solr query", e);
         }
@@ -67,29 +77,23 @@ public class SolrSearchServer implements SearchServer {
 
 
     @Override
-    public List<SearchResult> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap) {
-        SolrQueryBuilder queryBuilder = new SolrQueryBuilder();
-        QueryResponse response;
-        queryBuilder.addQueryProperties(fieldsMap);
-        queryBuilder.addRDFQueryProperties(rdfPropertiesFieldsMap);
-        try {
-            response = server.query(queryBuilder.build());
-        } catch (SolrServerException e) {
-            LOG.error(e);
-            return null;
-        }
-        SolrDocumentList results = response.getResults();
-        List<SearchResult> searchResults = getResultList(results);
-        return searchResults;
+    public List<FoundRO> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap) {
+        return null;
     }
 
 
-    private List<SearchResult> getResultList(SolrDocumentList list) {
-        List<SearchResult> searchResults = new ArrayList<>();
+    /**
+     * Get ROs list from solr document.
+     * 
+     * @param list
+     * @return
+     */
+    private List<FoundRO> getROsList(SolrDocumentList list) {
+        List<FoundRO> searchResults = new ArrayList<>();
         for (SolrDocument document : list) {
             URI researchObjectUri = URI.create(document.getFieldValue(FIELD_RO_URI).toString());
             ResearchObject researchObject = new ResearchObject(researchObjectUri, null);
-            SearchResult searchResult = new SearchResult(researchObject, -1);
+            FoundRO searchResult = new FoundRO(researchObject, -1);
             searchResults.add(searchResult);
         }
         return searchResults;

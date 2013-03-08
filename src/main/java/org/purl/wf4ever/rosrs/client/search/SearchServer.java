@@ -27,7 +27,7 @@ public interface SearchServer {
      * @throws SearchException
      *             when the search finished with an exception
      */
-    List<SearchResult> search(String query)
+    SearchResult search(String query)
             throws SearchException;
 
 
@@ -40,5 +40,5 @@ public interface SearchServer {
      *            the map of rdf properties indexed automatically
      * @return a list of results
      */
-    List<SearchResult> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap);
+    List<FoundRO> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap);
 }

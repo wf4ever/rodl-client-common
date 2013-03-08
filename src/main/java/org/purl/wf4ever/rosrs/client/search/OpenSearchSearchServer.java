@@ -70,7 +70,7 @@ public class OpenSearchSearchServer implements SearchServer {
      */
     @SuppressWarnings("unchecked")
     @Override
-    public List<SearchResult> search(String keywords)
+    public SearchResult search(String keywords)
             throws SearchException {
         URI queryURI = new UriBuilderImpl().uri(endpointUri).queryParam("searchTerms", keywords)
                 .queryParam("aggregate", "false").queryParam("count", 50).build();
@@ -84,7 +84,7 @@ public class OpenSearchSearchServer implements SearchServer {
         }
 
         List<SyndEntry> entries = feed.getEntries();
-        List<SearchResult> ros = new ArrayList<>();
+        List<FoundRO> ros = new ArrayList<>();
         for (SyndEntry entry : entries) {
             URI researchObjectURI = null;
             DateTime created = null;
@@ -133,16 +133,17 @@ public class OpenSearchSearchServer implements SearchServer {
                 ro.setCreated(created);
                 ro.setCreators(creators);
                 ro.setTitle(title);
-                ros.add(new SearchResult(ro, score));
+                ros.add(new FoundRO(ro, score));
             }
         }
-
-        return ros;
+        SearchResult sr = new SearchResult();
+        sr.setROsList(ros);
+        return sr;
     }
 
 
     @Override
-    public List<SearchResult> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap) {
+    public List<FoundRO> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap) {
         throw new UnsupportedOperationException("not implemented yet");
     }
 }

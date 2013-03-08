@@ -1,68 +1,31 @@
-/**
- * 
- */
 package org.purl.wf4ever.rosrs.client.search;
 
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.purl.wf4ever.rosrs.client.ResearchObject;
+public class SearchResult {
 
-/**
- * RODL search service result.
- * 
- * @author piotrhol
- * 
- */
-public class SearchResult implements Serializable {
-
-    /** id. */
-    private static final long serialVersionUID = -9046167750816266548L;
-
-    /** RO found. */
-    private final ResearchObject researchObject;
-
-    /** Number of resources in the RO. */
-    private int resourceCount;
-
-    /** Search score. The higher the better, from 0 to infinity. */
-    private final double score;
+    private List<Facet> facetsList;
+    private List<FoundRO> ROsList;
 
 
-    /**
-     * Constructor.
-     * 
-     * @param researchObject
-     *            RO
-     * @param score
-     *            search score
-     */
-    public SearchResult(ResearchObject researchObject, double score) {
-        this.researchObject = researchObject;
-        this.score = score;
+    public SearchResult() {
+        facetsList = new ArrayList<Facet>();
+        setROsList(new ArrayList<FoundRO>());
     }
 
 
-    public ResearchObject getResearchObject() {
-        return researchObject;
+    public List<Facet> getFactesList() {
+        return facetsList;
     }
 
 
-    public double getScore() {
-        return score;
+    public List<FoundRO> getROsList() {
+        return ROsList;
     }
 
 
-    public int getScoreInPercent() {
-        return (int) Math.round(score * 100);
-    }
-
-
-    public int getResourceCount() {
-        return resourceCount;
-    }
-
-
-    public void setResourceCount(int resourceCount) {
-        this.resourceCount = resourceCount;
+    public void setROsList(List<FoundRO> rOsList) {
+        ROsList = rOsList;
     }
 }
