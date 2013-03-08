@@ -10,12 +10,11 @@ public class Facet {
     protected String fieldName;
     protected String name;
     protected FacetField field;
-    protected List<FacetValue> values;
+    protected List<FacetValue> values = new ArrayList<>();
 
 
     public Facet(FacetField field) {
         this.setField(field);
-        this.values = new ArrayList<FacetValue>();
     }
 
 
@@ -48,4 +47,8 @@ public class Facet {
         this.name = name;
     }
 
+
+    public List<FacetValue> getValues() {
+        return values;
+    }
 }
