@@ -9,13 +9,20 @@ public class Facet {
 
     protected String fieldName;
     protected String name;
-    protected FacetField field;
     protected List<FacetValue> values;
+    private FacetField field;
 
 
-    public Facet(FacetField field) {
-        this.setField(field);
+    public Facet() {
         this.values = new ArrayList<FacetValue>();
+    }
+
+
+    public Facet(FacetField field, String name) {
+        this();
+        this.setField(field);
+        this.name = name;
+
     }
 
 

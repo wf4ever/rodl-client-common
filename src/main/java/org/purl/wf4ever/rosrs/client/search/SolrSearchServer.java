@@ -12,7 +12,6 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.joda.time.DateTime;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 
@@ -56,20 +55,20 @@ public class SolrSearchServer implements SearchServer {
             query.addFacetField("creator");
             query.addNumericRangeFacet("annotations_size", 0, 100, 10);
             query.addNumericRangeFacet("resources_size", 0, 200, 20);
-            query.addDateRangeFacet("created", DateTime.now().minusYears(5).toDate(), DateTime.now().toDate(), "1YEAR");
+            //query.addDateRangeFacet("created", DateTime.now().minusYears(5).toDate(), DateTime.now().toDate(),
+            //    "0001-00-00");
 
             QueryResponse response = server.query(query);
             SolrDocumentList results = response.getResults();
             List<FoundRO> searchResults = getROsList(results);
 
-            //response.getFacetDate("created");
-            response.getFacetField("creator");
-            response.getFacetField("evo_type");
-            response.getFacetRanges().get(0);
-
             SearchResult result = new SearchResult();
+            result.appendFacet(response.getFacetField("creator"), "A");
+            result.appendFacet(response.getFacetField("evo_type"), "B");
+            //result.appendFacet(response.getFacetDate("created"), "C");
+            result.appendFacet(response.getFacetRanges().get(0), "D");
+            result.appendFacet(response.getFacetRanges().get(1), "E");
             result.setROsList(searchResults);
-
             return result;
 
         } catch (SolrServerException e) {
