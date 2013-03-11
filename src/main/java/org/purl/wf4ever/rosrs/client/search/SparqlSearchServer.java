@@ -7,13 +7,13 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
+import org.purl.wf4ever.rosrs.client.exception.SearchException;
 
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -95,11 +95,11 @@ public class SparqlSearchServer implements SearchServer {
                     LOG.warn("Don't know how to parse date: " + date);
                 }
             }
-            //            String title = solution.getLiteral("title") != null ? solution.getLiteral("title").getString() : null;
+            String title = solution.getLiteral("title") != null ? solution.getLiteral("title").getString() : null;
             ResearchObject ro = new ResearchObject(uri, null);
             ro.setCreator(creator);
             ro.setCreated(created);
-            //            ro.setTitle(title);
+            ro.setTitle(title);
             FoundRO result = new FoundRO(ro, -1);
             searchResults.add(result);
         }
@@ -110,7 +110,14 @@ public class SparqlSearchServer implements SearchServer {
 
 
     @Override
-    public List<FoundRO> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap) {
-        throw new UnsupportedOperationException("not implemented yet");
+    public boolean supportsPagination() {
+        return false;
+    }
+
+
+    @Override
+    public SearchResult search(String query, int offset, int limit)
+            throws SearchException {
+        throw new SearchException("Unsupported operation");
     }
 }

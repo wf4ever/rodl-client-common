@@ -10,7 +10,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -68,12 +67,26 @@ public class OpenSearchSearchServer implements SearchServer {
      * @throws SearchException
      *             when it could not load the search results
      */
-    @SuppressWarnings("unchecked")
     @Override
     public SearchResult search(String keywords)
             throws SearchException {
-        URI queryURI = new UriBuilderImpl().uri(endpointUri).queryParam("searchTerms", keywords)
-                .queryParam("aggregate", "false").queryParam("count", 50).build();
+        return search(keywords, 0, DEFAULT_MAX_RESULTS);
+    }
+
+
+    @Override
+    public boolean supportsPagination() {
+        return true;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public SearchResult search(String query, int offset, int limit)
+            throws SearchException {
+        URI queryURI = new UriBuilderImpl().uri(endpointUri).queryParam("searchTerms", query)
+                .queryParam("aggregate", "false").queryParam("startIndex", offset + 1)
+                .queryParam("count", DEFAULT_MAX_RESULTS).build();
 
         SyndFeedInput input = new SyndFeedInput();
         SyndFeed feed;
@@ -139,11 +152,5 @@ public class OpenSearchSearchServer implements SearchServer {
         SearchResult sr = new SearchResult();
         sr.setROsList(ros);
         return sr;
-    }
-
-
-    @Override
-    public List<FoundRO> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap) {
-        throw new UnsupportedOperationException("not implemented yet");
     }
 }

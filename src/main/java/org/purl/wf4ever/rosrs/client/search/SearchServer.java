@@ -1,8 +1,5 @@
 package org.purl.wf4ever.rosrs.client.search;
 
-import java.util.List;
-import java.util.Map;
-
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 
 /**
@@ -32,13 +29,28 @@ public interface SearchServer {
 
 
     /**
-     * Find the research objects for a provided maps values.
+     * True if the search server provides a search method with offset and limit parameters.
      * 
-     * @param fieldsMap
-     *            the map of properties listed in solr schema.xml file
-     * @param rdfPropertiesFieldsMap
-     *            the map of rdf properties indexed automatically
-     * @return a list of results
+     * @return true if pagination is supported, false otherwise
      */
-    List<FoundRO> search(Map<String, String> fieldsMap, Map<String, String> rdfPropertiesFieldsMap);
+    boolean supportsPagination();
+
+
+    /**
+     * Find the research objects for a provided query. Return a list starting with the "offset" position on the list,
+     * and containing no more than "limit" results.
+     * 
+     * @param query
+     *            a query, where keywords are separated by spaces
+     * @param offset
+     *            how many first results to skip (0 to skip none)
+     * @param limit
+     *            the maximum number of results
+     * @return a list of results
+     * @throws SearchException
+     *             when the search finished with an exception
+     */
+    SearchResult search(String query, int offset, int limit)
+            throws SearchException;
+
 }
