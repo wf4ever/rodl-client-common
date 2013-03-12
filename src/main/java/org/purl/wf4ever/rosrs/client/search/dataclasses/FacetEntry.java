@@ -10,9 +10,8 @@ import org.apache.solr.client.solrj.response.FacetField.Count;
 public class FacetEntry implements Serializable {
 
     protected String fieldName;
-    protected String name;
+    protected String readableName;
     protected List<FacetValue> values;
-    private FacetField field;
 
 
     public FacetEntry() {
@@ -22,9 +21,8 @@ public class FacetEntry implements Serializable {
 
     public FacetEntry(FacetField field, String name) {
         this();
-        this.setField(field);
+        this.readableName = name;
         this.fieldName = field.getName();
-        this.name = name;
         this.values = new ArrayList<FacetValue>();
         if (field != null) {
             for (Count count : field.getValues()) {
@@ -46,28 +44,8 @@ public class FacetEntry implements Serializable {
     }
 
 
-    public void setFieldName(String indexName) {
-        this.fieldName = indexName;
-    }
-
-
-    public FacetField getField() {
-        return field;
-    }
-
-
-    public void setField(FacetField field) {
-        this.field = field;
-    }
-
-
     public String getName() {
-        return name;
-    }
-
-
-    public void setName(String name) {
-        this.name = name;
+        return readableName;
     }
 
 }

@@ -17,14 +17,24 @@ public class RangeFacetEntry extends FacetEntry {
         super();
         this.fieldName = rangeFacet.getName();
         this.rangeFacet = rangeFacet;
-        this.name = name;
+        this.readableName = name;
         for (Object object : rangeFacet.getCounts()) {
             Count count = (Count) object;
-            Integer from = new Integer(count.getValue());
-            Integer to = from + new Integer(rangeFacet.getGap().toString());
-
-            String query = fieldName + ":[" + from.toString() + " TO " + to.toString() + "]";
-            values.add(new FacetValue(from.toString() + " - " + to.toString(), count.getCount(), fieldName, query));
+            values.add(new FacetValue(calcualteName(count), count.getCount(), fieldName, calculateQuery(count)));
         }
+    }
+
+
+    private String calculateQuery(Count count) {
+        Integer from = new Integer(count.getValue());
+        Integer to = from + new Integer(rangeFacet.getGap().toString());
+        return fieldName + ":[" + from.toString() + " TO " + to.toString() + "]";
+    }
+
+
+    private String calcualteName(Count count) {
+        Integer from = new Integer(count.getValue());
+        Integer to = from + new Integer(rangeFacet.getGap().toString());
+        return from.toString() + " - " + to.toString();
     }
 }
