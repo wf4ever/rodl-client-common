@@ -2,14 +2,38 @@ package org.purl.wf4ever.rosrs.client.search.dataclasses;
 
 import java.io.Serializable;
 
+/**
+ * The triple of label, count and query.
+ * 
+ * @author pejot
+ * 
+ */
 public class FacetValue implements Serializable {
 
+    /** Serialization. */
+    private static final long serialVersionUID = 1L;
+    /** label. */
     private String label;
+    /** count (number of results). */
     private Integer count;
+    /** the original facet name. */
     private String paramName;
+    /** solr query. */
     private String query;
 
 
+    /**
+     * Constructor.
+     * 
+     * @param label
+     *            label
+     * @param count
+     *            count (number of results)
+     * @param paramName
+     *            the original facet name
+     * @param query
+     *            query
+     */
     public FacetValue(String label, Integer count, String paramName, String query) {
         this.label = label;
         this.count = count;
@@ -55,6 +79,12 @@ public class FacetValue implements Serializable {
 
     public void setQuery(String query) {
         this.query = query;
+    }
+
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
 

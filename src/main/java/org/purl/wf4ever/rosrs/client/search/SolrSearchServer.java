@@ -5,7 +5,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -38,9 +37,11 @@ public class SolrSearchServer implements SearchServer, Serializable {
     /** Solr server URI, necessary for reinitializing the instance. */
     private URI solrUri;
 
-    /** Logger. */
-    private static final Logger LOG = Logger.getLogger(SolrSearchServer.class);
 
+    /** Logger. */
+    /*
+    private static final Logger LOG = Logger.getLogger(SolrSearchServer.class);
+    */
 
     /**
      * Constructor.
@@ -86,10 +87,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
             SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
             addFacetFields(query);
             QueryResponse response = getServer().query(query);
-
-            SolrDocumentList results = response.getResults();
-            List<FoundRO> searchResults = getROsList(results);
-            return pullUpResults(response);
+            return pullUpResult(response);
 
         } catch (SolrServerException e) {
             throw new SearchException("Exception when performing a Solr query", e);
@@ -97,6 +95,12 @@ public class SolrSearchServer implements SearchServer, Serializable {
     }
 
 
+    /**
+     * Add new facet field.
+     * 
+     * @param query
+     *            query
+     */
     //TODO maybe ready from solr.configuration.properties or something like this?
     private void addFacetFields(SolrQuery query) {
         query.addFacetField("evo_type");
@@ -107,9 +111,16 @@ public class SolrSearchServer implements SearchServer, Serializable {
     }
 
 
+    /**
+     * Pull up solr query results.
+     * 
+     * @param response
+     *            solr response
+     * @return SearchResult
+     */
     //TODO this same maybe ready from solr.configuration.properties or something like this?
     //TODO maybe intervals should be calculate dynamically if they are not configurable? 
-    private SearchResult pullUpResults(QueryResponse response) {
+    private SearchResult pullUpResult(QueryResponse response) {
         SearchResult result = new SearchResult();
         SolrDocumentList results = response.getResults();
         List<FoundRO> searchResults = getROsList(results);
@@ -127,6 +138,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
      * Get ROs list from solr document.
      * 
      * @param list
+     *            list of solr documents
      * @return list of found ROs
      */
     private List<FoundRO> getROsList(SolrDocumentList list) {

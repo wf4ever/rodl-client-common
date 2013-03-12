@@ -1,23 +1,33 @@
-package org.purl.wf4ever.rosrs.client.search.dataclasses;
+package org.purl.wf4ever.rosrs.client.search.dataclasses.solr;
 
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.client.solrj.response.RangeFacet.Count;
 import org.joda.time.DateTime;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.FacetValue;
 
+/**
+ * Represents single date range facet and manufactures list of facet value.
+ * 
+ * @author pejot
+ * 
+ */
 public class DateRangeFacetEntry extends FacetEntry {
 
-    private RangeFacet rangeFacet;
+    /** serialization. */
+    private static final long serialVersionUID = 1L;
 
 
-    public DateRangeFacetEntry(FacetEntry f) {
-        super();
-    }
-
-
-    public DateRangeFacetEntry(RangeFacet rangeFacet, String name) {
+    /**
+     * Constructor.
+     * 
+     * @param rangeFacet
+     *            facet field
+     * @param name
+     *            facet human-readable name
+     */
+    public DateRangeFacetEntry(RangeFacet<?, ?> rangeFacet, String name) {
         super();
         this.fieldName = rangeFacet.getName();
-        this.rangeFacet = rangeFacet;
         this.readableName = name;
 
         for (Object object : rangeFacet.getCounts()) {
@@ -28,11 +38,27 @@ public class DateRangeFacetEntry extends FacetEntry {
     }
 
 
+    /**
+     * Calculate query.
+     * 
+     * @param count
+     *            count
+     * @param gap
+     *            gap
+     * @return solr query
+     */
     private String calculateQuery(Count count, String gap) {
         return fieldName + ":[" + count.getValue() + " TO " + count.getValue() + gap + "]";
     }
 
 
+    /**
+     * Calculate label.
+     * 
+     * @param count
+     *            count
+     * @return label
+     */
     private String calculateLabel(Count count) {
         DateTime timeBegin = new DateTime(count.getValue());
         DateTime timeEnd = new DateTime(count.getValue());

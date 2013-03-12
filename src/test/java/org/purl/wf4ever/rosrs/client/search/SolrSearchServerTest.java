@@ -23,6 +23,6 @@ public class SolrSearchServerTest {
     @Test
     public void testSearch()
             throws SearchException {
-        SearchResult result = server.search("http");
+        SearchResult result = server.search("test");
     }
 }
