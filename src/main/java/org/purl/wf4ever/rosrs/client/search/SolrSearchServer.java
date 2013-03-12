@@ -84,28 +84,12 @@ public class SolrSearchServer implements SearchServer, Serializable {
             throws SearchException {
         try {
             SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
-            query.addFacetField("evo_type");
-            query.addFacetField("creator");
-            query.addNumericRangeFacet("annotations_size", 0, 100, 10);
-            query.addNumericRangeFacet("resources_size", 0, 200, 20);
-            query.addDateRangeFacet("created", DateTime.now().minusYears(2).toDate(), DateTime.now().toDate(),
-                "+3MONTH");
-
+            addFacetFields(query);
             QueryResponse response = getServer().query(query);
 
             SolrDocumentList results = response.getResults();
             List<FoundRO> searchResults = getROsList(results);
-
-            SearchResult result = new SearchResult();
-
-            result.appendFacet(response.getFacetField("creator"), "Creators");
-            result.appendFacet(response.getFacetField("evo_type"), "ROEVO Types");
-            result.appendFacet(response.getFacetRanges().get(0), "Number of annotations");
-            result.appendFacet(response.getFacetRanges().get(1), "Number of resources");
-            result.appendDateFacet(response.getFacetRanges().get(2), "Created");
-            result.setROsList(searchResults);
-
-            return result;
+            return pullUpResults(response);
 
         } catch (SolrServerException e) {
             throw new SearchException("Exception when performing a Solr query", e);
@@ -113,11 +97,37 @@ public class SolrSearchServer implements SearchServer, Serializable {
     }
 
 
+    //TODO maybe ready from solr.configuration.properties or something like this?
+    private void addFacetFields(SolrQuery query) {
+        query.addFacetField("evo_type");
+        query.addFacetField("creator");
+        query.addNumericRangeFacet("annotations_size", 0, 100, 10);
+        query.addNumericRangeFacet("resources_size", 0, 200, 20);
+        query.addDateRangeFacet("created", DateTime.now().minusYears(2).toDate(), DateTime.now().toDate(), "+3MONTH");
+    }
+
+
+    //TODO this same maybe ready from solr.configuration.properties or something like this?
+    //TODO maybe intervals should be calculate dynamically if they are not configurable? 
+    private SearchResult pullUpResults(QueryResponse response) {
+        SearchResult result = new SearchResult();
+        SolrDocumentList results = response.getResults();
+        List<FoundRO> searchResults = getROsList(results);
+        result.appendFacet(response.getFacetField("creator"), "Creators");
+        result.appendFacet(response.getFacetField("evo_type"), "ROEVO Types");
+        result.appendFacet(response.getFacetRanges().get(0), "Number of annotations");
+        result.appendFacet(response.getFacetRanges().get(1), "Number of resources");
+        result.appendDateFacet(response.getFacetRanges().get(2), "Created");
+        result.setROsList(searchResults);
+        return result;
+    }
+
+
     /**
      * Get ROs list from solr document.
      * 
      * @param list
-     * @return
+     * @return list of found ROs
      */
     private List<FoundRO> getROsList(SolrDocumentList list) {
         List<FoundRO> searchResults = new ArrayList<>();

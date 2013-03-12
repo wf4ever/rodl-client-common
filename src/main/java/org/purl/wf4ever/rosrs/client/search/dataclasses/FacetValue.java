@@ -56,4 +56,17 @@ public class FacetValue implements Serializable {
     public void setQuery(String query) {
         this.query = query;
     }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof FacetValue)) {
+            return false;
+        }
+        FacetValue val = (FacetValue) obj;
+        if (val.getParamName().equals(this.paramName) && val.getLabel().equals(this.getLabel())) {
+            return true;
+        }
+        return false;
+    }
 }
