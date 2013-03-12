@@ -18,6 +18,8 @@ import org.joda.time.DateTime;
 import org.purl.wf4ever.rosrs.client.Creator;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.FoundRO;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 
 import com.sun.jersey.api.uri.UriBuilderImpl;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -153,4 +155,5 @@ public class OpenSearchSearchServer implements SearchServer {
         sr.setROsList(ros);
         return sr;
     }
+
 }

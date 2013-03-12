@@ -5,6 +5,7 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Test;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 
 public class SolrSearchServerTest {
 
@@ -22,7 +23,6 @@ public class SolrSearchServerTest {
     @Test
     public void testSearch()
             throws SearchException {
-        SearchResult result = server.search("sandbox");
-        System.out.println(result.getROsList().size());
+        SearchResult result = server.search("http");
     }
 }

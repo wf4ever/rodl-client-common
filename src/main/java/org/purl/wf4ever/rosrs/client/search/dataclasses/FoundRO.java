@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.purl.wf4ever.rosrs.client.search;
+package org.purl.wf4ever.rosrs.client.search.dataclasses;
 
 import java.io.Serializable;
 

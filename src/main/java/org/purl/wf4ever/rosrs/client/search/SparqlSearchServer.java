@@ -14,6 +14,8 @@ import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.FoundRO;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -120,4 +122,5 @@ public class SparqlSearchServer implements SearchServer {
             throws SearchException {
         throw new SearchException("Unsupported operation");
     }
+
 }

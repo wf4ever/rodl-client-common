@@ -12,8 +12,11 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.joda.time.DateTime;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.FoundRO;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 
 /**
  * An implementation connecting to the Solr instance in RODL. Note that the response schema is hardcoded.
@@ -64,13 +67,6 @@ public class SolrSearchServer implements SearchServer, Serializable {
 
 
     @Override
-    public SearchResult search(String queryString)
-            throws SearchException {
-        return search(queryString, 0, DEFAULT_MAX_RESULTS);
-    }
-
-
-    @Override
     public boolean supportsPagination() {
         return true;
     }
@@ -79,17 +75,21 @@ public class SolrSearchServer implements SearchServer, Serializable {
     @Override
     public SearchResult search(String queryString, int offset, int limit)
             throws SearchException {
+        return search(queryString);
+    }
+
+
+    @Override
+    public SearchResult search(String queryString)
+            throws SearchException {
         try {
-
-            SolrQuery query = new SolrQuery(SolrQueryBuilder.escapeQueryString(queryString))
-                    .setRows(DEFAULT_MAX_RESULTS);
-
+            SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
             query.addFacetField("evo_type");
             query.addFacetField("creator");
             query.addNumericRangeFacet("annotations_size", 0, 100, 10);
             query.addNumericRangeFacet("resources_size", 0, 200, 20);
-            //query.addDateRangeFacet("created", DateTime.now().minusYears(5).toDate(), DateTime.now().toDate(),
-            //    "0001-00-00");
+            query.addDateRangeFacet("created", DateTime.now().minusYears(2).toDate(), DateTime.now().toDate(),
+                "+3MONTH");
 
             QueryResponse response = getServer().query(query);
 
@@ -97,12 +97,14 @@ public class SolrSearchServer implements SearchServer, Serializable {
             List<FoundRO> searchResults = getROsList(results);
 
             SearchResult result = new SearchResult();
-            result.appendFacet(response.getFacetField("creator"), "A");
-            result.appendFacet(response.getFacetField("evo_type"), "B");
-            //result.appendFacet(response.getFacetDate("created"), "C");
-            result.appendFacet(response.getFacetRanges().get(0), "D");
-            result.appendFacet(response.getFacetRanges().get(1), "E");
+
+            result.appendFacet(response.getFacetField("creator"), "Creators");
+            result.appendFacet(response.getFacetField("evo_type"), "ROEVO Types");
+            result.appendFacet(response.getFacetRanges().get(0), "Number of annotations");
+            result.appendFacet(response.getFacetRanges().get(1), "Number of resources");
+            result.appendDateFacet(response.getFacetRanges().get(2), "Created");
             result.setROsList(searchResults);
+
             return result;
 
         } catch (SolrServerException e) {

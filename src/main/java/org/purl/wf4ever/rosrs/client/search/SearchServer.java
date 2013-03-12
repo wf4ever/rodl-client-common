@@ -1,6 +1,7 @@
 package org.purl.wf4ever.rosrs.client.search;
 
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 
 /**
  * An interface for a service that performs search for ROs in RODL.
@@ -11,7 +12,7 @@ import org.purl.wf4ever.rosrs.client.exception.SearchException;
 public interface SearchServer {
 
     /** The maximum number of results for a default, unparametrized query. */
-    int DEFAULT_MAX_RESULTS = 20;
+    int DEFAULT_MAX_RESULTS = 2000;
 
 
     /**
