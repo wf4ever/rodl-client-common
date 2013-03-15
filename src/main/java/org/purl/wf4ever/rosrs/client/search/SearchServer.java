@@ -1,5 +1,8 @@
 package org.purl.wf4ever.rosrs.client.search;
 
+import java.util.Map;
+
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 
@@ -51,7 +54,7 @@ public interface SearchServer {
      * @throws SearchException
      *             when the search finished with an exception
      */
-    SearchResult search(String query, int offset, int limit)
+    SearchResult search(String query, Integer offset, Integer limit, Map<String, ORDER> sortField)
             throws SearchException;
 
 }

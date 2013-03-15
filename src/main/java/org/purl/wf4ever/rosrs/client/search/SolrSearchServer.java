@@ -4,8 +4,10 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -74,9 +76,22 @@ public class SolrSearchServer implements SearchServer, Serializable {
 
 
     @Override
-    public SearchResult search(String queryString, int offset, int limit)
+    public SearchResult search(String queryString, Integer offset, Integer limit, Map<String, ORDER> sortField)
             throws SearchException {
-        return search(queryString);
+        try {
+            SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
+            if (sortField != null) {
+                for (String key : sortField.keySet()) {
+                    query.addSortField(key, sortField.get(key));
+                }
+            }
+            addFacetFields(query);
+            QueryResponse response = getServer().query(query);
+            return pullUpResult(response);
+
+        } catch (SolrServerException e) {
+            throw new SearchException("Exception when performing a Solr query", e);
+        }
     }
 
 
@@ -125,7 +140,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
         SolrDocumentList results = response.getResults();
         List<FoundRO> searchResults = getROsList(results);
         result.appendFacet(response.getFacetField("creator"), "Creators");
-        result.appendFacet(response.getFacetField("evo_type"), "ROEVO Types");
+        result.appendFacet(response.getFacetField("evo_type"), "RO status");
         result.appendFacet(response.getFacetRanges().get(0), "Number of annotations");
         result.appendFacet(response.getFacetRanges().get(1), "Number of resources");
         result.appendDateFacet(response.getFacetRanges().get(2), "Created");
