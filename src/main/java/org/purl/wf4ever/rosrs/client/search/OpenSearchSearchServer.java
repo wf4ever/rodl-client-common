@@ -10,14 +10,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.jdom.Element;
 import org.joda.time.DateTime;
 import org.purl.wf4ever.rosrs.client.Creator;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.FoundRO;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 
 import com.sun.jersey.api.uri.UriBuilderImpl;
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -70,7 +74,7 @@ public class OpenSearchSearchServer implements SearchServer {
     @Override
     public SearchResult search(String keywords)
             throws SearchException {
-        return search(keywords, 0, DEFAULT_MAX_RESULTS);
+        return search(keywords, 0, DEFAULT_MAX_RESULTS, null);
     }
 
 
@@ -82,7 +86,7 @@ public class OpenSearchSearchServer implements SearchServer {
 
     @SuppressWarnings("unchecked")
     @Override
-    public SearchResult search(String query, int offset, int limit)
+    public SearchResult search(String query, Integer offset, Integer limit, Map<String, ORDER> sortField)
             throws SearchException {
         URI queryURI = new UriBuilderImpl().uri(endpointUri).queryParam("searchTerms", query)
                 .queryParam("aggregate", "false").queryParam("startIndex", offset + 1)
@@ -153,4 +157,5 @@ public class OpenSearchSearchServer implements SearchServer {
         sr.setROsList(ros);
         return sr;
     }
+
 }

@@ -1,6 +1,10 @@
 package org.purl.wf4ever.rosrs.client.search;
 
+import java.util.Map;
+
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 
 /**
  * An interface for a service that performs search for ROs in RODL.
@@ -11,7 +15,7 @@ import org.purl.wf4ever.rosrs.client.exception.SearchException;
 public interface SearchServer {
 
     /** The maximum number of results for a default, unparametrized query. */
-    int DEFAULT_MAX_RESULTS = 20;
+    int DEFAULT_MAX_RESULTS = 2000;
 
 
     /**
@@ -46,11 +50,13 @@ public interface SearchServer {
      *            how many first results to skip (0 to skip none)
      * @param limit
      *            the maximum number of results
+     * @param sortFields
+     *            the fields (attrubutes that )
      * @return a list of results
      * @throws SearchException
      *             when the search finished with an exception
      */
-    SearchResult search(String query, int offset, int limit)
+    SearchResult search(String query, Integer offset, Integer limit, Map<String, ORDER> sortFields)
             throws SearchException;
 
 }

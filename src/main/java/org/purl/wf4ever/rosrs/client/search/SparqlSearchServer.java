@@ -7,13 +7,17 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.FoundRO;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -116,8 +120,9 @@ public class SparqlSearchServer implements SearchServer {
 
 
     @Override
-    public SearchResult search(String query, int offset, int limit)
+    public SearchResult search(String query, Integer offset, Integer limit, Map<String, ORDER> sortField)
             throws SearchException {
         throw new SearchException("Unsupported operation");
     }
+
 }
