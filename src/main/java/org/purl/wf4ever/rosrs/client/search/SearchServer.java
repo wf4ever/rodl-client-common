@@ -50,11 +50,13 @@ public interface SearchServer {
      *            how many first results to skip (0 to skip none)
      * @param limit
      *            the maximum number of results
+     * @param sortFields
+     *            the fields (attrubutes that )
      * @return a list of results
      * @throws SearchException
      *             when the search finished with an exception
      */
-    SearchResult search(String query, Integer offset, Integer limit, Map<String, ORDER> sortField)
+    SearchResult search(String query, Integer offset, Integer limit, Map<String, ORDER> sortFields)
             throws SearchException;
 
 }
