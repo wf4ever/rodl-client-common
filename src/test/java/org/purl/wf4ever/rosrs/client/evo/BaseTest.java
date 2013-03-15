@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.purl.wf4ever.rosrs.client.ROSRService;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
-import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 /**
@@ -27,10 +26,10 @@ public class BaseTest {
     protected static ROSRService rosrs;
 
     /** RODL access token. */
-    private static final String TOKEN = "32801fc0-1df1-4e34-b";
+    private static final String TOKEN = "b1a8ad77-790c-4bf1-a452-f1c99a662732";
 
     /** RODL URI for testing. */
-    private static final URI RODL_URI = URI.create("http://sandbox.wf4ever-project.org/rodl/");
+    protected static final URI RODL_URI = URI.create("http://sandbox.wf4ever-project.org/rodl/");
 
     /** ROs to delete after a test. */
     protected static List<ResearchObject> rosToDelete = new ArrayList<>();
@@ -42,14 +41,12 @@ public class BaseTest {
     /**
      * Prepare an ROEVO service.
      * 
-     * @throws ROException
+     * @throws Exception
      *             example RO has incorrect data
-     * @throws ROSRSException
-     *             could not load the example RO
      */
     @BeforeClass
-    public static final void setUpBeforeClass()
-            throws ROSRSException, ROException {
+    public static void setUpBeforeClass()
+            throws Exception {
         rosrs = new ROSRService(RODL_URI.resolve("ROs/"), TOKEN);
         roevo = new ROEVOService(RODL_URI.resolve("evo/"), TOKEN);
     }
@@ -62,7 +59,7 @@ public class BaseTest {
      *             unexpected response from RODL
      */
     @Before
-    public final void setUp()
+    public void setUp()
             throws ROSRSException {
         ro = new ResearchObject(rosrs.getRosrsURI().resolve("ROEVOServiceTest/"), rosrs);
         ro.delete();

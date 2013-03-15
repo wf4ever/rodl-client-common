@@ -12,7 +12,7 @@ import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.purl.wf4ever.rosrs.client.exception.ROException;
+import org.purl.wf4ever.rosrs.client.evo.BaseTest;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 /**
@@ -21,7 +21,7 @@ import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
  * @author piotrekhol
  * 
  */
-public class ResourceTest {
+public class ResourceTest extends BaseTest {
 
     /** RO that will be mapped to local resources. */
     private static final URI RO_PREFIX = URI.create("http://example.org/ro1/");
@@ -42,17 +42,13 @@ public class ResourceTest {
     /**
      * Prepare a loaded resource.
      * 
-     * @throws ROException
-     *             example RO has incorrect data
-     * @throws ROSRSException
-     *             could not load the example RO
-     * @throws IOException
-     *             could not load the example annotation
+     * @throws Exception
+     *             when the test data can't be loaded
      */
     @BeforeClass
-    public static final void setUp()
-            throws ROSRSException, ROException, IOException {
-        ROSRService rosrs = new ROSRService(URI.create("http://example.org/"), "foo");
+    public static final void setUpBeforeClass()
+            throws Exception {
+        BaseTest.setUpBeforeClass();
         ro1 = new ResearchObject(RO_PREFIX, rosrs);
         ro1.load();
         res1 = new Resource(ro1, RES_URI, PROXY_URI, URI.create("http://test1.myopenid.com"), new DateTime(2011, 12,
@@ -84,12 +80,12 @@ public class ResourceTest {
             throws ROSRSException, IOException {
         ResearchObject ro;
         try {
-            ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+            ro = ResearchObject.create(rosrs, "JavaClientTest");
         } catch (ROSRSException e) {
             if (e.getStatus() == HttpStatus.SC_CONFLICT) {
-                ro = new ResearchObject(TestUtils.ROSRS.getRosrsURI().resolve("JavaClientTest/"), TestUtils.ROSRS);
+                ro = new ResearchObject(rosrs.getRosrsURI().resolve("JavaClientTest/"), rosrs);
                 ro.delete();
-                ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+                ro = ResearchObject.create(rosrs, "JavaClientTest");
             } else {
                 throw e;
             }
@@ -114,12 +110,12 @@ public class ResourceTest {
             throws ROSRSException {
         ResearchObject ro;
         try {
-            ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+            ro = ResearchObject.create(rosrs, "JavaClientTest");
         } catch (ROSRSException e) {
             if (e.getStatus() == HttpStatus.SC_CONFLICT) {
-                ro = new ResearchObject(TestUtils.ROSRS.getRosrsURI().resolve("JavaClientTest/"), TestUtils.ROSRS);
+                ro = new ResearchObject(rosrs.getRosrsURI().resolve("JavaClientTest/"), rosrs);
                 ro.delete();
-                ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+                ro = ResearchObject.create(rosrs, "JavaClientTest");
             } else {
                 throw e;
             }
