@@ -115,14 +115,14 @@ public class SparqlSearchServer implements SearchServer {
 
     @Override
     public boolean supportsPagination() {
-        return false;
+        return true;
     }
 
 
     @Override
-    public SearchResult search(String query, Integer offset, Integer limit, Map<String, ORDER> sortField)
+    public SearchResult search(String query, Integer offset, Integer limit, Map<String, ORDER> sortFields)
             throws SearchException {
-        throw new SearchException("Unsupported operation");
+        return null;
     }
 
 }

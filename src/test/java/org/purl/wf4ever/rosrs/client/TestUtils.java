@@ -12,7 +12,7 @@ public final class TestUtils {
 
     /** Some ROSRS available by HTTP. */
     public static final ROSRService ROSRS = new ROSRService(URI.create("http://sandbox.wf4ever-project.org/rodl/ROs/"),
-            "32801fc0-1df1-4e34-b");
+            "b1a8ad77-790c-4bf1-a452-f1c99a662732");
 
 
     //public static final ROSRService ROSRS = new ROSRService(URI.create("http://localhost:8082/ROs/"),
