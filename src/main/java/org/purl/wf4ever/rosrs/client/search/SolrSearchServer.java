@@ -80,6 +80,12 @@ public class SolrSearchServer implements SearchServer, Serializable {
             throws SearchException {
         try {
             SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
+            if (offset != null) {
+                query.setStart(offset);
+            }
+            if (limit != null) {
+                query.setRows(limit);
+            }
             if (sortFields != null) {
                 for (String key : sortFields.keySet()) {
                     query.addSortField(key, sortFields.get(key));
@@ -98,15 +104,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
     @Override
     public SearchResult search(String queryString)
             throws SearchException {
-        try {
-            SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
-            addFacetFields(query);
-            QueryResponse response = getServer().query(query);
-            return pullUpResult(response);
-
-        } catch (SolrServerException e) {
-            throw new SearchException("Exception when performing a Solr query", e);
-        }
+        return search(queryString, null, null, null);
     }
 
 
