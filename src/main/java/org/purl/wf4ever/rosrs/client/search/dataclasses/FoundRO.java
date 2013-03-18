@@ -4,6 +4,8 @@
 package org.purl.wf4ever.rosrs.client.search.dataclasses;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
 
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 
@@ -26,6 +28,16 @@ public class FoundRO implements Serializable {
 
     /** Search score. The higher the better, from 0 to infinity. */
     private final double score;
+    /** resources_size field from solr index. */
+    private Integer numberOfResources;
+    /** annotations_size field from solr index. */
+    private Integer numberOfAnnotations;
+    /** evo_Type field from solr index. */
+    private String status;
+    /** created field from solr index. */
+    private Date created;
+    /** creator field from solr index. */
+    private ArrayList<String> creators;
 
 
     /**
@@ -35,10 +47,47 @@ public class FoundRO implements Serializable {
      *            RO
      * @param score
      *            search score
+     * @param numberOfResources
+     *            resources_size field from solr index
+     * @param numberOfAnnotations
+     *            annotations_size field from solr index
+     * @param status
+     *            evo_Type field from solr index
+     * @param created
+     *            created field from solr index
+     * @param creators
+     *            creator field from solr index
      */
-    public FoundRO(ResearchObject researchObject, double score) {
+    public FoundRO(ResearchObject researchObject, double score, Object numberOfResources, Object numberOfAnnotations,
+            Object status, Object created, Object creators) {
         this.researchObject = researchObject;
         this.score = score;
+
+        try {
+            this.numberOfResources = (Integer) numberOfResources;
+        } catch (ClassCastException e) {
+            this.numberOfResources = null;
+        }
+        try {
+            this.numberOfAnnotations = (Integer) numberOfAnnotations;
+        } catch (ClassCastException e) {
+            this.numberOfAnnotations = null;
+        }
+        try {
+            this.status = (String) status;
+        } catch (ClassCastException e) {
+            this.status = null;
+        }
+        try {
+            this.created = (Date) created;
+        } catch (ClassCastException e) {
+            this.created = null;
+        }
+        try {
+            this.creators = (ArrayList<String>) creators;
+        } catch (ClassCastException e) {
+            this.creators = null;
+        }
     }
 
 
@@ -62,7 +111,12 @@ public class FoundRO implements Serializable {
     }
 
 
-    public void setResourceCount(int resourceCount) {
-        this.resourceCount = resourceCount;
+    public Date getCreated() {
+        return created;
+    }
+
+
+    public ArrayList<String> getCreators() {
+        return creators;
     }
 }

@@ -159,7 +159,9 @@ public class SolrSearchServer implements SearchServer, Serializable {
         for (SolrDocument document : list) {
             URI researchObjectUri = URI.create(document.getFieldValue(FIELD_RO_URI).toString());
             ResearchObject researchObject = new ResearchObject(researchObjectUri, null);
-            FoundRO searchResult = new FoundRO(researchObject, -1);
+            FoundRO searchResult = new FoundRO(researchObject, -1, document.get("resources_size"),
+                    document.get("annotations_size"), document.get("evo_type"), document.get("created"),
+                    document.get("creator"));
             searchResults.add(searchResult);
         }
         return searchResults;
