@@ -150,7 +150,7 @@ public class OpenSearchSearchServer implements SearchServer {
                 ro.setCreated(created);
                 ro.setCreators(creators);
                 ro.setTitle(title);
-                ros.add(new FoundRO(ro, score));
+                ros.add(new FoundRO(ro, score, null, null, null, null, null));
             }
         }
         SearchResult sr = new SearchResult();
