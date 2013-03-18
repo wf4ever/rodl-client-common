@@ -1,4 +1,7 @@
-rosrs-client-common
+rodl-client-common
 ===================
 
-A set of utility classes common to ROSRS clients
+An client implementation of APIs implemented by the Research Object Digital Library (RODL):
+* The RO API
+* The RO EVO API
+* The User Management API
