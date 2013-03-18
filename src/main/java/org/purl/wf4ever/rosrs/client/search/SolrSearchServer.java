@@ -79,7 +79,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
     public SearchResult search(String queryString, Integer offset, Integer limit, Map<String, ORDER> sortFields)
             throws SearchException {
         try {
-            SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
+            SolrQuery query = new SolrQuery(queryString).setStart(offset).setRows(limit);
             if (sortFields != null) {
                 for (String key : sortFields.keySet()) {
                     query.addSortField(key, sortFields.get(key));
