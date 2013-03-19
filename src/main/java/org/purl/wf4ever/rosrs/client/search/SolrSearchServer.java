@@ -146,7 +146,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
         result.addFacet(new FacetEntry(response.getFacetField("evo_type"), "RO status"));
         result.addFacet(new RangeFacetEntry(response.getFacetRanges().get(0), "Number of annotations"));
         result.addFacet(new RangeFacetEntry(response.getFacetRanges().get(1), "Number of resources"));
-        result.addFacet(new DateRangeFacetEntry(response.getFacetRanges().get(2), "Created"));
+        result.addFacet(new DateRangeFacetEntry(response.getFacetRanges().get(2), "Creation date"));
         result.setROsList(searchResults);
         return result;
     }
