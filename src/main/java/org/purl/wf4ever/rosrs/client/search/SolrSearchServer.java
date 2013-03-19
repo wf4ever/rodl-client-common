@@ -20,6 +20,9 @@ import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.FoundRO;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.DateRangeFacetEntry;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.FacetEntry;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.RangeFacetEntry;
 
 /**
  * An implementation connecting to the Solr instance in RODL. Note that the response schema is hardcoded.
@@ -77,7 +80,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
 
 
     @Override
-    public SearchResult search(String queryString, Integer offset, Integer limit, Map<String, ORDER> sortFields)
+    public SearchResult search(String queryString, Integer offset, Integer limit, Map<String, SortOrder> sortFields)
             throws SearchException {
         try {
             SolrQuery query = new SolrQuery(queryString);
@@ -89,7 +92,8 @@ public class SolrSearchServer implements SearchServer, Serializable {
             }
             if (sortFields != null) {
                 for (String key : sortFields.keySet()) {
-                    query.addSortField(key, sortFields.get(key));
+                    ORDER order = sortFields.get(key) == SortOrder.DESC ? ORDER.desc : ORDER.asc;
+                    query.addSortField(key, order);
                 }
             }
             addFacetFields(query);
@@ -138,11 +142,11 @@ public class SolrSearchServer implements SearchServer, Serializable {
         SearchResult result = new SearchResult();
         SolrDocumentList results = response.getResults();
         List<FoundRO> searchResults = getROsList(results);
-        result.addFacet(response.getFacetField("creator"), "Creators");
-        result.addFacet(response.getFacetField("evo_type"), "RO status");
-        result.addFacet(response.getFacetRanges().get(0), "Number of annotations");
-        result.addFacet(response.getFacetRanges().get(1), "Number of resources");
-        result.addDateFacet(response.getFacetRanges().get(2), "Created");
+        result.addFacet(new FacetEntry(response.getFacetField("creator"), "Creators", false));
+        result.addFacet(new FacetEntry(response.getFacetField("evo_type"), "RO status"));
+        result.addFacet(new RangeFacetEntry(response.getFacetRanges().get(0), "Number of annotations"));
+        result.addFacet(new RangeFacetEntry(response.getFacetRanges().get(1), "Number of resources"));
+        result.addFacet(new DateRangeFacetEntry(response.getFacetRanges().get(2), "Created"));
         result.setROsList(searchResults);
         return result;
     }

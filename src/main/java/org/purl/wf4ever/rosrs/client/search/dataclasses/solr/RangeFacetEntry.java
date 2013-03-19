@@ -44,7 +44,7 @@ public class RangeFacetEntry extends FacetEntry {
         this.readableName = name;
         for (Object object : rangeFacet.getCounts()) {
             Count count = (Count) object;
-            values.add(new FacetValue(calcualteName(count), count.getCount(), fieldName, calculateQuery(count)));
+            values.add(new FacetValue(calculateName(count), count.getCount(), fieldName, calculateQuery(count)));
         }
     }
 
@@ -70,7 +70,7 @@ public class RangeFacetEntry extends FacetEntry {
      *            solr count
      * @return name
      */
-    private String calcualteName(Count count) {
+    private String calculateName(Count count) {
         Integer from = new Integer(count.getValue());
         Integer to = from + new Integer(rangeFacet.getGap().toString());
         return from.toString() + " - " + to.toString();

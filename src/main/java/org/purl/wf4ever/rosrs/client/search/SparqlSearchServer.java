@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
@@ -120,7 +119,7 @@ public class SparqlSearchServer implements SearchServer {
 
 
     @Override
-    public SearchResult search(String query, Integer offset, Integer limit, Map<String, ORDER> sortFields)
+    public SearchResult search(String query, Integer offset, Integer limit, Map<String, SortOrder> sortFields)
             throws SearchException {
         return null;
     }

@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.jdom.Element;
 import org.joda.time.DateTime;
 import org.purl.wf4ever.rosrs.client.Creator;
@@ -86,7 +85,7 @@ public class OpenSearchSearchServer implements SearchServer {
 
     @SuppressWarnings("unchecked")
     @Override
-    public SearchResult search(String query, Integer offset, Integer limit, Map<String, ORDER> sortField)
+    public SearchResult search(String query, Integer offset, Integer limit, Map<String, SortOrder> sortField)
             throws SearchException {
         URI queryURI = new UriBuilderImpl().uri(endpointUri).queryParam("searchTerms", query)
                 .queryParam("aggregate", "false").queryParam("startIndex", offset + 1)
