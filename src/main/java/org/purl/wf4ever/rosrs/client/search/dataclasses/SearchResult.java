@@ -20,6 +20,8 @@ public class SearchResult implements Serializable {
     private List<FacetEntry> facetsList;
     /** List of ROs. */
     private List<FoundRO> rosList;
+    /** Number of results. */
+    private Long numFound;
 
 
     /**
@@ -54,6 +56,16 @@ public class SearchResult implements Serializable {
      */
     public void addFacet(FacetEntry facetEntry) {
         facetsList.add(facetEntry);
+    }
+
+
+    public Long getNumFound() {
+        return numFound;
+    }
+
+
+    public void setNumFound(Long numFound) {
+        this.numFound = numFound;
     }
 
 }
