@@ -58,7 +58,7 @@ public class SearchResult implements Serializable {
      * @param name
      *            human readable name
      */
-    public void appendFacet(FacetField field, String name) {
+    public void addFacet(FacetField field, String name) {
         facetsList.add(new FacetEntry(field, name));
     }
 
@@ -71,7 +71,7 @@ public class SearchResult implements Serializable {
      * @param name
      *            human readable name
      */
-    public void appendFacet(RangeFacet<?, ?> rangeFacet, String name) {
+    public void addFacet(RangeFacet<?, ?> rangeFacet, String name) {
         facetsList.add(new RangeFacetEntry(rangeFacet, name));
     }
 
@@ -84,7 +84,7 @@ public class SearchResult implements Serializable {
      * @param name
      *            human readable name
      */
-    public void appendDateFacet(RangeFacet<?, ?> rangeFacet, String name) {
+    public void addDateFacet(RangeFacet<?, ?> rangeFacet, String name) {
         facetsList.add(new DateRangeFacetEntry(rangeFacet, name));
     }
 }

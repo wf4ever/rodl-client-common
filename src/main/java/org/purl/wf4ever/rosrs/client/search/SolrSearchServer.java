@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -39,11 +40,10 @@ public class SolrSearchServer implements SearchServer, Serializable {
     /** Solr server URI, necessary for reinitializing the instance. */
     private URI solrUri;
 
-
     /** Logger. */
-    /*
+    @SuppressWarnings("unused")
     private static final Logger LOG = Logger.getLogger(SolrSearchServer.class);
-    */
+
 
     /**
      * Constructor.
@@ -79,7 +79,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
     public SearchResult search(String queryString, Integer offset, Integer limit, Map<String, ORDER> sortFields)
             throws SearchException {
         try {
-            SolrQuery query = new SolrQuery(queryString).setStart(offset).setRows(limit);
+            SolrQuery query = new SolrQuery(queryString);
             if (offset != null) {
                 query.setStart(offset);
             }
@@ -93,7 +93,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
             }
             addFacetFields(query);
             QueryResponse response = getServer().query(query);
-            return pullUpResult(response);
+            return prepareSearchResult(response);
 
         } catch (SolrServerException e) {
             throw new SearchException("Exception when performing a Solr query", e);
@@ -114,7 +114,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
      * @param query
      *            query
      */
-    //TODO maybe ready from solr.configuration.properties or something like this?
+    //TODO maybe read from solr.configuration.properties or something like this?
     private void addFacetFields(SolrQuery query) {
         query.addFacetField("evo_type");
         query.addFacetField("creator");
@@ -131,17 +131,17 @@ public class SolrSearchServer implements SearchServer, Serializable {
      *            solr response
      * @return SearchResult
      */
-    //TODO this same maybe ready from solr.configuration.properties or something like this?
-    //TODO maybe intervals should be calculate dynamically if they are not configurable? 
-    private SearchResult pullUpResult(QueryResponse response) {
+    //TODO the same maybe read from solr.configuration.properties or something like this?
+    //TODO maybe intervals should be calculated dynamically if they are not configurable? 
+    private SearchResult prepareSearchResult(QueryResponse response) {
         SearchResult result = new SearchResult();
         SolrDocumentList results = response.getResults();
         List<FoundRO> searchResults = getROsList(results);
-        result.appendFacet(response.getFacetField("creator"), "Creators");
-        result.appendFacet(response.getFacetField("evo_type"), "RO status");
-        result.appendFacet(response.getFacetRanges().get(0), "Number of annotations");
-        result.appendFacet(response.getFacetRanges().get(1), "Number of resources");
-        result.appendDateFacet(response.getFacetRanges().get(2), "Created");
+        result.addFacet(response.getFacetField("creator"), "Creators");
+        result.addFacet(response.getFacetField("evo_type"), "RO status");
+        result.addFacet(response.getFacetRanges().get(0), "Number of annotations");
+        result.addFacet(response.getFacetRanges().get(1), "Number of resources");
+        result.addDateFacet(response.getFacetRanges().get(2), "Created");
         result.setROsList(searchResults);
         return result;
     }
