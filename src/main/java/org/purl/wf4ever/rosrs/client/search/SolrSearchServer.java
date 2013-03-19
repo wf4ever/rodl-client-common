@@ -3,6 +3,7 @@ package org.purl.wf4ever.rosrs.client.search;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -159,10 +160,12 @@ public class SolrSearchServer implements SearchServer, Serializable {
         for (SolrDocument document : list) {
             URI researchObjectUri = URI.create(document.getFieldValue(FIELD_RO_URI).toString());
             ResearchObject researchObject = new ResearchObject(researchObjectUri, null);
-            FoundRO searchResult = new FoundRO(researchObject, -1, document.get("resources_size"),
-                    document.get("annotations_size"), document.get("evo_type"), document.get("created"),
-                    document.get("creator"));
-            searchResults.add(searchResult);
+            DateTime created = new DateTime((Date) document.get("created"));
+            @SuppressWarnings("unchecked")
+            List<String> creators = (List<String>) document.get("creator");
+            FoundRO foundRO = new FoundRO(researchObject, -1, (int) document.get("resources_size"),
+                    (int) document.get("annotations_size"), (String) document.get("evo_type"), created, creators);
+            searchResults.add(foundRO);
         }
         return searchResults;
     }

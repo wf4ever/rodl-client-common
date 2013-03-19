@@ -104,7 +104,7 @@ public class SparqlSearchServer implements SearchServer {
             ro.setCreator(creator);
             ro.setCreated(created);
             ro.setTitle(title);
-            FoundRO result = new FoundRO(ro, -1, null, null, null, null, null);
+            FoundRO result = new FoundRO(ro, -1);
             searchResults.add(result);
         }
         SearchResult sr = new SearchResult();
