@@ -21,7 +21,7 @@ public class SearchResult implements Serializable {
     /** List of ROs. */
     private List<FoundRO> rosList;
     /** Number of results. */
-    private Long numFound;
+    private long numFound;
 
 
     /**
@@ -59,12 +59,12 @@ public class SearchResult implements Serializable {
     }
 
 
-    public Long getNumFound() {
+    public long getNumFound() {
         return numFound;
     }
 
 
-    public void setNumFound(Long numFound) {
+    public void setNumFound(long numFound) {
         this.numFound = numFound;
     }
 
