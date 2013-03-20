@@ -1,5 +1,7 @@
 package org.purl.wf4ever.rosrs.client.search;
 
+import java.util.Map;
+
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 
@@ -12,7 +14,16 @@ import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 public interface SearchServer {
 
     /** The maximum number of results for a default, unparametrized query. */
-    int DEFAULT_MAX_RESULTS = 2000;
+    int DEFAULT_MAX_RESULTS = 20;
+
+
+    /** Sorting order. */
+    enum SortOrder {
+        /** ascending. */
+        ASC,
+        /** descending. */
+        DESC
+    }
 
 
     /**
@@ -47,11 +58,13 @@ public interface SearchServer {
      *            how many first results to skip (0 to skip none)
      * @param limit
      *            the maximum number of results
+     * @param sortFields
+     *            an ordered list of fields that will be used for sorting
      * @return a list of results
      * @throws SearchException
      *             when the search finished with an exception
      */
-    SearchResult search(String query, int offset, int limit)
+    SearchResult search(String query, Integer offset, Integer limit, Map<String, SortOrder> sortFields)
             throws SearchException;
 
 }

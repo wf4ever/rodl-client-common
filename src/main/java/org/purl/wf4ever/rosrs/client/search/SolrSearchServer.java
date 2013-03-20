@@ -3,9 +3,13 @@ package org.purl.wf4ever.rosrs.client.search;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -16,6 +20,9 @@ import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.FoundRO;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.DateRangeFacetEntry;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.FacetEntry;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.RangeFacetEntry;
 
 /**
  * An implementation connecting to the Solr instance in RODL. Note that the response schema is hardcoded.
@@ -37,11 +44,10 @@ public class SolrSearchServer implements SearchServer, Serializable {
     /** Solr server URI, necessary for reinitializing the instance. */
     private URI solrUri;
 
-
     /** Logger. */
-    /*
+    @SuppressWarnings("unused")
     private static final Logger LOG = Logger.getLogger(SolrSearchServer.class);
-    */
+
 
     /**
      * Constructor.
@@ -74,24 +80,36 @@ public class SolrSearchServer implements SearchServer, Serializable {
 
 
     @Override
-    public SearchResult search(String queryString, int offset, int limit)
+    public SearchResult search(String queryString, Integer offset, Integer limit, Map<String, SortOrder> sortFields)
             throws SearchException {
-        return search(queryString);
+        try {
+            SolrQuery query = new SolrQuery(queryString);
+            if (offset != null) {
+                query.setStart(offset);
+            }
+            if (limit != null) {
+                query.setRows(limit);
+            }
+            if (sortFields != null) {
+                for (String key : sortFields.keySet()) {
+                    ORDER order = sortFields.get(key) == SortOrder.DESC ? ORDER.desc : ORDER.asc;
+                    query.addSortField(key, order);
+                }
+            }
+            addFacetFields(query);
+            QueryResponse response = getServer().query(query);
+            return prepareSearchResult(response);
+
+        } catch (SolrServerException e) {
+            throw new SearchException("Exception when performing a Solr query", e);
+        }
     }
 
 
     @Override
     public SearchResult search(String queryString)
             throws SearchException {
-        try {
-            SolrQuery query = new SolrQuery(queryString).setRows(DEFAULT_MAX_RESULTS);
-            addFacetFields(query);
-            QueryResponse response = getServer().query(query);
-            return pullUpResult(response);
-
-        } catch (SolrServerException e) {
-            throw new SearchException("Exception when performing a Solr query", e);
-        }
+        return search(queryString, null, null, null);
     }
 
 
@@ -101,7 +119,7 @@ public class SolrSearchServer implements SearchServer, Serializable {
      * @param query
      *            query
      */
-    //TODO maybe ready from solr.configuration.properties or something like this?
+    //TODO maybe read from solr.configuration.properties or something like this?
     private void addFacetFields(SolrQuery query) {
         query.addFacetField("evo_type");
         query.addFacetField("creator");
@@ -118,18 +136,19 @@ public class SolrSearchServer implements SearchServer, Serializable {
      *            solr response
      * @return SearchResult
      */
-    //TODO this same maybe ready from solr.configuration.properties or something like this?
-    //TODO maybe intervals should be calculate dynamically if they are not configurable? 
-    private SearchResult pullUpResult(QueryResponse response) {
+    //TODO the same maybe read from solr.configuration.properties or something like this?
+    //TODO maybe intervals should be calculated dynamically if they are not configurable? 
+    private SearchResult prepareSearchResult(QueryResponse response) {
         SearchResult result = new SearchResult();
         SolrDocumentList results = response.getResults();
         List<FoundRO> searchResults = getROsList(results);
-        result.appendFacet(response.getFacetField("creator"), "Creators");
-        result.appendFacet(response.getFacetField("evo_type"), "ROEVO Types");
-        result.appendFacet(response.getFacetRanges().get(0), "Number of annotations");
-        result.appendFacet(response.getFacetRanges().get(1), "Number of resources");
-        result.appendDateFacet(response.getFacetRanges().get(2), "Created");
+        result.addFacet(new FacetEntry(response.getFacetField("creator"), "Creators", false));
+        result.addFacet(new FacetEntry(response.getFacetField("evo_type"), "RO status"));
+        result.addFacet(new RangeFacetEntry(response.getFacetRanges().get(0), "Number of annotations"));
+        result.addFacet(new RangeFacetEntry(response.getFacetRanges().get(1), "Number of resources"));
+        result.addFacet(new DateRangeFacetEntry(response.getFacetRanges().get(2), "Creation date"));
         result.setROsList(searchResults);
+        result.setNumFound(response.getResults().getNumFound());
         return result;
     }
 
@@ -146,8 +165,12 @@ public class SolrSearchServer implements SearchServer, Serializable {
         for (SolrDocument document : list) {
             URI researchObjectUri = URI.create(document.getFieldValue(FIELD_RO_URI).toString());
             ResearchObject researchObject = new ResearchObject(researchObjectUri, null);
-            FoundRO searchResult = new FoundRO(researchObject, -1);
-            searchResults.add(searchResult);
+            DateTime created = new DateTime((Date) document.get("created"));
+            @SuppressWarnings("unchecked")
+            List<String> creators = (List<String>) document.get("creator");
+            FoundRO foundRO = new FoundRO(researchObject, -1, (int) document.get("resources_size"),
+                    (int) document.get("annotations_size"), (String) document.get("evo_type"), created, creators);
+            searchResults.add(foundRO);
         }
         return searchResults;
     }

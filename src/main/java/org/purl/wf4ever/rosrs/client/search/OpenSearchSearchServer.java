@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -72,7 +73,7 @@ public class OpenSearchSearchServer implements SearchServer {
     @Override
     public SearchResult search(String keywords)
             throws SearchException {
-        return search(keywords, 0, DEFAULT_MAX_RESULTS);
+        return search(keywords, 0, DEFAULT_MAX_RESULTS, null);
     }
 
 
@@ -84,7 +85,7 @@ public class OpenSearchSearchServer implements SearchServer {
 
     @SuppressWarnings("unchecked")
     @Override
-    public SearchResult search(String query, int offset, int limit)
+    public SearchResult search(String query, Integer offset, Integer limit, Map<String, SortOrder> sortField)
             throws SearchException {
         URI queryURI = new UriBuilderImpl().uri(endpointUri).queryParam("searchTerms", query)
                 .queryParam("aggregate", "false").queryParam("startIndex", offset + 1)

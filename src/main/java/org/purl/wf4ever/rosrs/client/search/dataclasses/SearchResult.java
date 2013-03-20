@@ -4,11 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.solr.client.solrj.response.FacetField;
-import org.apache.solr.client.solrj.response.RangeFacet;
-import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.DateRangeFacetEntry;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.FacetEntry;
-import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.RangeFacetEntry;
 
 /**
  * Result of query.
@@ -24,6 +20,8 @@ public class SearchResult implements Serializable {
     private List<FacetEntry> facetsList;
     /** List of ROs. */
     private List<FoundRO> rosList;
+    /** Number of results. */
+    private long numFound;
 
 
     /**
@@ -35,7 +33,7 @@ public class SearchResult implements Serializable {
     }
 
 
-    public List<FacetEntry> getFactesList() {
+    public List<FacetEntry> getFacetsList() {
         return facetsList;
     }
 
@@ -51,40 +49,23 @@ public class SearchResult implements Serializable {
 
 
     /**
-     * Add new facet.
+     * Add a new facet.
      * 
-     * @param field
-     *            facet field
-     * @param name
-     *            human readable name
+     * @param facetEntry
+     *            the facet to add
      */
-    public void appendFacet(FacetField field, String name) {
-        facetsList.add(new FacetEntry(field, name));
+    public void addFacet(FacetEntry facetEntry) {
+        facetsList.add(facetEntry);
     }
 
 
-    /**
-     * Add new facet.
-     * 
-     * @param rangeFacet
-     *            facet field
-     * @param name
-     *            human readable name
-     */
-    public void appendFacet(RangeFacet<?, ?> rangeFacet, String name) {
-        facetsList.add(new RangeFacetEntry(rangeFacet, name));
+    public long getNumFound() {
+        return numFound;
     }
 
 
-    /**
-     * Add new facet.
-     * 
-     * @param rangeFacet
-     *            facet field
-     * @param name
-     *            human readable name
-     */
-    public void appendDateFacet(RangeFacet<?, ?> rangeFacet, String name) {
-        facetsList.add(new DateRangeFacetEntry(rangeFacet, name));
+    public void setNumFound(long numFound) {
+        this.numFound = numFound;
     }
+
 }

@@ -24,6 +24,8 @@ public class FacetEntry implements Serializable {
     protected String readableName;
     /** list of facet values. */
     protected List<FacetValue> values;
+    /** can this facet be used for sorting, default true. */
+    protected boolean sorteable = true;
 
 
     /**
@@ -57,6 +59,22 @@ public class FacetEntry implements Serializable {
     }
 
 
+    /**
+     * Constructor.
+     * 
+     * @param field
+     *            facet field
+     * @param name
+     *            human readable name
+     * @param sorteable
+     *            can this facet be used for sorting
+     */
+    public FacetEntry(FacetField field, String name, boolean sorteable) {
+        this(field, name);
+        this.sorteable = sorteable;
+    }
+
+
     public List<FacetValue> getValues() {
         return this.values;
     }
@@ -69,6 +87,16 @@ public class FacetEntry implements Serializable {
 
     public String getName() {
         return readableName;
+    }
+
+
+    public boolean isSorteable() {
+        return sorteable;
+    }
+
+
+    public void setSorteable(boolean sorteable) {
+        this.sorteable = sorteable;
     }
 
 }

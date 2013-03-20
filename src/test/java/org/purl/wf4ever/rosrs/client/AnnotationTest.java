@@ -13,6 +13,7 @@ import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.purl.wf4ever.rosrs.client.evo.BaseTest;
 import org.purl.wf4ever.rosrs.client.exception.ObjectNotLoadedException;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
@@ -26,7 +27,7 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
  * @author piotrekhol
  * 
  */
-public class AnnotationTest {
+public class AnnotationTest extends BaseTest {
 
     /** RO that will be mapped to local resources. */
     private static final URI RO_PREFIX = URI.create("http://example.org/ro1/");
@@ -58,17 +59,13 @@ public class AnnotationTest {
     /**
      * Prepare a loaded RO.
      * 
-     * @throws ROException
-     *             example RO has incorrect data
-     * @throws ROSRSException
-     *             could not load the example RO
-     * @throws IOException
-     *             could not load the example annotation
+     * @throws Exception
+     *             when loading the RO fails
      */
     @BeforeClass
-    public static final void setUp()
-            throws ROSRSException, ROException, IOException {
-        ROSRService rosrs = new ROSRService(URI.create("http://example.org/"), "foo");
+    public static void setUpBeforeClass()
+            throws Exception {
+        BaseTest.setUpBeforeClass();
         ro1 = new ResearchObject(RO_PREFIX, rosrs);
         ro1.load();
         an1 = new Annotation(ro1, ANN_PREFIX, BODY_PREFIX, RO_PREFIX, URI.create("http://test.myopenid.com"),
@@ -114,12 +111,12 @@ public class AnnotationTest {
             throws ROSRSException, ROException {
         ResearchObject ro;
         try {
-            ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+            ro = ResearchObject.create(rosrs, "JavaClientTest");
         } catch (ROSRSException e) {
             if (e.getStatus() == HttpStatus.SC_CONFLICT) {
-                ro = new ResearchObject(TestUtils.ROSRS.getRosrsURI().resolve("JavaClientTest/"), TestUtils.ROSRS);
+                ro = new ResearchObject(rosrs.getRosrsURI().resolve("JavaClientTest/"), rosrs);
                 ro.delete();
-                ro = ResearchObject.create(TestUtils.ROSRS, "JavaClientTest");
+                ro = ResearchObject.create(rosrs, "JavaClientTest");
             } else {
                 throw e;
             }

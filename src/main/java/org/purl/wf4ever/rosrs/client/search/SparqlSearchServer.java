@@ -7,6 +7,7 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -113,14 +114,14 @@ public class SparqlSearchServer implements SearchServer {
 
     @Override
     public boolean supportsPagination() {
-        return false;
+        return true;
     }
 
 
     @Override
-    public SearchResult search(String query, int offset, int limit)
+    public SearchResult search(String query, Integer offset, Integer limit, Map<String, SortOrder> sortFields)
             throws SearchException {
-        throw new SearchException("Unsupported operation");
+        return null;
     }
 
 }

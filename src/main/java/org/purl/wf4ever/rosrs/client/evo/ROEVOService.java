@@ -47,6 +47,9 @@ public class ROEVOService implements Serializable {
     /** URI template of the evo info service. The first param must be replaced with the RO URI. */
     private String infoUriTemplateString;
 
+    /** Base RO EVO service URI. */
+    private URI roevoUri;
+
 
     /**
      * Constructor.
@@ -57,7 +60,28 @@ public class ROEVOService implements Serializable {
      *            RODL access token
      */
     public ROEVOService(URI roevoUri, String token) {
+        this.roevoUri = roevoUri;
         this.token = token;
+    }
+
+
+    /**
+     * Return the RO copy service URI. Load it from the RO EVO service description if necessary.
+     * 
+     * @return the RO copy service URI
+     */
+    private URI getCopyUri() {
+        if (copyUri == null) {
+            init();
+        }
+        return copyUri;
+    }
+
+
+    /**
+     * Load the RO EVO service description.
+     */
+    private void init() {
         try {
             InputStream serviceDesc = getClient().resource(roevoUri).accept(RDFFormat.RDFXML.getDefaultMIMEType())
                     .get(InputStream.class);
@@ -76,7 +100,15 @@ public class ROEVOService implements Serializable {
     }
 
 
+    /**
+     * Return the RO evo info service URI. Load it from the RO EVO service description if necessary.
+     * 
+     * @return the RO evo info service URI
+     */
     public UriTemplate getInfoUriTemplate() {
+        if (infoUriTemplateString == null) {
+            init();
+        }
         return UriTemplate.fromTemplate(infoUriTemplateString);
     }
 
@@ -141,7 +173,7 @@ public class ROEVOService implements Serializable {
      */
     private JobStatus createImmutable(URI roUri, String target, boolean finalize, EvoType evoType) {
         JobStatus statusIn = new JobStatus(roUri, evoType, finalize);
-        ClientResponse response = getClient().resource(copyUri).header("Slug", target)
+        ClientResponse response = getClient().resource(getCopyUri()).header("Slug", target)
                 .header("Authorization", "Bearer " + token).type(MediaType.APPLICATION_JSON_TYPE)
                 .accept(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, statusIn);
         JobStatus statusOut = response.getEntity(JobStatus.class);
