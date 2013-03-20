@@ -14,8 +14,9 @@ public class RangeFacetEntry extends FacetEntry {
 
     /** Serialization. */
     private static final long serialVersionUID = 1L;
-    /** solr facet. */
-    private RangeFacet<?, ?> rangeFacet;
+
+    /** a gap. */
+    private Integer gap;
 
 
     /**
@@ -40,7 +41,7 @@ public class RangeFacetEntry extends FacetEntry {
     public RangeFacetEntry(RangeFacet<?, ?> rangeFacet, String name) {
         super();
         this.fieldName = rangeFacet.getName();
-        this.rangeFacet = rangeFacet;
+        this.gap = new Integer(rangeFacet.getGap().toString());
         this.readableName = name;
         for (Object object : rangeFacet.getCounts()) {
             Count count = (Count) object;
@@ -58,7 +59,7 @@ public class RangeFacetEntry extends FacetEntry {
      */
     private String calculateQuery(Count count) {
         Integer from = new Integer(count.getValue());
-        Integer to = from + new Integer(rangeFacet.getGap().toString());
+        Integer to = from + gap;
         return fieldName + ":[" + from.toString() + " TO " + to.toString() + "]";
     }
 
@@ -72,7 +73,7 @@ public class RangeFacetEntry extends FacetEntry {
      */
     private String calculateName(Count count) {
         Integer from = new Integer(count.getValue());
-        Integer to = from + new Integer(rangeFacet.getGap().toString());
+        Integer to = from + gap;
         return from.toString() + " - " + to.toString();
     }
 }
