@@ -23,6 +23,7 @@ import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.DateRangeFacetEntry;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.FacetEntry;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.RangeFacetEntry;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.CreatorFacetEntry;
 
 /**
  * An implementation connecting to the Solr instance in RODL. Note that the response schema is hardcoded.
@@ -140,15 +141,17 @@ public class SolrSearchServer implements SearchServer, Serializable {
     //TODO maybe intervals should be calculated dynamically if they are not configurable? 
     private SearchResult prepareSearchResult(QueryResponse response) {
         SearchResult result = new SearchResult();
+        result.setNumFound(response.getResults().getNumFound());
         SolrDocumentList results = response.getResults();
         List<FoundRO> searchResults = getROsList(results);
-        result.addFacet(new FacetEntry(response.getFacetField("creator"), "Creators", false));
+        result.addFacet(new CreatorFacetEntry(response.getFacetField("creator"), "Creators", false));
         result.addFacet(new FacetEntry(response.getFacetField("evo_type"), "RO status"));
-        result.addFacet(new RangeFacetEntry(response.getFacetRanges().get(0), "Number of annotations"));
-        result.addFacet(new RangeFacetEntry(response.getFacetRanges().get(1), "Number of resources"));
+        result.addFacet(new RangeFacetEntry(response.getFacetRanges().get(0), "Number of annotations", result
+                .getNumFound()));
+        result.addFacet(new RangeFacetEntry(response.getFacetRanges().get(1), "Number of resources", result
+                .getNumFound()));
         result.addFacet(new DateRangeFacetEntry(response.getFacetRanges().get(2), "Creation date"));
         result.setROsList(searchResults);
-        result.setNumFound(response.getResults().getNumFound());
         return result;
     }
 
