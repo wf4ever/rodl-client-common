@@ -83,7 +83,7 @@ public final class UserManagementService {
      *            nice name
      * @return RODL response
      */
-    public ClientResponse createUser(String openId, String username) {
+    public ClientResponse createOrUpdateUser(String openId, String username) {
         String payload = username != null && !username.isEmpty() ? username : openId;
         WebResource webResource = client.resource(rodlURI.toString()).path("users")
                 .path(Base64.encodeBase64URLSafeString(openId.getBytes()));
