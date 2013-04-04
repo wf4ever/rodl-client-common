@@ -3,8 +3,12 @@ package org.purl.wf4ever.rosrs.client.notifications;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -195,6 +199,9 @@ public class NotificationServiceTest {
         for (int i = 0; i < notifications.size(); i++) {
             assertNotificationsEquals(exampleNotifications.get(i), notifications.get(i));
         }
-    }
 
+        // make sure the request was made
+        verify(getRequestedFor(urlMatching("/notifications?.+")).withHeader("Content-Type",
+            matching(MediaType.APPLICATION_ATOM_XML)));
+    }
 }
