@@ -131,7 +131,7 @@ public class NotificationService implements Serializable {
         if (to != null) {
             uriTemplate = uriTemplate.set("to", ISODateTimeFormat.dateTime().print(to));
         }
-        return UriBuilder.fromUri(uriTemplate.expand()).build();
+        return serviceUri.resolve(UriBuilder.fromUri(uriTemplate.expand()).build());
     }
 
 
