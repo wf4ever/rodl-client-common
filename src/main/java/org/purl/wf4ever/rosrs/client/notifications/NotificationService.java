@@ -13,15 +13,14 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
-import org.openrdf.rio.RDFFormat;
 import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
 import org.purl.wf4ever.rosrs.client.exception.NotificationsException;
 
 import com.damnhandy.uri.template.UriTemplate;
 import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.shared.JenaException;
+import com.hp.hpl.jena.util.FileManager;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
@@ -87,21 +86,23 @@ public class NotificationService implements Serializable {
 
 
     /**
-     * Load the RO EVO service description.
+     * Load the notification service description.
      */
-    private void init() {
+    void init() {
         try {
-            InputStream serviceDesc = getClient().resource(serviceUri).accept(RDFFormat.RDFXML.getDefaultMIMEType())
-                    .get(InputStream.class);
-            Model model = ModelFactory.createDefaultModel();
-            model.read(serviceDesc, serviceUri.toString());
-            Resource roevo = model.getResource(serviceUri.toString());
-            this.notificationsUriTemplateString = roevo
+            Model model = FileManager.get().loadModel(serviceUri.toString());
+            Resource serviceResource = model.getResource(serviceUri.toString());
+            this.notificationsUriTemplateString = serviceResource
                     .listProperties(pl.psnc.dl.wf4ever.vocabulary.NotificationService.notifications).next().getObject()
                     .asLiteral().getString();
         } catch (JenaException e) {
             LOGGER.warn("Could not initialize the notification service: " + e.getLocalizedMessage());
         }
+    }
+
+
+    public String getNotificationsUriTemplateString() {
+        return notificationsUriTemplateString;
     }
 
 
