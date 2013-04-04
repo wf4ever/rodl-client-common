@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
@@ -14,6 +15,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.openrdf.rio.RDFFormat;
 import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
+import org.purl.wf4ever.rosrs.client.exception.NotificationsException;
 
 import com.damnhandy.uri.template.UriTemplate;
 import com.hp.hpl.jena.rdf.model.Model;
@@ -23,6 +25,11 @@ import com.hp.hpl.jena.shared.JenaException;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
+import com.sun.syndication.feed.synd.SyndEntry;
+import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.io.FeedException;
+import com.sun.syndication.io.SyndFeedInput;
+import com.sun.syndication.io.XmlReader;
 
 /**
  * The notification service.
@@ -127,12 +134,58 @@ public class NotificationService implements Serializable {
     }
 
 
-    public List<Notification> getNotifications(InputStream feed) {
-        return null;
+    /**
+     * Parse a notifications feed.
+     * 
+     * @param feedInputStream
+     *            input stream with a feed in Atom format.
+     * @return a list of notifications provided as Atom feed entries
+     * @throws NotificationsException
+     *             when the feed is invalid
+     */
+    public List<Notification> getNotifications(InputStream feedInputStream)
+            throws NotificationsException {
+        SyndFeedInput input = new SyndFeedInput();
+        SyndFeed feed;
+        try {
+            feed = input.build(new XmlReader(feedInputStream));
+        } catch (IllegalArgumentException | FeedException | IOException e1) {
+            throw new NotificationsException("Error when loading the search results", e1);
+        }
+
+        @SuppressWarnings("unchecked")
+        List<SyndEntry> entries = feed.getEntries();
+        List<Notification> notifications = new ArrayList<>();
+        for (SyndEntry entry : entries) {
+            String id = entry.getUri();
+            String title = entry.getTitle();
+            String content = entry.getDescription().getValue();
+            Notification notification = new Notification(id, title, content);
+            notification.setPublished(new DateTime(entry.getPublishedDate()));
+            //TODO check what is returned
+            List<Object> links = entry.getLinks();
+
+            notifications.add(notification);
+        }
+        return notifications;
     }
 
 
-    public List<Notification> getNotifications(URI researchObjectUri, DateTime from, DateTime to) {
+    /**
+     * Build a notifications feed URI, retrieve it and parse it.
+     * 
+     * @param researchObjectUri
+     *            the research object URI. If set, only notifications related to this RO will be returned.
+     * @param from
+     *            the timestamp of the oldest notification that should be returned.
+     * @param to
+     *            the timestamp of the most recent notification that should be returned.
+     * @return a list of notifications provided as Atom feed entries
+     * @throws NotificationsException
+     *             when the feed is invalid
+     */
+    public List<Notification> getNotifications(URI researchObjectUri, DateTime from, DateTime to)
+            throws NotificationsException {
         URI feedUri = getNotificationsUri(researchObjectUri, from, to);
         WebResource webResource = getClient().resource(feedUri);
         Builder builder = webResource.accept(MediaType.APPLICATION_ATOM_XML_TYPE);

@@ -33,11 +33,11 @@ public class Notification implements Serializable {
     /** Notification identifier. */
     private String id;
 
-    /** Notification update timestamp. */
-    private DateTime updated;
+    /** Notification creation timestamp. */
+    private DateTime published;
 
     /** Notification content in HTML. */
-    private String summary;
+    private String content;
 
 
     /**
@@ -53,7 +53,7 @@ public class Notification implements Serializable {
     public Notification(String id, String title, String summary) {
         this.id = id;
         this.title = title;
-        this.summary = summary;
+        this.content = summary;
     }
 
 
@@ -97,23 +97,23 @@ public class Notification implements Serializable {
     }
 
 
-    public DateTime getUpdated() {
-        return updated;
+    public DateTime getPublished() {
+        return published;
     }
 
 
-    public void setUpdated(DateTime updated) {
-        this.updated = updated;
+    public void setPublished(DateTime published) {
+        this.published = published;
     }
 
 
-    public String getSummary() {
-        return summary;
+    public String getContent() {
+        return content;
     }
 
 
-    public void setSummary(String summary) {
-        this.summary = summary;
+    public void setContent(String content) {
+        this.content = content;
     }
 
 }
