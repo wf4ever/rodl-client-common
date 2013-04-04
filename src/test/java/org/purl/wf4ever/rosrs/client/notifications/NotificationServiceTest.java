@@ -1,8 +1,11 @@
 package org.purl.wf4ever.rosrs.client.notifications;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -14,6 +17,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.purl.wf4ever.rosrs.client.exception.NotificationsException;
 
 /**
  * Test of the {@link NotificationService} class.
@@ -26,10 +30,32 @@ public class NotificationServiceTest {
     /** Service URI mapped to a test service description document. */
     private static final URI EXAMPLE_SERVICE_URI = URI.create("http://example.org/notifications/");
 
+    /** Notifications stored in the test feed. */
+    private static List<Notification> exampleNotifications;
 
+
+    /**
+     * Create the expected notifications.
+     * 
+     * @throws Exception
+     *             when something unexpected happens
+     */
     @BeforeClass
     public static void setUpBeforeClass()
             throws Exception {
+        exampleNotifications = new ArrayList<>();
+
+        Notification n1 = new Notification("urn:X-rodl:13", "Quality improvement", "<p>Lorem ipsum</p>");
+        n1.setPublished(ISODateTimeFormat.dateTimeParser().parseDateTime("2005-06-13T16:20:02Z"));
+        n1.setSource(URI.create("http://sandbox.wf4ever-project.org/roevaluate/"));
+        n1.setResearchObjectUri(URI.create("http://example.org/rodl/ROs/myGenes/"));
+        exampleNotifications.add(n1);
+
+        Notification n2 = new Notification("urn:X-rodl:15", "Quality decrease", "<strong>Lorem ipsum</strong>");
+        n2.setPublished(ISODateTimeFormat.dateTimeParser().parseDateTime("2005-07-21T11:45:07Z"));
+        n2.setSource(URI.create("http://sandbox.wf4ever-project.org/roevaluate/"));
+        n2.setResearchObjectUri(URI.create("http://example.org/rodl/ROs/myPuzzles/"));
+        exampleNotifications.add(n2);
     }
 
 
@@ -102,9 +128,41 @@ public class NotificationServiceTest {
     }
 
 
+    /**
+     * Test that an example feed can be parsed.
+     * 
+     * @throws NotificationsException
+     *             the example feed is invalid
+     */
     @Test
-    public final void testGetNotificationsInputStream() {
-        Assert.fail("Not yet implemented");
+    public final void testGetNotificationsInputStream()
+            throws NotificationsException {
+        InputStream feed = getClass().getClassLoader().getResourceAsStream("notifications/exampleFeed.xml");
+        NotificationService notificationService = new NotificationService(EXAMPLE_SERVICE_URI, null);
+        List<Notification> notifications = notificationService.getNotifications(feed);
+        Assert.assertNotNull(notifications);
+        Assert.assertEquals(exampleNotifications.size(), notifications.size());
+        for (int i = 0; i < notifications.size(); i++) {
+            assertNotificationsEquals(exampleNotifications.get(i), notifications.get(i));
+        }
+    }
+
+
+    /**
+     * Check that all properties of two notifications are the same.
+     * 
+     * @param n1
+     *            expected notification
+     * @param n2
+     *            tested notification
+     */
+    private void assertNotificationsEquals(Notification n1, Notification n2) {
+        Assert.assertEquals(n1.getId(), n2.getId());
+        Assert.assertEquals(n1.getTitle(), n2.getTitle());
+        Assert.assertEquals(n1.getContent(), n2.getContent());
+        Assert.assertEquals(n1.getPublished(), n2.getPublished());
+        Assert.assertEquals(n1.getSource(), n2.getSource());
+        Assert.assertEquals(n1.getResearchObjectUri(), n2.getResearchObjectUri());
     }
 
 

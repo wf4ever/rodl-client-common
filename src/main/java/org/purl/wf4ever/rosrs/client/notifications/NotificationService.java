@@ -10,22 +10,27 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
 import org.purl.wf4ever.rosrs.client.exception.NotificationsException;
 
+import pl.psnc.dl.wf4ever.vocabulary.ORE;
+
 import com.damnhandy.uri.template.UriTemplate;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.shared.JenaException;
 import com.hp.hpl.jena.util.FileManager;
+import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.feed.synd.SyndLink;
 import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
@@ -154,17 +159,36 @@ public class NotificationService implements Serializable {
             throw new NotificationsException("Error when loading the search results", e1);
         }
 
+        URI researchObjectUri = null;
+        @SuppressWarnings("unchecked")
+        List<SyndLink> feedLinks = feed.getLinks();
+        for (SyndLink link : feedLinks) {
+            if (link.getRel().equals(ORE.describes.getURI())) {
+                researchObjectUri = URI.create(link.getHref());
+            }
+        }
+
         @SuppressWarnings("unchecked")
         List<SyndEntry> entries = feed.getEntries();
         List<Notification> notifications = new ArrayList<>();
         for (SyndEntry entry : entries) {
             String id = entry.getUri();
             String title = entry.getTitle();
-            String content = entry.getDescription().getValue();
+            String content = StringEscapeUtils.unescapeHtml4(entry.getDescription().getValue());
             Notification notification = new Notification(id, title, content);
             notification.setPublished(new DateTime(entry.getPublishedDate()));
-            //TODO check what is returned
-            List<Object> links = entry.getLinks();
+            @SuppressWarnings("unchecked")
+            List<SyndLink> links = entry.getLinks();
+            for (SyndLink link : links) {
+                if (link.getRel().equals(DCTerms.source.getURI())) {
+                    notification.setSource(URI.create(link.getHref()));
+                } else if (link.getRel().equals(ORE.describes.getURI())) {
+                    notification.setResearchObjectUri(URI.create(link.getHref()));
+                }
+            }
+            if (notification.getResearchObjectUri() == null && researchObjectUri != null) {
+                notification.setResearchObjectUri(researchObjectUri);
+            }
 
             notifications.add(notification);
         }

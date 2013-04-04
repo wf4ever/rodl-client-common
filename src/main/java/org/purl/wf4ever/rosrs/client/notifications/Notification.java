@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.net.URI;
 
 import org.joda.time.DateTime;
-import org.purl.wf4ever.rosrs.client.ResearchObject;
 
 /**
  * This class represents a notification as specified in the notification API. This class is agnostic of the method the
@@ -25,7 +24,7 @@ public class Notification implements Serializable {
     private String title;
 
     /** Research Object which is related to this notification. */
-    private ResearchObject researchObject;
+    private URI researchObjectUri;
 
     /** Identifier of the service generating this notification. */
     private URI source;
@@ -67,13 +66,13 @@ public class Notification implements Serializable {
     }
 
 
-    public ResearchObject getResearchObject() {
-        return researchObject;
+    public URI getResearchObjectUri() {
+        return researchObjectUri;
     }
 
 
-    public void setResearchObject(ResearchObject researchObject) {
-        this.researchObject = researchObject;
+    public void setResearchObjectUri(URI researchObjectUri) {
+        this.researchObjectUri = researchObjectUri;
     }
 
 
