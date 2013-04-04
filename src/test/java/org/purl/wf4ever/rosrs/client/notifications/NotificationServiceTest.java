@@ -180,13 +180,19 @@ public class NotificationServiceTest {
     public final void testGetNotificationsURIDateTimeDateTime()
             throws NotificationsException, IOException {
         // this is the path of the URI that the NotificationService should call
-        String expectedUrl = "/notifications?ro=http%3A%2F%2Fexample.org%2FROs%2Fro1%2F&from=2000-06-13T18%3A20%3A02.000%2B02%3A00&to=2006-06-13T18%3A20%3A02.000%2B02%3A00";
+        String serviceUrl = "/";
+        String feedUrl = "/notifications?ro=http%3A%2F%2Fexample.org%2FROs%2Fro1%2F&from=2000-06-13T18%3A20%3A02.000%2B02%3A00&to=2006-06-13T18%3A20%3A02.000%2B02%3A00";
         // this is what the mock HTTP server will return
+        InputStream serviceDesc = getClass().getClassLoader().getResourceAsStream(
+            "notifications/serviceDescription.rdf");
         InputStream feed = getClass().getClassLoader().getResourceAsStream("notifications/exampleFeed.xml");
         // here we configure the mock HTTP server
-        stubFor(get(urlEqualTo(expectedUrl)).withHeader("Accept", equalTo(MediaType.APPLICATION_ATOM_XML)).willReturn(
+        stubFor(get(urlEqualTo(feedUrl)).withHeader("Accept", equalTo(MediaType.APPLICATION_ATOM_XML)).willReturn(
             aResponse().withStatus(200).withHeader("Content-Type", MediaType.APPLICATION_ATOM_XML)
                     .withBody(IOUtils.toByteArray(feed))));
+        stubFor(get(urlEqualTo(serviceUrl)).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
+                    .withBody(IOUtils.toByteArray(serviceDesc))));
 
         URI roUri = URI.create("http://example.org/ROs/ro1/");
         DateTime from = ISODateTimeFormat.dateTimeParser().parseDateTime("2000-06-13T18:20:02.000+02:00");
@@ -201,6 +207,7 @@ public class NotificationServiceTest {
         }
 
         // make sure the request was made
+        verify(getRequestedFor(urlMatching("/")));
         verify(getRequestedFor(urlMatching("/notifications?.+")).withHeader("Content-Type",
             matching(MediaType.APPLICATION_ATOM_XML)));
     }
