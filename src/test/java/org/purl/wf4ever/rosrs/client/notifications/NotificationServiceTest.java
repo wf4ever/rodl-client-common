@@ -1,5 +1,12 @@
 package org.purl.wf4ever.rosrs.client.notifications;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -7,17 +14,19 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.purl.wf4ever.rosrs.client.exception.NotificationsException;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 /**
  * Test of the {@link NotificationService} class.
@@ -30,8 +39,15 @@ public class NotificationServiceTest {
     /** Service URI mapped to a test service description document. */
     private static final URI EXAMPLE_SERVICE_URI = URI.create("http://example.org/notifications/");
 
+    /** Service URI of the mock HTTP server, mapped to a test service description document. */
+    private static final URI MOCK_SERVICE_URI = URI.create("http://localhost:8089/");
+
     /** Notifications stored in the test feed. */
     private static List<Notification> exampleNotifications;
+
+    /** A test HTTP mock server. */
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(8089); // No-args constructor defaults to port 8080
 
 
     /**
@@ -56,24 +72,6 @@ public class NotificationServiceTest {
         n2.setSource(URI.create("http://sandbox.wf4ever-project.org/roevaluate/"));
         n2.setResearchObjectUri(URI.create("http://example.org/rodl/ROs/myPuzzles/"));
         exampleNotifications.add(n2);
-    }
-
-
-    @AfterClass
-    public static void tearDownAfterClass()
-            throws Exception {
-    }
-
-
-    @Before
-    public void setUp()
-            throws Exception {
-    }
-
-
-    @After
-    public void tearDown()
-            throws Exception {
     }
 
 
@@ -166,9 +164,37 @@ public class NotificationServiceTest {
     }
 
 
+    /**
+     * Test that the service can fetch the notifications from a HTTP server.
+     * 
+     * @throws NotificationsException
+     *             when the test feed is invalid
+     * @throws IOException
+     *             when the mock HTTP server has problems
+     */
     @Test
-    public final void testGetNotificationsURIDateTimeDateTime() {
-        Assert.fail("Not yet implemented");
+    public final void testGetNotificationsURIDateTimeDateTime()
+            throws NotificationsException, IOException {
+        // this is the path of the URI that the NotificationService should call
+        String expectedUrl = "/notifications?ro=http%3A%2F%2Fexample.org%2FROs%2Fro1%2F&from=2000-06-13T18%3A20%3A02.000%2B02%3A00&to=2006-06-13T18%3A20%3A02.000%2B02%3A00";
+        // this is what the mock HTTP server will return
+        InputStream feed = getClass().getClassLoader().getResourceAsStream("notifications/exampleFeed.xml");
+        // here we configure the mock HTTP server
+        stubFor(get(urlEqualTo(expectedUrl)).withHeader("Accept", equalTo(MediaType.APPLICATION_ATOM_XML)).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", MediaType.APPLICATION_ATOM_XML)
+                    .withBody(IOUtils.toByteArray(feed))));
+
+        URI roUri = URI.create("http://example.org/ROs/ro1/");
+        DateTime from = ISODateTimeFormat.dateTimeParser().parseDateTime("2000-06-13T18:20:02.000+02:00");
+        DateTime to = ISODateTimeFormat.dateTimeParser().parseDateTime("2006-06-13T18:20:02.000+02:00");
+
+        NotificationService notificationService = new NotificationService(MOCK_SERVICE_URI, null);
+        List<Notification> notifications = notificationService.getNotifications(roUri, from, to);
+        Assert.assertNotNull(notifications);
+        Assert.assertEquals(exampleNotifications.size(), notifications.size());
+        for (int i = 0; i < notifications.size(); i++) {
+            assertNotificationsEquals(exampleNotifications.get(i), notifications.get(i));
+        }
     }
 
 }

@@ -18,4 +18,5 @@
    , [ lm:prefix "http://example.org/ro1/" ; lm:altPrefix "file:src/test/resources/ro1/" ] 
 
    , [ lm:name "http://example.org/notifications/" ; lm:altName "file:src/test/resources/notifications/serviceDescription.rdf" ] 
+   , [ lm:name "http://localhost:8089/" ; lm:altName "file:src/test/resources/notifications/serviceDescription.rdf" ] 
    .
