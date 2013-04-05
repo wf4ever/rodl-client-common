@@ -88,10 +88,10 @@ public class ROEVOService implements Serializable {
             Model model = ModelFactory.createDefaultModel();
             model.read(serviceDesc, roevoUri.toString());
             Resource roevo = model.getResource(roevoUri.toString());
-            this.copyUri = URI.create(roevo.getPropertyResourceValue(pl.psnc.dl.wf4ever.vocabulary.ROEVOService.copy)
-                    .getURI());
-            this.finalizeUri = URI.create(roevo.getPropertyResourceValue(
-                pl.psnc.dl.wf4ever.vocabulary.ROEVOService.finalize).getURI());
+            this.copyUri = URI.create(roevo.listProperties(pl.psnc.dl.wf4ever.vocabulary.ROEVOService.copy).next()
+                    .getObject().asLiteral().getString());
+            this.finalizeUri = URI.create(roevo.listProperties(pl.psnc.dl.wf4ever.vocabulary.ROEVOService.finalize)
+                    .next().getObject().asLiteral().getString());
             this.infoUriTemplateString = roevo.listProperties(pl.psnc.dl.wf4ever.vocabulary.ROEVOService.info).next()
                     .getObject().asLiteral().getString();
         } catch (JenaException e) {
