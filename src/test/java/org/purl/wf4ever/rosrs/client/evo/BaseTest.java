@@ -26,7 +26,7 @@ public class BaseTest {
     protected static ROSRService rosrs;
 
     /** RODL access token. */
-    private static final String TOKEN = "b1a8ad77-790c-4bf1-a452-f1c99a662732";
+    private static final String TOKEN = "1cec3d40-4c6c-4bb8-8527-cbd8776c6327";
 
     /** RODL URI for testing. */
     protected static final URI RODL_URI = URI.create("http://sandbox.wf4ever-project.org/rodl/");
