@@ -48,7 +48,7 @@ public class BaseTest {
     public static void setUpBeforeClass()
             throws Exception {
         rosrs = new ROSRService(RODL_URI.resolve("ROs/"), TOKEN);
-        roevo = new ROEVOService(RODL_URI.resolve("evo/"), TOKEN);
+        roevo = new ROEVOService(RODL_URI, TOKEN);
     }
 
 
