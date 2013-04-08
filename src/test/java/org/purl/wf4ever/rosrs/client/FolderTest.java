@@ -1,22 +1,34 @@
 package org.purl.wf4ever.rosrs.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.purl.wf4ever.rosrs.client.evo.BaseTest;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 /**
  * Test the {@link} methods.
@@ -25,6 +37,10 @@ import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
  * 
  */
 public class FolderTest extends BaseTest {
+
+    /** A test HTTP mock server. */
+    @Rule
+    public static final WireMockRule WIREMOCK_RULE = new WireMockRule(8089); // No-args constructor defaults to port 8080
 
     /** RO that will be mapped to local resources. */
     private static final URI RO_PREFIX = URI.create("http://example.org/ro1/");
@@ -39,12 +55,10 @@ public class FolderTest extends BaseTest {
     private static final URI RMAP_URI = URI.create("http://example.org/ro1/folder1.ttl");
 
     /** Some folder available by HTTP. */
-    private static final URI PUBLIC_FOLDER = URI
-            .create("http://sandbox.wf4ever-project.org/rodl/ROs/worklflow2648withFolders/root/config/web%20services/");
+    private static final URI MOCK_FOLDER = URI.create("http://localhost:8089/folder/");
 
-    /** Some folder resource mapavailable by HTTP. */
-    private static final URI PUBLIC_RMAP = URI
-            .create("http://sandbox.wf4ever-project.org/rodl/ROs/worklflow2648withFolders/root/config/web%20services/web%20services.rdf");
+    /** Some folder resource map available by HTTP. */
+    private static final URI MOCK_RMAP = URI.create("http://localhost:8089/folder/rmap.rdf");
 
     /** A loaded RO. */
     private static ResearchObject ro1;
@@ -68,6 +82,28 @@ public class FolderTest extends BaseTest {
         fol1 = new Folder(ro1, FOLDER_URI, PROXY_URI, RMAP_URI, URI.create("http://test3.myopenid.com"), new DateTime(
                 2011, 12, 02, 15, 02, 12, DateTimeZone.UTC), true);
         fol1.load(false);
+    }
+
+
+    /**
+     * Prepare the HTTP server mockup.
+     * 
+     * @throws Exception
+     *             if the super method throws it
+     */
+    @Before
+    public void setUp()
+            throws Exception {
+        super.setUp();
+        // this is what the mock HTTP server will return
+        InputStream rmap = getClass().getClassLoader().getResourceAsStream("folders/rmap.rdf");
+        // here we configure the mock HTTP server
+        stubFor(get(urlEqualTo("/folder/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(303).withHeader("Content-Type", MediaType.TEXT_PLAIN)
+                    .withHeader("Location", MOCK_RMAP.toString())));
+        stubFor(get(urlEqualTo("/folder/rmap.rdf")).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
+                    .withBody(IOUtils.toByteArray(rmap))));
     }
 
 
@@ -119,7 +155,7 @@ public class FolderTest extends BaseTest {
     @Test
     public final void testLoad()
             throws ROSRSException {
-        Folder f = new Folder(ro1, PUBLIC_FOLDER, null, PUBLIC_RMAP, null, null, false);
+        Folder f = new Folder(ro1, MOCK_FOLDER, null, MOCK_RMAP, null, null, false);
         Assert.assertFalse(f.isLoaded());
         f.load(false);
         Assert.assertTrue(f.isLoaded());
