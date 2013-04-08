@@ -1,22 +1,35 @@
 package org.purl.wf4ever.rosrs.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.ws.rs.core.MediaType;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.purl.wf4ever.rosrs.client.evo.BaseTest;
 import org.purl.wf4ever.rosrs.client.evo.EvoType;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -28,11 +41,18 @@ import com.google.common.collect.Multimap;
  */
 public class ResearchObjectTest extends BaseTest {
 
+    /** A test HTTP mock server. */
+    @Rule
+    public static final WireMockRule WIREMOCK_RULE = new WireMockRule(8089); // No-args constructor defaults to port 8080
+
     /** RO that will be mapped to local resources. */
     private static final URI RO_PREFIX = URI.create("http://example.org/ro1/");
 
     /** Some RO available by HTTP. */
-    private static final URI PUBLIC_RO = URI.create("http://sandbox.wf4ever-project.org/rodl/ROs/AstronomyPack/");
+    private static final URI MOCK_RO = URI.create("http://localhost:8089/ro1/");
+
+    /** Some RO available by HTTP. */
+    private static final URI MOCK_MANIFEST = URI.create("http://localhost:8089/ro1/.ro/manifest.rdf");
 
     /** A loaded RO. */
     private static ResearchObject ro1;
@@ -50,6 +70,28 @@ public class ResearchObjectTest extends BaseTest {
         BaseTest.setUpBeforeClass();
         ro1 = new ResearchObject(RO_PREFIX, rosrs);
         ro1.load();
+    }
+
+
+    /**
+     * Prepare the HTTP server mockup.
+     * 
+     * @throws Exception
+     *             if the super method throws it
+     */
+    @Before
+    public void setUp()
+            throws Exception {
+        super.setUp();
+        // this is what the mock HTTP server will return
+        InputStream manifest = getClass().getClassLoader().getResourceAsStream("ro1/.ro/manifest.rdf");
+        // here we configure the mock HTTP server
+        stubFor(get(urlEqualTo("/ro1/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(303).withHeader("Content-Type", MediaType.TEXT_PLAIN)
+                    .withHeader("Location", MOCK_MANIFEST.toString())));
+        stubFor(get(urlEqualTo("/ro1/.ro/manifest.rdf")).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
+                    .withBody(IOUtils.toByteArray(manifest))));
     }
 
 
@@ -127,7 +169,7 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void testLoad()
             throws ROSRSException, ROException {
-        ResearchObject ro = new ResearchObject(PUBLIC_RO, rosrs);
+        ResearchObject ro = new ResearchObject(MOCK_RO, rosrs);
         Assert.assertFalse(ro.isLoaded());
         ro.load();
         Assert.assertTrue(ro.isLoaded());
