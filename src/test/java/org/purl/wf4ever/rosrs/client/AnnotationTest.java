@@ -1,23 +1,34 @@
 package org.purl.wf4ever.rosrs.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.ws.rs.core.MediaType;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.purl.wf4ever.rosrs.client.evo.BaseTest;
 import org.purl.wf4ever.rosrs.client.exception.ObjectNotLoadedException;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 
@@ -29,6 +40,10 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
  */
 public class AnnotationTest extends BaseTest {
 
+    /** A test HTTP mock server. */
+    @Rule
+    public static final WireMockRule WIREMOCK_RULE = new WireMockRule(8089); // No-args constructor defaults to port 8080
+
     /** RO that will be mapped to local resources. */
     private static final URI RO_PREFIX = URI.create("http://example.org/ro1/");
 
@@ -39,15 +54,13 @@ public class AnnotationTest extends BaseTest {
     private static final URI BODY_PREFIX = URI.create("http://example.org/ro1/body1.rdf");
 
     /** Some annotation available by HTTP. */
-    private static final URI PUBLIC_ANNOTATION = URI
-            .create("http://sandbox.wf4ever-project.org/rodl/ROs/AstronomyPack/.ro/annotations/a37e7a35-4918-4ffe-832f-442befa7d335");
+    private static final URI MOCK_ANNOTATION = URI.create("http://localhost:8089/ann");
 
     /** Some annotation body available by HTTP. */
-    private static final URI PUBLIC_BODY = URI
-            .create("http://sandbox.wf4ever-project.org/rodl/ROs/AstronomyPack/.ro/evo_info.ttl");
-    /** Some annotation available by HTTP. */
+    private static final URI MOCK_BODY = URI.create("http://localhost:8089/body.rdf");
 
-    private static final URI PUBLIC_TARGET = URI.create("http://sandbox.wf4ever-project.org/rodl/ROs/AstronomyPack/");
+    /** Some annotation available by HTTP. */
+    private static final URI MOCK_TARGET = URI.create("http://example.org/ROs/1/");
 
     /** A loaded RO. */
     private static ResearchObject ro1;
@@ -71,6 +84,28 @@ public class AnnotationTest extends BaseTest {
         an1 = new Annotation(ro1, ANN_PREFIX, BODY_PREFIX, RO_PREFIX, URI.create("http://test.myopenid.com"),
                 new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
         an1.load();
+    }
+
+
+    /**
+     * Prepare the HTTP server mockup.
+     * 
+     * @throws Exception
+     *             if the super method throws it
+     */
+    @Before
+    public void setUp()
+            throws Exception {
+        super.setUp();
+        // this is what the mock HTTP server will return
+        InputStream body = getClass().getClassLoader().getResourceAsStream("annotations/body.rdf");
+        // here we configure the mock HTTP server
+        stubFor(get(urlEqualTo("/ann")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(303).withHeader("Content-Type", MediaType.TEXT_PLAIN)
+                    .withHeader("Location", MOCK_BODY.toString())));
+        stubFor(get(urlEqualTo("/body.rdf")).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
+                    .withBody(IOUtils.toByteArray(body))));
     }
 
 
@@ -140,7 +175,7 @@ public class AnnotationTest extends BaseTest {
     @Test
     public final void testLoad()
             throws ROSRSException, IOException {
-        Annotation an = new Annotation(ro1, PUBLIC_ANNOTATION, PUBLIC_BODY, PUBLIC_TARGET, null, null);
+        Annotation an = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, MOCK_TARGET, null, null);
         Assert.assertFalse(an.isLoaded());
         an.load();
         Assert.assertTrue(an.isLoaded());
@@ -248,7 +283,8 @@ public class AnnotationTest extends BaseTest {
     @Test
     public final void testGetStatement()
             throws ROSRSException, IOException {
-        Annotation annotation = new Annotation(ro1, PUBLIC_ANNOTATION, PUBLIC_BODY, PUBLIC_TARGET, null, null);
+
+        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, MOCK_TARGET, null, null);
         annotation.load();
         Assert.assertNotNull(annotation.getStatements());
     }
@@ -265,7 +301,7 @@ public class AnnotationTest extends BaseTest {
     @Test(expected = ObjectNotLoadedException.class)
     public final void testGetNotLoadedStatement()
             throws ROSRSException, IOException {
-        Annotation annotation = new Annotation(ro1, PUBLIC_ANNOTATION, PUBLIC_BODY, PUBLIC_TARGET, null, null);
+        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, MOCK_TARGET, null, null);
         annotation.getStatements();
     }
 }

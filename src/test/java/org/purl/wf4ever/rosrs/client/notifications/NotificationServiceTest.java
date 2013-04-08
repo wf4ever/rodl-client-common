@@ -51,7 +51,7 @@ public class NotificationServiceTest {
 
     /** A test HTTP mock server. */
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(8089); // No-args constructor defaults to port 8080
+    public static final WireMockRule WIREMOCK_RULE = new WireMockRule(8089); // No-args constructor defaults to port 8080
 
 
     /**

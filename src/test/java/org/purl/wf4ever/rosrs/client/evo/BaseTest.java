@@ -55,12 +55,12 @@ public class BaseTest {
     /**
      * Create the Live RO.
      * 
-     * @throws ROSRSException
+     * @throws Exception
      *             unexpected response from RODL
      */
     @Before
     public void setUp()
-            throws ROSRSException {
+            throws Exception {
         ro = new ResearchObject(rosrs.getRosrsURI().resolve("ROEVOServiceTest/"), rosrs);
         ro.delete();
         ro = ResearchObject.create(rosrs, "ROEVOServiceTest");
