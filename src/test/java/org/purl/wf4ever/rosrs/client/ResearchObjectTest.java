@@ -1,10 +1,16 @@
 package org.purl.wf4ever.rosrs.client;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -16,7 +22,6 @@ import java.util.Set;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
@@ -68,6 +73,7 @@ public class ResearchObjectTest extends BaseTest {
     public static final void setUpBeforeClass()
             throws Exception {
         BaseTest.setUpBeforeClass();
+        rosrs = new ROSRService(URI.create("http://localhost:8089/"), TOKEN);
         ro1 = new ResearchObject(RO_PREFIX, rosrs);
         ro1.load();
     }
@@ -82,7 +88,7 @@ public class ResearchObjectTest extends BaseTest {
     @Before
     public void setUp()
             throws Exception {
-        super.setUp();
+        //        super.setUp();
         // this is what the mock HTTP server will return
         InputStream manifest = getClass().getClassLoader().getResourceAsStream("ro1/.ro/manifest.rdf");
         // here we configure the mock HTTP server
@@ -114,19 +120,17 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void testCreateDelete()
             throws ROSRSException {
-        ResearchObject ro;
-        try {
-            ro = ResearchObject.create(rosrs, "JavaClientTest");
-        } catch (ROSRSException e) {
-            if (e.getStatus() == HttpStatus.SC_CONFLICT) {
-                ro = new ResearchObject(rosrs.getRosrsURI().resolve("JavaClientTest/"), rosrs);
-                ro.delete();
-                ro = ResearchObject.create(rosrs, "JavaClientTest");
-            } else {
-                throw e;
-            }
-        }
+        stubFor(post(urlEqualTo("/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
+                    .withHeader("Location", MOCK_RO.toString())));
+        stubFor(delete(urlEqualTo("/ro1/")).willReturn(aResponse().withStatus(204)));
+
+        ResearchObject ro = ResearchObject.create(rosrs, "JavaClientTest");
+        verify(postRequestedFor(urlMatching("/")).withHeader("Slug", equalTo("JavaClientTest")).withHeader("Accept",
+            equalTo("application/rdf+xml")));
+
         ro.delete();
+        verify(deleteRequestedFor(urlMatching("/ro1/")));
     }
 
 
@@ -145,7 +149,7 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void testGetRosrs() {
         Assert.assertNotNull(ro1.getRosrs());
-        Assert.assertEquals(RODL_URI.resolve("ROs/"), ro1.getRosrs().getRosrsURI());
+        Assert.assertEquals(URI.create("http://localhost:8089/"), ro1.getRosrs().getRosrsURI());
     }
 
 

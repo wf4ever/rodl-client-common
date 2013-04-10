@@ -121,7 +121,7 @@ public class ROSRService implements Serializable {
             throws ROSRSException {
         WebResource webResource = getClient().resource(rosrsURI.toString());
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).header("Slug", roId)
-                .type("text/plain").post(ClientResponse.class);
+                .type("text/plain").accept("application/rdf+xml").post(ClientResponse.class);
         if (response.getStatus() == HttpStatus.SC_CREATED) {
             return response;
         } else {

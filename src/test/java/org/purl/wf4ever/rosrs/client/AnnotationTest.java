@@ -1,10 +1,15 @@
 package org.purl.wf4ever.rosrs.client;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +20,6 @@ import java.util.Set;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
@@ -27,6 +31,8 @@ import org.purl.wf4ever.rosrs.client.evo.BaseTest;
 import org.purl.wf4ever.rosrs.client.exception.ObjectNotLoadedException;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
+
+import pl.psnc.dl.wf4ever.vocabulary.ORE;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.hp.hpl.jena.rdf.model.Model;
@@ -53,8 +59,14 @@ public class AnnotationTest extends BaseTest {
     /** Annotation body that will be mapped to local resources. */
     private static final URI BODY_PREFIX = URI.create("http://example.org/ro1/body1.rdf");
 
+    /** Some RO available by HTTP. */
+    private static final URI MOCK_RO = URI.create("http://localhost:8089/ro1/");
+
     /** Some annotation available by HTTP. */
     private static final URI MOCK_ANNOTATION = URI.create("http://localhost:8089/ann");
+
+    /** Some annotation available by HTTP. */
+    private static final URI MOCK_ANNOTATION_PROXY = URI.create("http://localhost:8089/annproxy");
 
     /** Some annotation body available by HTTP. */
     private static final URI MOCK_BODY = URI.create("http://localhost:8089/body.rdf");
@@ -79,6 +91,7 @@ public class AnnotationTest extends BaseTest {
     public static void setUpBeforeClass()
             throws Exception {
         BaseTest.setUpBeforeClass();
+        rosrs = new ROSRService(URI.create("http://localhost:8089/"), TOKEN);
         ro1 = new ResearchObject(RO_PREFIX, rosrs);
         ro1.load();
         an1 = new Annotation(ro1, ANN_PREFIX, BODY_PREFIX, RO_PREFIX, URI.create("http://test.myopenid.com"),
@@ -96,7 +109,7 @@ public class AnnotationTest extends BaseTest {
     @Before
     public void setUp()
             throws Exception {
-        super.setUp();
+        //        super.setUp();
         // this is what the mock HTTP server will return
         InputStream body = getClass().getClassLoader().getResourceAsStream("annotations/body.rdf");
         // here we configure the mock HTTP server
@@ -140,25 +153,31 @@ public class AnnotationTest extends BaseTest {
      *             unexpected server response
      * @throws ROException
      *             the manifest is incorrect
+     * @throws IOException
+     *             the test response can't be read
      */
     @Test
     public final void testCreateDelete()
-            throws ROSRSException, ROException {
-        ResearchObject ro;
-        try {
-            ro = ResearchObject.create(rosrs, "JavaClientTest");
-        } catch (ROSRSException e) {
-            if (e.getStatus() == HttpStatus.SC_CONFLICT) {
-                ro = new ResearchObject(rosrs.getRosrsURI().resolve("JavaClientTest/"), rosrs);
-                ro.delete();
-                ro = ResearchObject.create(rosrs, "JavaClientTest");
-            } else {
-                throw e;
-            }
-        }
-        Resource r = ro.aggregate(BODY_PREFIX);
-        Annotation an = Annotation.create(ro, r.getProxyUri(), ro.getUri());
+            throws ROSRSException, ROException, IOException {
+        // this is what the mock HTTP server will return
+        InputStream response = getClass().getClassLoader().getResourceAsStream("annotations/response.rdf");
+        stubFor(post(urlEqualTo("/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
+                    .withHeader("Location", MOCK_RO.toString())));
+        stubFor(delete(urlEqualTo("/ro1/")).willReturn(aResponse().withStatus(204)));
+        stubFor(post(urlEqualTo("/ro1/")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "application/vnd.wf4ever.annotation")
+                    .withHeader("Location", MOCK_ANNOTATION_PROXY.toString())
+                    .withHeader("Link", "<" + MOCK_ANNOTATION + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                    .withBody(IOUtils.toByteArray(response))));
+        stubFor(delete(urlEqualTo("/ann")).willReturn(aResponse().withStatus(204)));
+
+        ResearchObject ro = ResearchObject.create(rosrs, "ro1");
+        Annotation an = Annotation.create(ro, MOCK_BODY, MOCK_TARGET);
         Assert.assertNotNull(an);
+        verify(postRequestedFor(urlMatching("/ro1/")).withHeader("Content-Type",
+            equalTo("application/vnd.wf4ever.annotation")));
+
         an.delete();
         ro.delete();
     }
