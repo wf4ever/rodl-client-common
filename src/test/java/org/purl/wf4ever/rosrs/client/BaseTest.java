@@ -1,4 +1,4 @@
-package org.purl.wf4ever.rosrs.client.evo;
+package org.purl.wf4ever.rosrs.client;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -7,8 +7,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.purl.wf4ever.rosrs.client.ROSRService;
-import org.purl.wf4ever.rosrs.client.ResearchObject;
+import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 /**
