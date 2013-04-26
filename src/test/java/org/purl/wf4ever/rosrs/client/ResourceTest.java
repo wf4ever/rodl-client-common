@@ -17,7 +17,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
@@ -143,24 +142,30 @@ public class ResourceTest extends BaseTest {
      * 
      * @throws ROSRSException
      *             unexpected response from the server
+     * @throws IOException
+     *             can't open the test file
      */
     @Test
     public final void testCreateResearchObjectURI()
-            throws ROSRSException {
-        ResearchObject ro;
-        try {
-            ro = ResearchObject.create(rosrs, "JavaClientTest");
-        } catch (ROSRSException e) {
-            if (e.getStatus() == HttpStatus.SC_CONFLICT) {
-                ro = new ResearchObject(rosrs.getRosrsURI().resolve("JavaClientTest/"), rosrs);
-                ro.delete();
-                ro = ResearchObject.create(rosrs, "JavaClientTest");
-            } else {
-                throw e;
-            }
-        }
+            throws ROSRSException, IOException {
+        // this is what the mock HTTP server will return
+        InputStream response = getClass().getClassLoader().getResourceAsStream("resources/response_external.rdf");
+        stubFor(post(urlEqualTo("/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
+                    .withHeader("Location", MOCK_RO.toString())));
+        stubFor(delete(urlEqualTo("/ro1/")).willReturn(aResponse().withStatus(204)));
+        stubFor(post(urlEqualTo("/ro1/")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "text/plain")
+                    .withHeader("Location", MOCK_RESOURCE_PROXY.toString())
+                    .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                    .withBody(IOUtils.toByteArray(response))));
+        stubFor(delete(urlEqualTo("/res1.txt")).willReturn(aResponse().withStatus(204)));
+
+        ResearchObject ro = ResearchObject.create(rosrs, "ro1");
         Resource res = Resource.create(ro, URI.create("http://example.org/externalresource"));
         Assert.assertNotNull(res);
+        verify(postRequestedFor(urlMatching("/ro1/")).withHeader("Content-Type",
+            equalTo("application/vnd.wf4ever.proxy")));
         res.delete();
         ro.delete();
     }
