@@ -1,10 +1,15 @@
 package org.purl.wf4ever.rosrs.client;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,10 +32,12 @@ import org.junit.Test;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
+import pl.psnc.dl.wf4ever.vocabulary.ORE;
+
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 /**
- * Test the {@link} methods.
+ * Test the {@link Folder} methods.
  * 
  * @author piotrekhol
  * 
@@ -59,6 +66,12 @@ public class FolderTest extends BaseTest {
     /** Some folder resource map available by HTTP. */
     private static final URI MOCK_RMAP = URI.create("http://localhost:8089/folder/rmap.rdf");
 
+    /** Some RO available by HTTP. */
+    private static final URI MOCK_RO = URI.create("http://localhost:8089/ro1/");
+
+    /** Some resource available by HTTP. */
+    private static final URI MOCK_FOLDER_PROXY = URI.create("http://localhost:8089/resfolder");
+
     /** A loaded RO. */
     private static ResearchObject ro1;
 
@@ -76,6 +89,7 @@ public class FolderTest extends BaseTest {
     public static final void setUpBeforeClass()
             throws Exception {
         BaseTest.setUpBeforeClass();
+        rosrs = new ROSRService(URI.create("http://localhost:8089/"), TOKEN);
         ro1 = new ResearchObject(RO_PREFIX, rosrs);
         ro1.load();
         fol1 = new Folder(ro1, FOLDER_URI, PROXY_URI, RMAP_URI, URI.create("http://test3.myopenid.com"), new DateTime(
@@ -93,7 +107,7 @@ public class FolderTest extends BaseTest {
     @Before
     public void setUp()
             throws Exception {
-        super.setUp();
+        //        super.setUp();
         // this is what the mock HTTP server will return
         InputStream rmap = getClass().getClassLoader().getResourceAsStream("folders/rmap.rdf");
         // here we configure the mock HTTP server
@@ -122,25 +136,31 @@ public class FolderTest extends BaseTest {
      * 
      * @throws ROSRSException
      *             unexpected server response
+     * @throws IOException
      */
     @Test
     public final void testCreateResearchObjectString()
-            throws ROSRSException {
-        ResearchObject ro;
-        try {
-            ro = ResearchObject.create(rosrs, "JavaClientTest");
-        } catch (ROSRSException e) {
-            if (e.getStatus() == HttpStatus.SC_CONFLICT) {
-                ro = new ResearchObject(rosrs.getRosrsURI().resolve("JavaClientTest/"), rosrs);
-                ro.delete();
-                ro = ResearchObject.create(rosrs, "JavaClientTest");
-            } else {
-                throw e;
-            }
-        }
-        Folder f = Folder.create(ro, "folder1/");
+            throws ROSRSException, IOException {
+        // this is what the mock HTTP server will return
+        InputStream response = getClass().getClassLoader().getResourceAsStream("folders/response.rdf");
+        stubFor(post(urlEqualTo("/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
+                    .withHeader("Location", MOCK_RO.toString())));
+        stubFor(delete(urlEqualTo("/ro1/")).willReturn(aResponse().withStatus(204)));
+        stubFor(post(urlEqualTo("/ro1/")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
+                    .withHeader("Location", MOCK_FOLDER_PROXY.toString())
+                    .withHeader("Link", "<" + MOCK_FOLDER + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                    .withHeader("Link", "<" + MOCK_FOLDER_PROXY + ">; rel=\"" + ORE.isDescribedBy.toString() + "\"")
+                    .withBody(IOUtils.toByteArray(response))));
+        stubFor(delete(urlEqualTo("/folder/")).willReturn(aResponse().withStatus(204)));
+
+        ResearchObject ro = ResearchObject.create(rosrs, "ro1");
+        Folder f = Folder.create(ro, "folder/");
         Assert.assertNotNull(f);
         f.delete();
+        verify(postRequestedFor(urlMatching("/ro1/")).withHeader("Content-Type",
+            equalTo("application/vnd.wf4ever.folder")));
         ro.delete();
     }
 

@@ -155,7 +155,7 @@ public class ResourceTest extends BaseTest {
                     .withHeader("Location", MOCK_RO.toString())));
         stubFor(delete(urlEqualTo("/ro1/")).willReturn(aResponse().withStatus(204)));
         stubFor(post(urlEqualTo("/ro1/")).willReturn(
-            aResponse().withStatus(201).withHeader("Content-Type", "text/plain")
+            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
                     .withHeader("Location", MOCK_RESOURCE_PROXY.toString())
                     .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
                     .withBody(IOUtils.toByteArray(response))));
