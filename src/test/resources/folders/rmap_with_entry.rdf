@@ -10,9 +10,16 @@
     <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
     <ore:isDescribedBy rdf:resource="http://localhost:8089/folder/rmap.rdf"/>
     <ore:isAggregatedBy rdf:resource="http://localhost:8089/ro1/"/>
+	<ore:aggregates rdf:resource="http://localhost:8089/res1.txt" />
   </rdf:Description>
   <rdf:Description rdf:about="http://localhost:8089/ro1/">
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#ResearchObject"/>
     <ore:isDescribedBy rdf:resource="http://localhost:8089/ro1/.ro/manifest.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://localhost:8089/folder/entries/1">
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#FolderEntry"/>
+    <ro:entryName>res1.txt</ro:entryName>
+    <ore:proxyFor rdf:resource="http://localhost:8089/res1.txt" />
+    <ore:proxyIn rdf:resource="http://localhost:8089/folder/" />
   </rdf:Description>
 </rdf:RDF>
