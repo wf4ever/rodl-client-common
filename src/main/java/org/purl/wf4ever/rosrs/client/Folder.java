@@ -279,7 +279,7 @@ public class Folder extends Resource {
     public FolderEntry addSubFolder(String name)
             throws ROSRSException, ROException {
         URI subfolderURI = UriBuilder.fromUri(uri).path(name).build();
-        String path = this.researchObject.getUri().relativize(subfolderURI).toString();
+        String path = this.researchObject.getUri().relativize(subfolderURI).getRawPath();
         Folder subfolder = this.researchObject.createFolder(path);
         return addEntry(subfolder, name);
     }

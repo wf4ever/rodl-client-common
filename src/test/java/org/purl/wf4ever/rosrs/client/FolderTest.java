@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -21,7 +22,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpStatus;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
@@ -34,6 +34,7 @@ import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 
@@ -77,10 +78,22 @@ public class FolderTest extends BaseTest {
     private static final URI MOCK_FOLDER_PROXY = URI.create("http://localhost:8089/folderproxy");
 
     /** Some resource available by HTTP. */
+    private static final URI MOCK_SUBFOLDER_PROXY = URI.create("http://localhost:8089/subfolderproxy");
+
+    /** Some folder resource map available by HTTP. */
+    private static final URI MOCK_SUBFOLDER_RMAP = URI.create("http://localhost:8089/folder/subfolder/rmap.rdf");
+
+    /** Some resource available by HTTP. */
     private static final URI MOCK_RESOURCE = URI.create("http://localhost:8089/res1.txt");
 
     /** Some resource available by HTTP. */
     private static final URI MOCK_RESOURCE_PROXY = URI.create("http://localhost:8089/resproxy");
+
+    /** Some RO available by HTTP. */
+    private static final URI MOCK_MANIFEST = URI.create("http://localhost:8089/ro1/.ro/manifest.rdf");
+
+    /** Some RO available by HTTP. */
+    private static final URI MOCK_SUBFOLDER = URI.create("http://localhost:8089/folder/subfolder/");
 
     /** A loaded RO. */
     private static ResearchObject ro1;
@@ -120,13 +133,28 @@ public class FolderTest extends BaseTest {
         //        super.setUp();
         // this is what the mock HTTP server will return
         InputStream rmap = getClass().getClassLoader().getResourceAsStream("folders/rmap.rdf");
+        InputStream manifest = getClass().getClassLoader().getResourceAsStream("ro1/.ro/manifest.rdf");
+        InputStream subfolderRmap = getClass().getClassLoader().getResourceAsStream("folders/subfolder_rmap.rdf");
         // here we configure the mock HTTP server
+        WireMock.resetAllScenarios();
         stubFor(get(urlEqualTo("/folder/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
             aResponse().withStatus(303).withHeader("Content-Type", MediaType.TEXT_PLAIN)
                     .withHeader("Location", MOCK_RMAP.toString())));
         stubFor(get(urlEqualTo("/folder/rmap.rdf")).whenScenarioStateIs(Scenario.STARTED).willReturn(
             aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
                     .withBody(IOUtils.toByteArray(rmap))));
+        stubFor(get(urlEqualTo("/ro1/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(303).withHeader("Content-Type", MediaType.TEXT_PLAIN)
+                    .withHeader("Location", MOCK_MANIFEST.toString())));
+        stubFor(get(urlEqualTo("/ro1/.ro/manifest.rdf")).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
+                    .withBody(IOUtils.toByteArray(manifest))));
+        stubFor(get(urlEqualTo("/folder/subfolder/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(303).withHeader("Content-Type", MediaType.TEXT_PLAIN)
+                    .withHeader("Location", MOCK_SUBFOLDER_RMAP.toString())));
+        stubFor(get(urlEqualTo("/folder/subfolder/rmap.rdf")).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
+                    .withBody(IOUtils.toByteArray(subfolderRmap))));
     }
 
 
@@ -282,33 +310,74 @@ public class FolderTest extends BaseTest {
     @Test
     public final void testAddSubFolder()
             throws ROSRSException, IOException, ROException {
-        ResearchObject ro;
-        try {
-            ro = ResearchObject.create(rosrs, "JavaClientTest");
-        } catch (ROSRSException e) {
-            if (e.getStatus() == HttpStatus.SC_CONFLICT) {
-                ro = new ResearchObject(rosrs.getRosrsURI().resolve("JavaClientTest/"), rosrs);
-                ro.delete();
-                ro = ResearchObject.create(rosrs, "JavaClientTest");
-            } else {
-                throw e;
-            }
-        }
-        Folder f = Folder.create(ro, "folder1/");
+        // this is what the mock HTTP server will return
+        InputStream folderResponse = getClass().getClassLoader().getResourceAsStream("folders/response.rdf");
+        InputStream subolderResponse = getClass().getClassLoader()
+                .getResourceAsStream("folders/subfolder_response.rdf");
+        InputStream resResponse = getClass().getClassLoader().getResourceAsStream("resources/response.rdf");
+        InputStream rmapWithSubfolder = getClass().getClassLoader().getResourceAsStream(
+            "folders/rmap_with_subfolder.rdf");
+        //ro
+        stubFor(post(urlEqualTo("/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
+                    .withHeader("Location", MOCK_RO.toString())));
+        stubFor(delete(urlEqualTo("/ro1/")).willReturn(aResponse().withStatus(204)));
+        //folder
+        stubFor(post(urlEqualTo("/ro1/"))
+                .withHeader("Content-Type", equalTo("application/vnd.wf4ever.folder"))
+                .withHeader("Slug", equalTo("folder/"))
+                .willReturn(
+                    aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
+                            .withHeader("Location", MOCK_FOLDER_PROXY.toString())
+                            .withHeader("Link", "<" + MOCK_FOLDER + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                            .withHeader("Link", "<" + MOCK_RMAP + ">; rel=\"" + ORE.isDescribedBy.toString() + "\"")
+                            .withBody(IOUtils.toByteArray(folderResponse))));
+        stubFor(delete(urlEqualTo("/folder/")).willReturn(aResponse().withStatus(204)));
+        //resource
+        stubFor(post(urlEqualTo("/ro1/")).withHeader("Content-Type", equalTo("text/plain")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "text/plain")
+                    .withHeader("Location", MOCK_RESOURCE_PROXY.toString())
+                    .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                    .withBody(IOUtils.toByteArray(resResponse))));
+        stubFor(delete(urlEqualTo("/res1.txt")).willReturn(aResponse().withStatus(204)));
+        //subfolder
+        stubFor(post(urlEqualTo("/ro1/"))
+                .withHeader("Content-Type", equalTo("application/vnd.wf4ever.folder"))
+                .withHeader("Slug", equalTo("/folder/subfolder/"))
+                .willReturn(
+                    aResponse()
+                            .withStatus(201)
+                            .withHeader("Content-Type", "application/rdf+xml")
+                            .withHeader("Location", MOCK_SUBFOLDER_PROXY.toString())
+                            .withHeader("Link", "<" + MOCK_SUBFOLDER + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                            .withHeader("Link",
+                                "<" + MOCK_SUBFOLDER_RMAP + ">; rel=\"" + ORE.isDescribedBy.toString() + "\"")
+                            .withBody(IOUtils.toByteArray(subolderResponse))));
+        stubFor(delete(urlEqualTo("/folder/subfolder/")).willReturn(aResponse().withStatus(204)));
+        //subfolder entry
+        stubFor(post(urlEqualTo("/folder/"))
+                .withRequestBody(matching(".*:proxyFor rdf:resource=\"" + MOCK_SUBFOLDER + "\".*"))
+                .willReturn(
+                    aResponse().withStatus(201).withHeader("Content-Type", "application/vnd.wf4ever.folderentry")
+                            .withHeader("Location", MOCK_FOLDER_ENTRY.toString())
+                            .withHeader("Link", "<" + MOCK_SUBFOLDER + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                            .withBody(IOUtils.toByteArray(folderResponse))).willSetStateTo("Subfolder added"));
+        //resource map with entry
+        stubFor(get(urlEqualTo("/folder/rmap.rdf")).whenScenarioStateIs("Subfolder added").willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
+                    .withBody(IOUtils.toByteArray(rmapWithSubfolder))));
+
+        ResearchObject ro = ResearchObject.create(rosrs, "ro1");
+
+        Folder f = Folder.create(ro, "folder/");
         Assert.assertNotNull(f);
         f.load(false);
-        Resource res = null;
-        try (InputStream in = getClass().getClassLoader().getResourceAsStream("ro1/res1.txt")) {
-            res = Resource.create(ro, "folder1/res1.txt", in, "text/plain");
-            Assert.assertNotNull(res);
-        }
 
-        FolderEntry entry = f.addSubFolder("folder2/");
-        Assert.assertEquals(f.getUri().resolve("folder2/"), entry.getResourceUri());
+        FolderEntry entry = f.addSubFolder("subfolder/");
+        Assert.assertEquals(f.getUri().resolve("subfolder/"), entry.getResourceUri());
         Assert.assertTrue(f.getFolderEntries().containsValue(entry));
 
-        Folder f2 = new Folder(ro, ro.getUri().resolve("folder1/"), f.getProxyUri(), f.getResourceMap(), null, null,
-                f.isRootFolder());
+        Folder f2 = new Folder(ro, f.getUri(), f.getProxyUri(), f.getResourceMap(), null, null, f.isRootFolder());
         f2.load(false);
         Assert.assertTrue(f2.getFolderEntries().containsValue(entry));
 

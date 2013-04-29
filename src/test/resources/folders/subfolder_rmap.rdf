@@ -1,0 +1,18 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:ro="http://purl.org/wf4ever/ro#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:ore="http://www.openarchives.org/ore/terms/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" > 
+  <rdf:Description rdf:about="http://localhost:8089/folder/subfolder/">
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Folder"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
+    <ore:isDescribedBy rdf:resource="http://localhost:8089/folder/subfolder/rmap.rdf"/>
+    <ore:isAggregatedBy rdf:resource="http://localhost:8089/ro1/"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://localhost:8089/ro1/">
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#ResearchObject"/>
+    <ore:isDescribedBy rdf:resource="http://localhost:8089/ro1/.ro/manifest.rdf"/>
+  </rdf:Description>
+</rdf:RDF>
