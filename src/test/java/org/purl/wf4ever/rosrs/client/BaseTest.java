@@ -18,6 +18,8 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
 
+import pl.psnc.dl.wf4ever.vocabulary.ORE;
+
 /**
  * A test class for the RO evo service.
  * 
@@ -38,6 +40,15 @@ public class BaseTest {
     /** Some RO available by HTTP. */
     protected static final URI MOCK_MANIFEST = URI.create("http://localhost:8089/ro1/.ro/manifest.rdf");
 
+    /** Some resource available by HTTP. */
+    protected static final URI MOCK_RESOURCE = URI.create("http://localhost:8089/ro1/res1.txt");
+
+    /** Some resource available by HTTP. */
+    protected static final URI MOCK_RESOURCE_PROXY = URI.create("http://localhost:8089/resproxy");
+
+    /** Some resource available by HTTP. */
+    protected static final URI MOCK_EXT_RESOURCE_PROXY = URI.create("http://localhost:8089/extresproxy");
+
     /** ROs to delete after a test. */
     protected static List<ResearchObject> rosToDelete = new ArrayList<>();
 
@@ -46,22 +57,24 @@ public class BaseTest {
 
 
     /**
-     * Create the Live RO.
+     * Set up a mockup HTTP server.
      * 
      * @throws Exception
-     *             unexpected response from RODL
+     *             if there are any problem with test resources
      */
     @Before
     public void setUp()
             throws Exception {
         setUpRoResources();
-        setUpRoCreateAndDelete();
+        setUpRoCreateDelete();
+        setUpResourceCreateDelete();
+        setUpExternalResourceCreateDelete();
 
         rosrs = new ROSRService(URI.create("http://localhost:8089/"), null);
     }
 
 
-    protected void setUpRoCreateAndDelete() {
+    protected void setUpRoCreateDelete() {
         stubFor(post(urlEqualTo("/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
             aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
                     .withHeader("Location", MOCK_RO.toString())));
@@ -90,6 +103,30 @@ public class BaseTest {
         stubFor(get(urlEqualTo("/ro1/folder2.rdf")).willReturn(
             aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
                     .withBody(IOUtils.toByteArray(folder2))));
+    }
+
+
+    protected void setUpResourceCreateDelete()
+            throws IOException {
+        InputStream response = getClass().getClassLoader().getResourceAsStream("resources/response.rdf");
+        stubFor(post(urlEqualTo("/ro1/")).withHeader("Slug", equalTo("res1.txt")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "text/plain")
+                    .withHeader("Location", MOCK_RESOURCE_PROXY.toString())
+                    .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                    .withBody(IOUtils.toByteArray(response))));
+        stubFor(delete(urlEqualTo("/ro1/res1.txt")).willReturn(aResponse().withStatus(204)));
+    }
+
+
+    protected void setUpExternalResourceCreateDelete()
+            throws IOException {
+        InputStream response = getClass().getClassLoader().getResourceAsStream("resources/response_external.rdf");
+        stubFor(post(urlEqualTo("/ro1/")).withHeader("Slug", equalTo("application/vnd.wf4ever.proxy")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
+                    .withHeader("Location", MOCK_EXT_RESOURCE_PROXY.toString())
+                    .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                    .withBody(IOUtils.toByteArray(response))));
+        stubFor(delete(urlEqualTo("/extresproxy")).willReturn(aResponse().withStatus(204)));
     }
 
 }
