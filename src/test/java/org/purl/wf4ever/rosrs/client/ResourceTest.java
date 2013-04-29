@@ -1,7 +1,12 @@
 package org.purl.wf4ever.rosrs.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
@@ -11,6 +16,7 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
@@ -18,6 +24,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
+
+import pl.psnc.dl.wf4ever.vocabulary.ORE;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
@@ -54,6 +62,18 @@ public class ResourceTest extends BaseTest {
         ro1.load();
         res1 = new Resource(ro1, MOCK_RESOURCE, MOCK_RESOURCE_PROXY, URI.create("http://test1.myopenid.com"),
                 new DateTime(2011, 12, 02, 15, 02, 10, DateTimeZone.UTC));
+    }
+
+
+    protected void setUpExternalResourceCreateDelete()
+            throws IOException {
+        InputStream response = getClass().getClassLoader().getResourceAsStream("resources/response_external.rdf");
+        stubFor(post(urlEqualTo("/ro1/")).withHeader("Slug", equalTo("application/vnd.wf4ever.proxy")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
+                    .withHeader("Location", MOCK_EXT_RESOURCE_PROXY.toString())
+                    .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                    .withBody(IOUtils.toByteArray(response))));
+        stubFor(delete(urlEqualTo("/extresproxy")).willReturn(aResponse().withStatus(204)));
     }
 
 
@@ -101,6 +121,7 @@ public class ResourceTest extends BaseTest {
     @Test
     public final void testCreateResearchObjectURI()
             throws ROSRSException, IOException {
+        setUpExternalResourceCreateDelete();
         ResearchObject ro = ResearchObject.create(rosrs, "ro1");
         Resource res = Resource.create(ro, URI.create("http://example.org/externalresource"));
         Assert.assertNotNull(res);

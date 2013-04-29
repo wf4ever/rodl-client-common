@@ -5,14 +5,36 @@
     xmlns:ore="http://www.openarchives.org/ore/terms/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" > 
-  <rdf:Description rdf:about="http://localhost:8089/folder/">
-    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Folder"/>
-    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
-    <ore:isDescribedBy rdf:resource="http://localhost:8089/folder/rmap.rdf"/>
-    <ore:isAggregatedBy rdf:resource="http://localhost:8089/ro1/"/>
+  <rdf:Description rdf:about="http://localhost:8089/folder/#entry2">
+    <ore:proxyIn rdf:resource="http://localhost:8089/folder/"/>
+    <ore:proxyFor rdf:resource="http://localhost:8089/ro1/res2"/>
+    <ro:entryName>res2</ro:entryName>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Proxy"/>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#FolderEntry"/>
   </rdf:Description>
-  <rdf:Description rdf:about="http://localhost:8089/ro1/">
-    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#ResearchObject"/>
-    <ore:isDescribedBy rdf:resource="http://localhost:8089/ro1/.ro/manifest.rdf"/>
+  <rdf:Description rdf:about="http://localhost:8089/folder/#entry3">
+    <ore:proxyIn rdf:resource="http://localhost:8089/folder/"/>
+    <ore:proxyFor rdf:resource="http://localhost:8089/folder/folder2/"/>
+    <ro:entryName>folder2</ro:entryName>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Proxy"/>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#FolderEntry"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://localhost:8089/folder/#entry1">
+    <ore:proxyIn rdf:resource="http://localhost:8089/folder/"/>
+    <ore:proxyFor rdf:resource="http://localhost:8089/ro1/res1.txt"/>
+    <ro:entryName>res1.txt</ro:entryName>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Proxy"/>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#FolderEntry"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://localhost:8089/folder/">
+    <ore:aggregates rdf:resource="http://localhost:8089/folder/folder2/"/>
+    <ore:aggregates rdf:resource="http://localhost:8089/ro1/res2"/>
+    <ore:aggregates rdf:resource="http://localhost:8089/ro1/res1.txt"/>
+    <ore:isDescribedBy rdf:resource="http://localhost:8089/folder.rdf"/>
+    <ore:isAggregatedBy rdf:resource="http://localhost:8089/ro1/"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/Aggregation"/>
+    <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Resource"/>
+    <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Folder"/>
   </rdf:Description>
 </rdf:RDF>

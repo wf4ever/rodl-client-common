@@ -20,6 +20,8 @@ import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
 
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+
 /**
  * A test class for the RO evo service.
  * 
@@ -65,10 +67,10 @@ public class BaseTest {
     @Before
     public void setUp()
             throws Exception {
+        WireMock.resetAllScenarios();
         setUpRoResources();
         setUpRoCreateDelete();
         setUpResourceCreateDelete();
-        setUpExternalResourceCreateDelete();
 
         rosrs = new ROSRService(URI.create("http://localhost:8089/"), null);
     }
@@ -115,18 +117,6 @@ public class BaseTest {
                     .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
                     .withBody(IOUtils.toByteArray(response))));
         stubFor(delete(urlEqualTo("/ro1/res1.txt")).willReturn(aResponse().withStatus(204)));
-    }
-
-
-    protected void setUpExternalResourceCreateDelete()
-            throws IOException {
-        InputStream response = getClass().getClassLoader().getResourceAsStream("resources/response_external.rdf");
-        stubFor(post(urlEqualTo("/ro1/")).withHeader("Slug", equalTo("application/vnd.wf4ever.proxy")).willReturn(
-            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
-                    .withHeader("Location", MOCK_EXT_RESOURCE_PROXY.toString())
-                    .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
-                    .withBody(IOUtils.toByteArray(response))));
-        stubFor(delete(urlEqualTo("/extresproxy")).willReturn(aResponse().withStatus(204)));
     }
 
 }
