@@ -1,3 +1,5 @@
+[![Build Status](https://buildhive.cloudbees.com/job/wf4ever/job/rodl-client-common/badge/icon)](https://buildhive.cloudbees.com/job/wf4ever/job/rodl-client-common/)
+
 rodl-client-common
 ===================
 
