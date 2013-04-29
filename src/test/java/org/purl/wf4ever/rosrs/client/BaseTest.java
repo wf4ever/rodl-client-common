@@ -54,8 +54,8 @@ public class BaseTest {
     /** ROs to delete after a test. */
     protected static List<ResearchObject> rosToDelete = new ArrayList<>();
 
-    /** The Live RO. */
-    protected ResearchObject ro;
+    /** A loaded RO. */
+    protected ResearchObject ro1;
 
 
     /**
@@ -73,9 +73,14 @@ public class BaseTest {
         setUpResourceCreateDelete();
 
         rosrs = new ROSRService(URI.create("http://localhost:8089/"), null);
+        ro1 = new ResearchObject(MOCK_RO, rosrs);
+        ro1.load();
     }
 
 
+    /**
+     * Configure WireMock to handle creating the RO.
+     */
     protected void setUpRoCreateDelete() {
         stubFor(post(urlEqualTo("/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
             aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
@@ -84,6 +89,12 @@ public class BaseTest {
     }
 
 
+    /**
+     * Configure WireMock to return resources from the ro1 folder.
+     * 
+     * @throws IOException
+     *             if the test resources are not available
+     */
     protected void setUpRoResources()
             throws IOException {
         InputStream manifest = getClass().getClassLoader().getResourceAsStream("ro1/.ro/manifest.rdf");
@@ -94,7 +105,7 @@ public class BaseTest {
             aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
                     .withBody(IOUtils.toByteArray(manifest))));
         InputStream body = getClass().getClassLoader().getResourceAsStream("ro1/body.rdf");
-        stubFor(get(urlEqualTo("/ro1/body.rdf")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+        stubFor(get(urlEqualTo("/ro1/body.rdf")).willReturn(
             aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
                     .withBody(IOUtils.toByteArray(body))));
         InputStream folder = getClass().getClassLoader().getResourceAsStream("ro1/folder1.rdf");
@@ -108,6 +119,12 @@ public class BaseTest {
     }
 
 
+    /**
+     * Configure WireMock to handle creating resources.
+     * 
+     * @throws IOException
+     *             if the test resources are not available
+     */
     protected void setUpResourceCreateDelete()
             throws IOException {
         InputStream response = getClass().getClassLoader().getResourceAsStream("resources/response.rdf");

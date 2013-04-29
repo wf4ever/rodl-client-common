@@ -41,9 +41,6 @@ public class ResourceTest extends BaseTest {
     @Rule
     public static final WireMockRule WIREMOCK_RULE = new WireMockRule(8089); // No-args constructor defaults to port 8080
 
-    /** A loaded RO. */
-    private ResearchObject ro1;
-
     /** A test resource. */
     private Resource res1;
 
@@ -58,13 +55,17 @@ public class ResourceTest extends BaseTest {
     public void setUp()
             throws Exception {
         super.setUp();
-        ro1 = new ResearchObject(MOCK_RO, rosrs);
-        ro1.load();
         res1 = new Resource(ro1, MOCK_RESOURCE, MOCK_RESOURCE_PROXY, URI.create("http://test1.myopenid.com"),
                 new DateTime(2011, 12, 02, 15, 02, 10, DateTimeZone.UTC));
     }
 
 
+    /**
+     * Configure WireMock to handle adding an external resource.
+     * 
+     * @throws IOException
+     *             if the test resources are not available
+     */
     protected void setUpExternalResourceCreateDelete()
             throws IOException {
         InputStream response = getClass().getClassLoader().getResourceAsStream("resources/response_external.rdf");

@@ -3,7 +3,6 @@ package org.purl.wf4ever.rosrs.client;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -17,14 +16,11 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ws.rs.core.MediaType;
-
 import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.purl.wf4ever.rosrs.client.exception.ObjectNotLoadedException;
@@ -49,53 +45,20 @@ public class AnnotationTest extends BaseTest {
     @Rule
     public static final WireMockRule WIREMOCK_RULE = new WireMockRule(8089); // No-args constructor defaults to port 8080
 
-    /** RO that will be mapped to local resources. */
-    private static final URI RO_PREFIX = URI.create("http://example.org/ro1/");
-
-    /** Annotation that will be mapped to local resources. */
-    private static final URI ANN_PREFIX = URI.create("http://example.org/ro1/.ro/annotations/1");
-
-    /** Annotation body that will be mapped to local resources. */
-    private static final URI BODY_PREFIX = URI.create("http://example.org/ro1/body1.rdf");
-
-    /** Some RO available by HTTP. */
-    private static final URI MOCK_RO = URI.create("http://localhost:8089/ro1/");
-
-    /** Some annotation available by HTTP. */
+    /** Annotation. */
     private static final URI MOCK_ANNOTATION = URI.create("http://localhost:8089/ann");
 
-    /** Some annotation available by HTTP. */
+    /** Annotation proxy. */
     private static final URI MOCK_ANNOTATION_PROXY = URI.create("http://localhost:8089/annproxy");
 
-    /** Some annotation body available by HTTP. */
-    private static final URI MOCK_BODY = URI.create("http://localhost:8089/body.rdf");
+    /** Body in the ro1 folder. */
+    private static final URI MOCK_BODY = URI.create("http://localhost:8089/ro1/body.rdf");
 
-    /** Some annotation available by HTTP. */
-    private static final URI MOCK_TARGET = URI.create("http://example.org/ROs/1/");
-
-    /** A loaded RO. */
-    private static ResearchObject ro1;
+    /** Annotation target. */
+    private static final URI MOCK_TARGET = URI.create("http://localhost:8089/ro1/");
 
     /** A loaded annotation. */
-    private static Annotation an1;
-
-
-    /**
-     * Prepare a loaded RO.
-     * 
-     * @throws Exception
-     *             when loading the RO fails
-     */
-    @BeforeClass
-    public static void setUpBeforeClass()
-            throws Exception {
-        rosrs = new ROSRService(URI.create("http://localhost:8089/"), null);
-        ro1 = new ResearchObject(RO_PREFIX, rosrs);
-        ro1.load();
-        an1 = new Annotation(ro1, ANN_PREFIX, BODY_PREFIX, RO_PREFIX, URI.create("http://test.myopenid.com"),
-                new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
-        an1.load();
-    }
+    private Annotation an1;
 
 
     /**
@@ -107,16 +70,11 @@ public class AnnotationTest extends BaseTest {
     @Before
     public void setUp()
             throws Exception {
-        //        super.setUp();
-        // this is what the mock HTTP server will return
-        InputStream body = getClass().getClassLoader().getResourceAsStream("annotations/body.rdf");
-        // here we configure the mock HTTP server
-        stubFor(get(urlEqualTo("/ann")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
-            aResponse().withStatus(303).withHeader("Content-Type", MediaType.TEXT_PLAIN)
-                    .withHeader("Location", MOCK_BODY.toString())));
-        stubFor(get(urlEqualTo("/body.rdf")).willReturn(
-            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
-                    .withBody(IOUtils.toByteArray(body))));
+        super.setUp();
+
+        an1 = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, MOCK_RO, URI.create("http://test.myopenid.com"),
+                new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
+        an1.load();
     }
 
 
@@ -126,8 +84,8 @@ public class AnnotationTest extends BaseTest {
     @Test
     public final void testAnnotationResearchObjectUriUriSetOfURIURIDateTime() {
         Set<URI> targets = new HashSet<>();
-        targets.add(RO_PREFIX);
-        Annotation annotation = new Annotation(ro1, ANN_PREFIX, BODY_PREFIX, targets,
+        targets.add(MOCK_RO);
+        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, targets,
                 URI.create("http://test.myopenid.com"), new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
         Assert.assertFalse(annotation.isLoaded());
     }
@@ -138,7 +96,7 @@ public class AnnotationTest extends BaseTest {
      */
     @Test
     public final void testAnnotationResearchObjectUriUriUriUriDateTime() {
-        Annotation annotation = new Annotation(ro1, ANN_PREFIX, BODY_PREFIX, RO_PREFIX,
+        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, MOCK_RO,
                 URI.create("http://test.myopenid.com"), new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
         Assert.assertFalse(annotation.isLoaded());
     }
@@ -213,7 +171,7 @@ public class AnnotationTest extends BaseTest {
      */
     @Test
     public final void testGetUri() {
-        Assert.assertEquals(ANN_PREFIX, an1.getUri());
+        Assert.assertEquals(MOCK_ANNOTATION, an1.getUri());
     }
 
 
@@ -222,7 +180,7 @@ public class AnnotationTest extends BaseTest {
      */
     @Test
     public final void testGetBody() {
-        Assert.assertEquals(BODY_PREFIX, an1.getBody());
+        Assert.assertEquals(MOCK_BODY, an1.getBody());
     }
 
 
@@ -250,7 +208,7 @@ public class AnnotationTest extends BaseTest {
     @Test
     public final void testGetTargets() {
         Set<URI> targets = new HashSet<>();
-        targets.add(RO_PREFIX);
+        targets.add(MOCK_RO);
         Assert.assertEquals(targets, an1.getTargets());
     }
 
@@ -278,12 +236,12 @@ public class AnnotationTest extends BaseTest {
 
         Model ex = ModelFactory.createDefaultModel();
         try (InputStream in = getClass().getClassLoader().getResourceAsStream("ro1/body1.rdf")) {
-            ex.read(in, BODY_PREFIX.toString());
+            ex.read(in, MOCK_BODY.toString());
         }
 
         Model res = ModelFactory.createDefaultModel();
         try (InputStream in = IOUtils.toInputStream(body)) {
-            res.read(in, BODY_PREFIX.toString());
+            res.read(in, MOCK_BODY.toString());
         }
         Assert.assertTrue(ex.isIsomorphicWith(res));
     }

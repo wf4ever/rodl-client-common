@@ -48,32 +48,29 @@ public class FolderTest extends BaseTest {
     @Rule
     public static final WireMockRule WIREMOCK_RULE = new WireMockRule(8089); // No-args constructor defaults to port 8080
 
-    /** Some folder available by HTTP. */
+    /** Folder. */
     private static final URI MOCK_FOLDER = URI.create("http://localhost:8089/folder/");
 
-    /** Some folder resource map available by HTTP. */
+    /** Folder resource map. */
     private static final URI MOCK_RMAP = URI.create("http://localhost:8089/folder/rmap.rdf");
 
-    /** Some folder entry available by HTTP. */
+    /** Folder entry. */
     private static final URI MOCK_FOLDER_ENTRY = URI.create("http://localhost:8089/folder/entries/1");
 
-    /** Some resource available by HTTP. */
+    /** Folder proxy. */
     private static final URI MOCK_FOLDER_PROXY = URI.create("http://localhost:8089/folderproxy");
 
-    /** Some resource available by HTTP. */
-    private static final URI MOCK_SUBFOLDER_PROXY = URI.create("http://localhost:8089/subfolderproxy");
-
-    /** Some folder resource map available by HTTP. */
-    private static final URI MOCK_SUBFOLDER_RMAP = URI.create("http://localhost:8089/folder/subfolder/rmap.rdf");
-
-    /** Some RO available by HTTP. */
+    /** Subfolder. */
     private static final URI MOCK_SUBFOLDER = URI.create("http://localhost:8089/folder/subfolder/");
 
-    /** A loaded RO. */
-    private static ResearchObject ro1;
+    /** Subfolder proxy. */
+    private static final URI MOCK_SUBFOLDER_PROXY = URI.create("http://localhost:8089/subfolderproxy");
+
+    /** Subfolder resource map. */
+    private static final URI MOCK_SUBFOLDER_RMAP = URI.create("http://localhost:8089/folder/subfolder/rmap.rdf");
 
     /** A loaded folder. */
-    private static Folder fol1;
+    private Folder fol1;
 
 
     /**
@@ -89,14 +86,18 @@ public class FolderTest extends BaseTest {
         setUpResourceMaps();
         setUpFolderCreateDelete();
 
-        ro1 = new ResearchObject(MOCK_RO, rosrs);
-        ro1.load();
         fol1 = new Folder(ro1, MOCK_FOLDER, MOCK_FOLDER_PROXY, MOCK_RMAP, URI.create("http://test3.myopenid.com"),
                 new DateTime(2011, 12, 02, 15, 02, 12, DateTimeZone.UTC), true);
         fol1.load(false);
     }
 
 
+    /**
+     * Configure WireMock to return resource maps.
+     * 
+     * @throws IOException
+     *             if the test resources are not available
+     */
     protected void setUpResourceMaps()
             throws IOException {
         InputStream rmap = getClass().getClassLoader().getResourceAsStream("folders/rmap.rdf");
@@ -117,6 +118,12 @@ public class FolderTest extends BaseTest {
     }
 
 
+    /**
+     * Configure WireMock to handle folder creation.
+     * 
+     * @throws IOException
+     *             if the test resources are not available
+     */
     protected void setUpFolderCreateDelete()
             throws IOException {
         InputStream response = getClass().getClassLoader().getResourceAsStream("folders/response.rdf");
@@ -130,6 +137,12 @@ public class FolderTest extends BaseTest {
     }
 
 
+    /**
+     * Configure WireMock to handle adding a resource to a folder.
+     * 
+     * @throws IOException
+     *             if the test resources are not available
+     */
     protected void setUpEntryCreateDelete()
             throws IOException {
         //folder entry
@@ -147,6 +160,12 @@ public class FolderTest extends BaseTest {
     }
 
 
+    /**
+     * Configure WireMock to handle adding a subfolder.
+     * 
+     * @throws IOException
+     *             if the test resources are not available
+     */
     protected void setUpSubfolderEntryCreateDelete()
             throws IOException {
         //subfolder entry
@@ -167,6 +186,12 @@ public class FolderTest extends BaseTest {
     }
 
 
+    /**
+     * Configure WireMock to handle creating a subfolder.
+     * 
+     * @throws IOException
+     *             if the test resources are not available
+     */
     protected void setUpSubfolderCreateDelete()
             throws IOException {
         InputStream subolderResponse = getClass().getClassLoader()

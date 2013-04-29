@@ -30,7 +30,6 @@ import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.util.FileManager;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
 
@@ -192,19 +191,14 @@ public class Annotation extends Thing {
     public void load()
             throws ROSRSException, IOException {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-        RDFFormat syntax = RDFFormat.forFileName(body.toString(), RDFFormat.RDFXML);
-        if (!FileManager.get().mapURI(body.toString()).startsWith("http")) {
-            FileManager.get().readModel(model, body.toString(), body.toString(), syntax.getName().toUpperCase());
-        } else {
-            ClientResponse response = researchObject.getRosrs().getResource(body, "application/rdf+xml");
+        ClientResponse response = researchObject.getRosrs().getResource(body, "application/rdf+xml");
+        try {
+            model.read(response.getEntityInputStream(), body.toString());
+        } finally {
             try {
-                model.read(response.getEntityInputStream(), body.toString());
-            } finally {
-                try {
-                    response.getEntityInputStream().close();
-                } catch (IOException e) {
-                    LOG.warn("Failed to close the annotation body input stream", e);
-                }
+                response.getEntityInputStream().close();
+            } catch (IOException e) {
+                LOG.warn("Failed to close the annotation body input stream", e);
             }
         }
 
