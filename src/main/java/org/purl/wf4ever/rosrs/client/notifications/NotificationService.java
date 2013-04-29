@@ -123,6 +123,26 @@ public class NotificationService implements Serializable {
      * @return the URI for the notifications feed
      */
     public URI getNotificationsUri(URI researchObjectUri, DateTime from, DateTime to) {
+        return getNotificationsUri(researchObjectUri, from, to, null, null);
+    }
+
+
+    /**
+     * Expand the URI template with the provided values.
+     * 
+     * @param researchObjectUri
+     *            the research object URI. If set, only notifications related to this RO will be returned.
+     * @param from
+     *            the timestamp of the oldest notification that should be returned.
+     * @param to
+     *            the timestamp of the most recent notification that should be returned.
+     * @param source
+     *            URI of the producer of notifications
+     * @param limit
+     *            the maximum number of results to be returned
+     * @return the URI for the notifications feed
+     */
+    public URI getNotificationsUri(URI researchObjectUri, DateTime from, DateTime to, URI source, Integer limit) {
         if (notificationsUriTemplateString == null) {
             init();
         }
@@ -135,6 +155,12 @@ public class NotificationService implements Serializable {
         }
         if (to != null) {
             uriTemplate = uriTemplate.set("to", ISODateTimeFormat.dateTime().print(to));
+        }
+        if (source != null) {
+            uriTemplate = uriTemplate.set("source", source.toString());
+        }
+        if (limit != null) {
+            uriTemplate = uriTemplate.set("limit", limit.toString());
         }
         return serviceUri.resolve(UriBuilder.fromUri(uriTemplate.expand()).build());
     }

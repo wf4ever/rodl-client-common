@@ -86,7 +86,8 @@ public class NotificationServiceTest {
     public final void testInit() {
         NotificationService notificationService = new NotificationService(EXAMPLE_SERVICE_URI, null);
         notificationService.init();
-        Assert.assertEquals("notifications{?ro,from,to}", notificationService.getNotificationsUriTemplateString());
+        Assert.assertEquals("notifications{?ro,from,to,source,limit}",
+            notificationService.getNotificationsUriTemplateString());
     }
 
 
@@ -103,7 +104,31 @@ public class NotificationServiceTest {
         URI roUri = URI.create("http://example.org/ROs/ro1/");
         DateTime from = ISODateTimeFormat.dateTimeParser().parseDateTime("2000-06-13T18:20:02.000+02:00");
         DateTime to = ISODateTimeFormat.dateTimeParser().parseDateTime("2006-06-13T18:20:02.000+02:00");
+        URI source = URI.create("http://www.example.com/exampleRO/");
+        Integer limit = 5;
+        URI expectedAll = UriBuilder.fromUri(EXAMPLE_SERVICE_URI).path("notifications")
+                .queryParam("ro", URLEncoder.encode("http://example.org/ROs/ro1/", "UTF-8"))
+                .queryParam("from", URLEncoder.encode("2000-06-13T18:20:02.000+02:00", "UTF-8"))
+                .queryParam("to", URLEncoder.encode("2006-06-13T18:20:02.000+02:00", "UTF-8"))
+                .queryParam("source", URLEncoder.encode("http://www.example.com/exampleRO/", "UTF-8"))
+                .queryParam("limit", URLEncoder.encode("5", "UTF-8")).build();
+        Assert.assertEquals(expectedAll, notificationService.getNotificationsUri(roUri, from, to, source, limit));
+    }
 
+
+    /**
+     * Test that the notification URI template is expanded properly for 'RO', 'from' and 'to' criteria.
+     * 
+     * @throws UnsupportedEncodingException
+     *             when the URL encoder in test uses an invalid encoding
+     */
+    @Test
+    public final void testGetNotificationsUriForROFromToCriteria()
+            throws UnsupportedEncodingException {
+        NotificationService notificationService = new NotificationService(EXAMPLE_SERVICE_URI, null);
+        URI roUri = URI.create("http://example.org/ROs/ro1/");
+        DateTime from = ISODateTimeFormat.dateTimeParser().parseDateTime("2000-06-13T18:20:02.000+02:00");
+        DateTime to = ISODateTimeFormat.dateTimeParser().parseDateTime("2006-06-13T18:20:02.000+02:00");
         URI expectedAll = UriBuilder.fromUri(EXAMPLE_SERVICE_URI).path("notifications")
                 .queryParam("ro", URLEncoder.encode("http://example.org/ROs/ro1/", "UTF-8"))
                 .queryParam("from", URLEncoder.encode("2000-06-13T18:20:02.000+02:00", "UTF-8"))
