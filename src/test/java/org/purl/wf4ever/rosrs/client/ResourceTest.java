@@ -76,8 +76,7 @@ public class ResourceTest extends BaseTest {
     @BeforeClass
     public static final void setUpBeforeClass()
             throws Exception {
-        BaseTest.setUpBeforeClass();
-        rosrs = new ROSRService(URI.create("http://localhost:8089/"), TOKEN);
+        rosrs = new ROSRService(URI.create("http://localhost:8089/"), null);
         ro1 = new ResearchObject(RO_PREFIX, rosrs);
         ro1.load();
         res1 = new Resource(ro1, RES_URI, PROXY_URI, URI.create("http://test1.myopenid.com"), new DateTime(2011, 12,

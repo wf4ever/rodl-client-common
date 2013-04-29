@@ -42,7 +42,6 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Statement;
-import com.hp.hpl.jena.util.FileManager;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
 
@@ -163,19 +162,15 @@ public class ResearchObject extends Thing implements Annotable {
     public void load()
             throws ROSRSException, ROException {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-        if (!FileManager.get().mapURI(uri.toString()).startsWith("http")) {
-            FileManager.get().readModel(model, uri.toString(), uri.resolve(".ro/manifest.rdf").toString(), "RDF/XML");
-        } else {
-            ClientResponse response = rosrs.getResource(uri, "application/rdf+xml");
+        ClientResponse response = rosrs.getResource(uri, "application/rdf+xml");
+        try {
+            //HACK there's no way to get the URI after redirection, so we're using a fixed one which may change for different ROSR services
+            model.read(response.getEntityInputStream(), uri.resolve(".ro/manifest.rdf").toString());
+        } finally {
             try {
-                //HACK there's no way to get the URI after redirection, so we're using a fixed one which may change for different ROSR services
-                model.read(response.getEntityInputStream(), uri.resolve(".ro/manifest.rdf").toString());
-            } finally {
-                try {
-                    response.getEntityInputStream().close();
-                } catch (IOException e) {
-                    LOG.warn("Failed to close the manifest input stream", e);
-                }
+                response.getEntityInputStream().close();
+            } catch (IOException e) {
+                LOG.warn("Failed to close the manifest input stream", e);
             }
         }
         this.creator = extractCreator(model);

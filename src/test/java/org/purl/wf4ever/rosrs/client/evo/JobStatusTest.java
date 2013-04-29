@@ -2,7 +2,6 @@ package org.purl.wf4ever.rosrs.client.evo;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.purl.wf4ever.rosrs.client.BaseTest;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.evo.JobStatus.State;
 

@@ -111,8 +111,7 @@ public class FolderTest extends BaseTest {
     @BeforeClass
     public static final void setUpBeforeClass()
             throws Exception {
-        BaseTest.setUpBeforeClass();
-        rosrs = new ROSRService(URI.create("http://localhost:8089/"), TOKEN);
+        rosrs = new ROSRService(URI.create("http://localhost:8089/"), null);
         ro1 = new ResearchObject(RO_PREFIX, rosrs);
         ro1.load();
         fol1 = new Folder(ro1, FOLDER_URI, PROXY_URI, RMAP_URI, URI.create("http://test3.myopenid.com"), new DateTime(

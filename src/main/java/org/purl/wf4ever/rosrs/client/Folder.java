@@ -147,6 +147,7 @@ public class Folder extends Resource {
         if (!FileManager.get().mapURI(resourceMap.toString()).startsWith("http")) {
             FileManager.get().readModel(model, resourceMap.toString(), resourceMap.toString(),
                 syntax.getName().toUpperCase());
+            model.write(System.out);
         } else {
             ClientResponse response = researchObject.getRosrs().getResource(resourceMap, "application/rdf+xml");
             try {

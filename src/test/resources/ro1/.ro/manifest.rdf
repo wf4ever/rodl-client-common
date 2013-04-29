@@ -27,14 +27,14 @@
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Resource"/>
   </rdf:Description>
   <rdf:Description rdf:about="../folder1/">
-    <ore:isDescribedBy rdf:resource="../folder1.ttl"/>
+    <ore:isDescribedBy rdf:resource="../folder1.rdf"/>
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Resource"/>
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Folder"/>
     <dct:creator rdf:resource="http://test3.myopenid.com"/>
     <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2011-12-02T15:02:12Z</dct:created>
   </rdf:Description>
   <rdf:Description rdf:about="../folder1/folder2/">
-    <ore:isDescribedBy rdf:resource="../folder2.ttl"/>
+    <ore:isDescribedBy rdf:resource="../folder2.rdf"/>
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Resource"/>
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#Folder"/>
     <dct:creator rdf:resource="http://test3.myopenid.com"/>
@@ -50,7 +50,7 @@
     <ore:aggregates rdf:resource="annotations/2"/>
     <ore:aggregates rdf:resource="annotations/3"/>
     <ore:aggregates rdf:resource="annotations/4"/>
-    <ore:aggregates rdf:resource="../body1.rdf"/>
+    <ore:aggregates rdf:resource="../body.rdf"/>
     <ore:aggregates rdf:resource="../body2.rdf"/>
     <ore:aggregates rdf:resource="../body3.rdf"/>
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#ResearchObject"/>
@@ -70,7 +70,7 @@
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#AggregatedAnnotation"/>
     <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2012-12-11T12:06:53.551Z</dct:created>
     <dct:creator rdf:resource="http://test.myopenid.com"/>
-    <ao:body rdf:resource="../body1.rdf"/>
+    <ao:body rdf:resource="../body.rdf"/>
     <ro:annotatesAggregatedResource rdf:resource=".."/>
   </rdf:Description>
   <rdf:Description rdf:about="annotations/2">
@@ -96,7 +96,7 @@
     <ro:annotatesAggregatedResource rdf:resource="../folder1/"/>
   </rdf:Description>
 
-  <rdf:Description rdf:about="../body1.rdf">
+  <rdf:Description rdf:about="../body.rdf">
     <dct:creator rdf:resource="http://test2.myopenid.com"/>
     <dct:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2011-12-02T15:02:11Z</dct:created>
     <rdf:type rdf:resource="http://www.openarchives.org/ore/terms/AggregatedResource"/>

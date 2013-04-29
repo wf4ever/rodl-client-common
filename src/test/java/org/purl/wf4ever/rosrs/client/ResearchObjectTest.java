@@ -1,32 +1,21 @@
 package org.purl.wf4ever.rosrs.client;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.core.MediaType;
-
-import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.purl.wf4ever.rosrs.client.evo.EvoType;
@@ -49,33 +38,8 @@ public class ResearchObjectTest extends BaseTest {
     @Rule
     public static final WireMockRule WIREMOCK_RULE = new WireMockRule(8089); // No-args constructor defaults to port 8080
 
-    /** RO that will be mapped to local resources. */
-    private static final URI RO_PREFIX = URI.create("http://example.org/ro1/");
-
-    /** Some RO available by HTTP. */
-    private static final URI MOCK_RO = URI.create("http://localhost:8089/ro1/");
-
-    /** Some RO available by HTTP. */
-    private static final URI MOCK_MANIFEST = URI.create("http://localhost:8089/ro1/.ro/manifest.rdf");
-
     /** A loaded RO. */
     private static ResearchObject ro1;
-
-
-    /**
-     * Prepare a loaded RO.
-     * 
-     * @throws Exception
-     *             when the test data cannot be loaded
-     */
-    @BeforeClass
-    public static final void setUpBeforeClass()
-            throws Exception {
-        BaseTest.setUpBeforeClass();
-        rosrs = new ROSRService(URI.create("http://localhost:8089/"), TOKEN);
-        ro1 = new ResearchObject(RO_PREFIX, rosrs);
-        ro1.load();
-    }
 
 
     /**
@@ -87,16 +51,10 @@ public class ResearchObjectTest extends BaseTest {
     @Before
     public void setUp()
             throws Exception {
-        //        super.setUp();
-        // this is what the mock HTTP server will return
-        InputStream manifest = getClass().getClassLoader().getResourceAsStream("ro1/.ro/manifest.rdf");
-        // here we configure the mock HTTP server
-        stubFor(get(urlEqualTo("/ro1/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
-            aResponse().withStatus(303).withHeader("Content-Type", MediaType.TEXT_PLAIN)
-                    .withHeader("Location", MOCK_MANIFEST.toString())));
-        stubFor(get(urlEqualTo("/ro1/.ro/manifest.rdf")).willReturn(
-            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
-                    .withBody(IOUtils.toByteArray(manifest))));
+        super.setUp();
+
+        ro1 = new ResearchObject(MOCK_RO, rosrs);
+        ro1.load();
     }
 
 
@@ -105,7 +63,7 @@ public class ResearchObjectTest extends BaseTest {
      */
     @Test
     public final void testResearchObject() {
-        ResearchObject ro = new ResearchObject(RO_PREFIX, null);
+        ResearchObject ro = new ResearchObject(MOCK_RO, null);
         Assert.assertFalse(ro.isLoaded());
     }
 
@@ -119,10 +77,6 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void testCreateDelete()
             throws ROSRSException {
-        stubFor(post(urlEqualTo("/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
-            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
-                    .withHeader("Location", MOCK_RO.toString())));
-        stubFor(delete(urlEqualTo("/ro1/")).willReturn(aResponse().withStatus(204)));
 
         ResearchObject ro = ResearchObject.create(rosrs, "JavaClientTest");
         verify(postRequestedFor(urlMatching("/")).withHeader("Slug", equalTo("JavaClientTest")).withHeader("Accept",
@@ -138,7 +92,7 @@ public class ResearchObjectTest extends BaseTest {
      */
     @Test
     public final void testGetUri() {
-        Assert.assertEquals(RO_PREFIX, ro1.getUri());
+        Assert.assertEquals(MOCK_RO, ro1.getUri());
     }
 
 
@@ -185,11 +139,11 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void testGetResources() {
         Set<Resource> ex = new HashSet<>();
-        ex.add(new Resource(ro1, RO_PREFIX.resolve("res1.txt"), RO_PREFIX.resolve("proxies/1"), URI
+        ex.add(new Resource(ro1, MOCK_RO.resolve("res1.txt"), MOCK_RO.resolve("proxies/1"), URI
                 .create("http://test1.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 10, DateTimeZone.UTC)));
-        ex.add(new Resource(ro1, RO_PREFIX.resolve("res2"), RO_PREFIX.resolve("proxies/2"), URI
+        ex.add(new Resource(ro1, MOCK_RO.resolve("res2"), MOCK_RO.resolve("proxies/2"), URI
                 .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
-        ex.add(new Resource(ro1, RO_PREFIX.resolve("res3"), RO_PREFIX.resolve("proxies/5"), URI
+        ex.add(new Resource(ro1, MOCK_RO.resolve("res3"), MOCK_RO.resolve("proxies/5"), URI
                 .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
         Set<Resource> res = new HashSet<>();
         res.addAll(ro1.getResources().values());
@@ -207,7 +161,7 @@ public class ResearchObjectTest extends BaseTest {
     public final void testGetResourcesWithoutFolders()
             throws ROSRSException {
         List<Resource> ex = new ArrayList<>();
-        ex.add(new Resource(ro1, RO_PREFIX.resolve("res3"), RO_PREFIX.resolve("proxies/5"), URI
+        ex.add(new Resource(ro1, MOCK_RO.resolve("res3"), MOCK_RO.resolve("proxies/5"), URI
                 .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
         List<Resource> res = ro1.getResourcesWithoutFolders();
         Assert.assertEquals(ex, res);
@@ -220,11 +174,11 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void testGetFolders() {
         Set<Folder> folders = new HashSet<>();
-        folders.add(new Folder(ro1, RO_PREFIX.resolve("folder1/"), RO_PREFIX.resolve("proxies/3"), RO_PREFIX
-                .resolve("folder1.ttl"), URI.create("http://test3.myopenid.com"), new DateTime(2011, 12, 02, 15, 02,
+        folders.add(new Folder(ro1, MOCK_RO.resolve("folder1/"), MOCK_RO.resolve("proxies/3"), MOCK_RO
+                .resolve("folder1.rdf"), URI.create("http://test3.myopenid.com"), new DateTime(2011, 12, 02, 15, 02,
                 12, DateTimeZone.UTC), true));
-        folders.add(new Folder(ro1, RO_PREFIX.resolve("folder1/folder2/"), RO_PREFIX.resolve("proxies/4"), RO_PREFIX
-                .resolve("folder2.ttl"), URI.create("http://test3.myopenid.com"), new DateTime(2011, 12, 02, 15, 02,
+        folders.add(new Folder(ro1, MOCK_RO.resolve("folder1/folder2/"), MOCK_RO.resolve("proxies/4"), MOCK_RO
+                .resolve("folder2.rdf"), URI.create("http://test3.myopenid.com"), new DateTime(2011, 12, 02, 15, 02,
                 12, DateTimeZone.UTC), false));
         Set<Folder> res = new HashSet<>();
         res.addAll(ro1.getFolders().values());
@@ -238,26 +192,26 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void testGetAnnotations() {
         Multimap<URI, Annotation> ex = HashMultimap.<URI, Annotation> create();
-        Annotation an1 = new Annotation(ro1, RO_PREFIX.resolve(".ro/annotations/1"), RO_PREFIX.resolve("body1.rdf"),
-                RO_PREFIX, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
+        Annotation an1 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/1"), MOCK_RO.resolve("body.rdf"),
+                MOCK_RO, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
                         DateTimeZone.UTC));
-        Annotation an2 = new Annotation(ro1, RO_PREFIX.resolve(".ro/annotations/2"),
-                URI.create("http://example.org/externalbody1.rdf"), RO_PREFIX.resolve("res1.txt"),
+        Annotation an2 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/2"),
+                URI.create("http://example.org/externalbody1.rdf"), MOCK_RO.resolve("res1.txt"),
                 URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
         Set<URI> targets = new HashSet<>();
-        targets.add(RO_PREFIX.resolve("folder1/"));
-        targets.add(RO_PREFIX.resolve("res2"));
-        Annotation an3 = new Annotation(ro1, RO_PREFIX.resolve(".ro/annotations/3"), RO_PREFIX.resolve("body2.rdf"),
+        targets.add(MOCK_RO.resolve("folder1/"));
+        targets.add(MOCK_RO.resolve("res2"));
+        Annotation an3 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/3"), MOCK_RO.resolve("body2.rdf"),
                 targets, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
                         DateTimeZone.UTC));
-        Annotation an4 = new Annotation(ro1, RO_PREFIX.resolve(".ro/annotations/4"), RO_PREFIX.resolve("body3.rdf"),
-                RO_PREFIX.resolve("folder1/"), URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12,
-                        06, 53, 551, DateTimeZone.UTC));
-        ex.put(RO_PREFIX, an1);
-        ex.put(RO_PREFIX.resolve("res1.txt"), an2);
-        ex.put(RO_PREFIX.resolve("folder1/"), an3);
-        ex.put(RO_PREFIX.resolve("res2"), an3);
-        ex.put(RO_PREFIX.resolve("folder1/"), an4);
+        Annotation an4 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/4"), MOCK_RO.resolve("body3.rdf"),
+                MOCK_RO.resolve("folder1/"), URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06,
+                        53, 551, DateTimeZone.UTC));
+        ex.put(MOCK_RO, an1);
+        ex.put(MOCK_RO.resolve("res1.txt"), an2);
+        ex.put(MOCK_RO.resolve("folder1/"), an3);
+        ex.put(MOCK_RO.resolve("res2"), an3);
+        ex.put(MOCK_RO.resolve("folder1/"), an4);
 
         Assert.assertEquals(ex, ro1.getAllAnnotations());
     }

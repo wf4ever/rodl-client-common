@@ -1,14 +1,22 @@
 package org.purl.wf4ever.rosrs.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
-import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 /**
  * A test class for the RO evo service.
@@ -24,31 +32,17 @@ public class BaseTest {
     /** ROSR service. */
     protected static ROSRService rosrs;
 
-    /** RODL access token. */
-    protected static final String TOKEN = "1cec3d40-4c6c-4bb8-8527-cbd8776c6327";
+    /** Some RO available by HTTP. */
+    protected static final URI MOCK_RO = URI.create("http://localhost:8089/ro1/");
 
-    /** RODL URI for testing. */
-    protected static final URI RODL_URI = URI.create("http://sandbox.wf4ever-project.org/rodl/");
+    /** Some RO available by HTTP. */
+    protected static final URI MOCK_MANIFEST = URI.create("http://localhost:8089/ro1/.ro/manifest.rdf");
 
     /** ROs to delete after a test. */
     protected static List<ResearchObject> rosToDelete = new ArrayList<>();
 
     /** The Live RO. */
     protected ResearchObject ro;
-
-
-    /**
-     * Prepare an ROEVO service.
-     * 
-     * @throws Exception
-     *             example RO has incorrect data
-     */
-    @BeforeClass
-    public static void setUpBeforeClass()
-            throws Exception {
-        rosrs = new ROSRService(RODL_URI.resolve("ROs/"), TOKEN);
-        roevo = new ROEVOService(RODL_URI, TOKEN);
-    }
 
 
     /**
@@ -60,25 +54,42 @@ public class BaseTest {
     @Before
     public void setUp()
             throws Exception {
-        ro = new ResearchObject(rosrs.getRosrsURI().resolve("ROEVOServiceTest/"), rosrs);
-        ro.delete();
-        ro = ResearchObject.create(rosrs, "ROEVOServiceTest");
-        rosToDelete.add(ro);
+        setUpRoResources();
+        setUpRoCreateAndDelete();
+
+        rosrs = new ROSRService(URI.create("http://localhost:8089/"), null);
     }
 
 
-    /**
-     * Remove all ROs created in the tests.
-     * 
-     * @throws ROSRSException
-     *             unexpected response from RODL
-     */
-    @After
-    public void tearDown()
-            throws ROSRSException {
-        for (ResearchObject roToDelete : rosToDelete) {
-            roToDelete.delete();
-        }
+    protected void setUpRoCreateAndDelete() {
+        stubFor(post(urlEqualTo("/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
+                    .withHeader("Location", MOCK_RO.toString())));
+        stubFor(delete(urlEqualTo("/ro1/")).willReturn(aResponse().withStatus(204)));
+    }
+
+
+    protected void setUpRoResources()
+            throws IOException {
+        InputStream manifest = getClass().getClassLoader().getResourceAsStream("ro1/.ro/manifest.rdf");
+        stubFor(get(urlEqualTo("/ro1/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(303).withHeader("Content-Type", "application/rdf+xml")
+                    .withHeader("Location", MOCK_MANIFEST.toString())));
+        stubFor(get(urlEqualTo("/ro1/.ro/manifest.rdf")).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
+                    .withBody(IOUtils.toByteArray(manifest))));
+        InputStream body = getClass().getClassLoader().getResourceAsStream("ro1/body.rdf");
+        stubFor(get(urlEqualTo("/ro1/body.rdf")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
+                    .withBody(IOUtils.toByteArray(body))));
+        InputStream folder = getClass().getClassLoader().getResourceAsStream("ro1/folder1.rdf");
+        stubFor(get(urlEqualTo("/ro1/folder1.rdf")).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
+                    .withBody(IOUtils.toByteArray(folder))));
+        InputStream folder2 = getClass().getClassLoader().getResourceAsStream("ro1/folder2.rdf");
+        stubFor(get(urlEqualTo("/ro1/folder2.rdf")).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
+                    .withBody(IOUtils.toByteArray(folder2))));
     }
 
 }

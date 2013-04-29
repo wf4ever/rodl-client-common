@@ -89,8 +89,7 @@ public class AnnotationTest extends BaseTest {
     @BeforeClass
     public static void setUpBeforeClass()
             throws Exception {
-        BaseTest.setUpBeforeClass();
-        rosrs = new ROSRService(URI.create("http://localhost:8089/"), TOKEN);
+        rosrs = new ROSRService(URI.create("http://localhost:8089/"), null);
         ro1 = new ResearchObject(RO_PREFIX, rosrs);
         ro1.load();
         an1 = new Annotation(ro1, ANN_PREFIX, BODY_PREFIX, RO_PREFIX, URI.create("http://test.myopenid.com"),
