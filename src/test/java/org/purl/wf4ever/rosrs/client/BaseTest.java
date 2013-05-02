@@ -11,12 +11,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
 
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 
@@ -29,9 +26,6 @@ import com.github.tomakehurst.wiremock.client.WireMock;
  * 
  */
 public class BaseTest {
-
-    /** ro evo service. */
-    protected static ROEVOService roevo;
 
     /** ROSR service. */
     protected static ROSRService rosrs;
@@ -50,9 +44,6 @@ public class BaseTest {
 
     /** Some resource available by HTTP. */
     protected static final URI MOCK_EXT_RESOURCE_PROXY = URI.create("http://localhost:8089/extresproxy");
-
-    /** ROs to delete after a test. */
-    protected static List<ResearchObject> rosToDelete = new ArrayList<>();
 
     /** A loaded RO. */
     protected ResearchObject ro1;
