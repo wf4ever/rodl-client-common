@@ -10,8 +10,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -33,15 +31,6 @@ public class BaseTest {
 
     /** ROSR service. */
     protected static ROSRService rosrs;
-
-    /** RODL access token. */
-    protected static final String TOKEN = "1cec3d40-4c6c-4bb8-8527-cbd8776c6327";
-
-    /** RODL URI for testing. */
-    protected static final URI RODL_URI = URI.create("http://sandbox.wf4ever-project.org/rodl/");
-
-    /** ROs to delete after a test. */
-    protected static List<ResearchObject> rosToDelete = new ArrayList<>();
 
     /** The Live RO. */
     protected ResearchObject ro;
