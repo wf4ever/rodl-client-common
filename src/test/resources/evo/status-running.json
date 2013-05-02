@@ -1,0 +1,7 @@
+{
+  "copyfrom": "http://localhost:8089/ro1/",
+  "type": "SNAPSHOT",
+  "finalize": true,
+  "target": "http://localhost:8089/ro1-copy/",
+  "status": "RUNNING"
+}

@@ -1,0 +1,12 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:j.0="http://purl.org/ro/service/evolution/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" > 
+  <rdf:Description rdf:about="http://localhost:8089/">
+    <j.0:info>http://localhost:8089/info{?ro}</j.0:info>
+    <j.0:finalize>http://localhost:8089/finalize/</j.0:finalize>
+    <j.0:copy>http://localhost:8089/copy/</j.0:copy>
+  </rdf:Description>
+</rdf:RDF>
