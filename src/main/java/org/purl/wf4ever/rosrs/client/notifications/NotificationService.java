@@ -13,6 +13,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
 import org.purl.wf4ever.rosrs.client.exception.NotificationsException;
@@ -151,10 +152,10 @@ public class NotificationService implements Serializable {
             uriTemplate = uriTemplate.set("ro", researchObjectUri.toString());
         }
         if (from != null) {
-            uriTemplate = uriTemplate.set("from", ISODateTimeFormat.dateTime().print(from));
+            uriTemplate = uriTemplate.set("from", ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC).print(from));
         }
         if (to != null) {
-            uriTemplate = uriTemplate.set("to", ISODateTimeFormat.dateTime().print(to));
+            uriTemplate = uriTemplate.set("to", ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC).print(to));
         }
         if (source != null) {
             uriTemplate = uriTemplate.set("source", source.toString());

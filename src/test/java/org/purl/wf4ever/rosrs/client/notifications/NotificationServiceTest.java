@@ -108,8 +108,8 @@ public class NotificationServiceTest {
         Integer limit = 5;
         URI expectedAll = UriBuilder.fromUri(EXAMPLE_SERVICE_URI).path("notifications")
                 .queryParam("ro", URLEncoder.encode("http://example.org/ROs/ro1/", "UTF-8"))
-                .queryParam("from", URLEncoder.encode("2000-06-13T18:20:02.000+02:00", "UTF-8"))
-                .queryParam("to", URLEncoder.encode("2006-06-13T18:20:02.000+02:00", "UTF-8"))
+                .queryParam("from", URLEncoder.encode("2000-06-13T16:20:02.000Z", "UTF-8"))
+                .queryParam("to", URLEncoder.encode("2006-06-13T16:20:02.000Z", "UTF-8"))
                 .queryParam("source", URLEncoder.encode("http://www.example.com/exampleRO/", "UTF-8"))
                 .queryParam("limit", URLEncoder.encode("5", "UTF-8")).build();
         Assert.assertEquals(expectedAll, notificationService.getNotificationsUri(roUri, from, to, source, limit));
@@ -131,8 +131,8 @@ public class NotificationServiceTest {
         DateTime to = ISODateTimeFormat.dateTimeParser().parseDateTime("2006-06-13T18:20:02.000+02:00");
         URI expectedAll = UriBuilder.fromUri(EXAMPLE_SERVICE_URI).path("notifications")
                 .queryParam("ro", URLEncoder.encode("http://example.org/ROs/ro1/", "UTF-8"))
-                .queryParam("from", URLEncoder.encode("2000-06-13T18:20:02.000+02:00", "UTF-8"))
-                .queryParam("to", URLEncoder.encode("2006-06-13T18:20:02.000+02:00", "UTF-8")).build();
+                .queryParam("from", URLEncoder.encode("2000-06-13T16:20:02.000Z", "UTF-8"))
+                .queryParam("to", URLEncoder.encode("2006-06-13T16:20:02.000Z", "UTF-8")).build();
         Assert.assertEquals(expectedAll, notificationService.getNotificationsUri(roUri, from, to));
     }
 
@@ -150,7 +150,7 @@ public class NotificationServiceTest {
         DateTime from = ISODateTimeFormat.dateTimeParser().parseDateTime("2000-06-13T18:20:02.000+02:00");
 
         URI expectedOnlyFrom = UriBuilder.fromUri(EXAMPLE_SERVICE_URI).path("notifications")
-                .queryParam("from", URLEncoder.encode("2000-06-13T18:20:02.000+02:00", "UTF-8")).build();
+                .queryParam("from", URLEncoder.encode("2000-06-13T16:20:02.000Z", "UTF-8")).build();
         Assert.assertEquals(expectedOnlyFrom, notificationService.getNotificationsUri(null, from, null));
     }
 
@@ -206,7 +206,7 @@ public class NotificationServiceTest {
             throws NotificationsException, IOException {
         // this is the path of the URI that the NotificationService should call
         String serviceUrl = "/";
-        String feedUrl = "/notifications?ro=http%3A%2F%2Fexample.org%2FROs%2Fro1%2F&from=2000-06-13T18%3A20%3A02.000%2B02%3A00&to=2006-06-13T18%3A20%3A02.000%2B02%3A00";
+        String feedUrl = "/notifications?ro=http%3A%2F%2Fexample.org%2FROs%2Fro1%2F&from=2000-06-13T16%3A20%3A02.000Z&to=2006-06-13T16%3A20%3A02.000Z";
         // this is what the mock HTTP server will return
         InputStream serviceDesc = getClass().getClassLoader().getResourceAsStream(
             "notifications/serviceDescription.rdf");
