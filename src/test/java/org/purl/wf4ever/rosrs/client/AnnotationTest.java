@@ -71,10 +71,30 @@ public class AnnotationTest extends BaseTest {
     public void setUp()
             throws Exception {
         super.setUp();
+        setUpAnnotationCreateDelete();
 
         an1 = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, MOCK_RO, URI.create("http://test.myopenid.com"),
                 new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
         an1.load();
+    }
+
+
+    /**
+     * Configure WireMock to create and delete annotations.
+     * 
+     * @throws IOException
+     *             if the test resources are not available
+     */
+    protected void setUpAnnotationCreateDelete()
+            throws IOException {
+        // this is what the mock HTTP server will return
+        InputStream response = getClass().getClassLoader().getResourceAsStream("annotations/response.rdf");
+        stubFor(post(urlEqualTo("/ro1/")).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "application/vnd.wf4ever.annotation")
+                    .withHeader("Location", MOCK_ANNOTATION_PROXY.toString())
+                    .withHeader("Link", "<" + MOCK_ANNOTATION + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                    .withBody(IOUtils.toByteArray(response))));
+        stubFor(delete(urlEqualTo("/ann")).willReturn(aResponse().withStatus(204)));
     }
 
 
@@ -115,19 +135,6 @@ public class AnnotationTest extends BaseTest {
     @Test
     public final void testCreateDelete()
             throws ROSRSException, ROException, IOException {
-        // this is what the mock HTTP server will return
-        InputStream response = getClass().getClassLoader().getResourceAsStream("annotations/response.rdf");
-        stubFor(post(urlEqualTo("/")).withHeader("Accept", equalTo("application/rdf+xml")).willReturn(
-            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
-                    .withHeader("Location", MOCK_RO.toString())));
-        stubFor(delete(urlEqualTo("/ro1/")).willReturn(aResponse().withStatus(204)));
-        stubFor(post(urlEqualTo("/ro1/")).willReturn(
-            aResponse().withStatus(201).withHeader("Content-Type", "application/vnd.wf4ever.annotation")
-                    .withHeader("Location", MOCK_ANNOTATION_PROXY.toString())
-                    .withHeader("Link", "<" + MOCK_ANNOTATION + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
-                    .withBody(IOUtils.toByteArray(response))));
-        stubFor(delete(urlEqualTo("/ann")).willReturn(aResponse().withStatus(204)));
-
         ResearchObject ro = ResearchObject.create(rosrs, "ro1");
         Annotation an = Annotation.create(ro, MOCK_BODY, MOCK_TARGET);
         Assert.assertNotNull(an);
