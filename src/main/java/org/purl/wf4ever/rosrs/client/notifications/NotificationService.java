@@ -209,6 +209,7 @@ public class NotificationService implements Serializable {
             for (SyndLink link : links) {
                 if (link.getRel().equals(DCTerms.source.getURI())) {
                     notification.setSource(URI.create(link.getHref()));
+                    notification.setSourceName(link.getTitle() != null ? link.getTitle() : link.getHref());
                 } else if (link.getRel().equals(ORE.describes.getURI())) {
                     notification.setResearchObjectUri(URI.create(link.getHref()));
                 }

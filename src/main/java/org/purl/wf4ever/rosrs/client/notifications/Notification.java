@@ -29,6 +29,9 @@ public class Notification implements Serializable {
     /** Identifier of the service generating this notification. */
     private URI source;
 
+    /** Nice name of the service generating this notification. */
+    private String sourceName;
+
     /** Notification identifier. */
     private String id;
 
@@ -83,6 +86,16 @@ public class Notification implements Serializable {
 
     public void setSource(URI source) {
         this.source = source;
+    }
+
+
+    public String getSourceName() {
+        return sourceName;
+    }
+
+
+    public void setSourceName(String sourceName) {
+        this.sourceName = sourceName;
     }
 
 
