@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.openrdf.rio.RDFFormat;
@@ -30,6 +31,7 @@ import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.shared.JenaException;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
 
@@ -185,15 +187,15 @@ public class Annotation extends Thing {
      * 
      * @throws ROSRSException
      *             unexpected server response when downloading the body
-     * @throws IOException
-     *             error copying streams
      */
     public void load()
-            throws ROSRSException, IOException {
+            throws ROSRSException {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
         ClientResponse response = researchObject.getRosrs().getResource(body, "application/rdf+xml");
         try {
             model.read(response.getEntityInputStream(), body.toString());
+        } catch (JenaException e) {
+            throw new ROSRSException("Can't load annotation", HttpStatus.SC_NOT_FOUND, "Not found");
         } finally {
             try {
                 response.getEntityInputStream().close();
@@ -211,6 +213,8 @@ public class Annotation extends Thing {
                 bodySerializedAsString = out.toString();
                 loaded = true;
             }
+        } catch (IOException e) {
+            LOG.error("Could not close streams", e);
         }
     }
 
@@ -298,6 +302,69 @@ public class Annotation extends Thing {
             throw new ObjectNotLoadedException("the annotation wasn't loaded: " + uri);
         }
         return statements;
+    }
+
+
+    /**
+     * Return all property values that describe the given resource and are literals.
+     * 
+     * @param resource
+     *            the subject
+     * @param property
+     *            the property
+     * @return a (possibly empty) list of literal values
+     * @throws ROSRSException
+     *             unexpected server response when downloading the body
+     */
+    public List<String> getPropertyValues(Annotable resource, URI property)
+            throws ROSRSException {
+        if (!isLoaded()) {
+            load();
+        }
+        List<String> literals = new ArrayList<>();
+        for (Statement statement : getStatements()) {
+            if (statement.getSubjectURI().equals(resource.getUri()) && statement.getPropertyURI().equals(property)
+                    && statement.isObjectLiteral()) {
+                literals.add(statement.getObjectValue());
+            }
+        }
+        return literals;
+    }
+
+
+    /**
+     * Update the list of statements by setting the property value to a given literal value. All other literal values of
+     * this property describing this resource are removed.
+     * 
+     * @param resource
+     *            the subject
+     * @param property
+     *            the URI of the property
+     * @param value
+     *            the value to be used as a literal
+     */
+    public void updatePropertyValue(Annotable resource, URI property, String value) {
+        deletePropertyValue(resource, property);
+        statements.add(new Statement(resource.getUri(), property, value));
+    }
+
+
+    /**
+     * Delete all literal values of a property describing a resource from the list of statements. Property values that
+     * are not literals are ignored (preserved).
+     * 
+     * @param resource
+     *            the subject
+     * @param property
+     *            the URI of the property
+     */
+    public void deletePropertyValue(Annotable resource, URI property) {
+        for (Statement statement : new ArrayList<>(getStatements())) {
+            if (statement.getSubjectURI().equals(resource.getUri()) && statement.getPropertyURI().equals(property)
+                    && statement.isObjectLiteral()) {
+                statements.remove(statement);
+            }
+        }
     }
 
 

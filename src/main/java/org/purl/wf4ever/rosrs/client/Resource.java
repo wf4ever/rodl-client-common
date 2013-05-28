@@ -3,7 +3,13 @@ package org.purl.wf4ever.rosrs.client;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
@@ -29,6 +35,9 @@ public class Resource extends Thing implements Annotable {
 
     /** id. */
     private static final long serialVersionUID = 7593887876508190085L;
+
+    /** Logger. */
+    private static final Logger LOG = Logger.getLogger(Resource.class);
 
     /** The RO it is aggregated by. */
     protected final ResearchObject researchObject;
@@ -258,5 +267,52 @@ public class Resource extends Thing implements Annotable {
 
     public boolean isInternal() {
         return uri.toString().startsWith(researchObject.getUri().toString());
+    }
+
+
+    @Override
+    public Map<Annotation, String> getPropertyValues(URI property) {
+        Map<Annotation, String> map = new HashMap<>();
+        for (Annotation annotation : getAnnotations()) {
+            try {
+                List<String> literals = annotation.getPropertyValues(this, property);
+                if (!literals.isEmpty()) {
+                    map.put(annotation, StringUtils.join(literals, "; "));
+                }
+            } catch (ROSRSException e) {
+                LOG.error("Can't load annotation body", e);
+            }
+        }
+        return map;
+    }
+
+
+    @Override
+    public Annotation createPropertyValue(URI property, String value)
+            throws ROSRSException, ROException {
+        return this.annotate(null,
+            Annotation.wrapAnnotationBody(Collections.singletonList(new Statement(this.getUri(), property, value))),
+            "RDF/XML");
+    }
+
+
+    @Override
+    public Annotation updatePropertyValue(Annotation annotation, URI property, String value)
+            throws ROSRSException {
+        annotation.updatePropertyValue(this, property, value);
+        annotation.update();
+        return annotation;
+    }
+
+
+    @Override
+    public void deletePropertyValue(Annotation annotation, URI property)
+            throws ROSRSException {
+        annotation.deletePropertyValue(this, property);
+        if (annotation.getStatements().isEmpty()) {
+            annotation.delete();
+        } else {
+            annotation.update();
+        }
     }
 }

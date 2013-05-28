@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
@@ -18,6 +19,7 @@ import org.junit.Before;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.hp.hpl.jena.vocabulary.RDFS;
 
 /**
  * A test class for the RO evo service.
@@ -47,6 +49,9 @@ public class BaseTest {
 
     /** A loaded RO. */
     protected ResearchObject ro1;
+
+    /** URI of rdfs:comment. */
+    protected static final URI RDFS_COMMENT = URI.create(RDFS.comment.getURI());
 
 
     /**
@@ -99,6 +104,7 @@ public class BaseTest {
         stubFor(get(urlEqualTo("/ro1/body.rdf")).willReturn(
             aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
                     .withBody(IOUtils.toByteArray(body))));
+        stubFor(put(urlEqualTo("/ro1/body.rdf")).willReturn(aResponse().withStatus(200)));
         InputStream folder = getClass().getClassLoader().getResourceAsStream("ro1/folder1.rdf");
         stubFor(get(urlEqualTo("/ro1/folder1.rdf")).willReturn(
             aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")

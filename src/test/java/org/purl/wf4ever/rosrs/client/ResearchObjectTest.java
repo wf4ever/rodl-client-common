@@ -2,14 +2,26 @@ package org.purl.wf4ever.rosrs.client;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.notMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.hasValue;
+import static org.hamcrest.Matchers.notNullValue;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.joda.time.DateTime;
@@ -192,23 +204,27 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void testGetAnnotations() {
         Multimap<URI, Annotation> ex = HashMultimap.<URI, Annotation> create();
+        Set<URI> targets = new HashSet<>();
+        targets.add(MOCK_RO);
+        targets.add(MOCK_RESOURCE);
         Annotation an1 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/1"), MOCK_RO.resolve("body.rdf"),
-                MOCK_RO, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
+                targets, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
                         DateTimeZone.UTC));
         Annotation an2 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/2"),
                 URI.create("http://example.org/externalbody1.rdf"), MOCK_RO.resolve("res1.txt"),
                 URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
-        Set<URI> targets = new HashSet<>();
-        targets.add(MOCK_RO.resolve("folder1/"));
-        targets.add(MOCK_RO.resolve("res2"));
+        Set<URI> targets2 = new HashSet<>();
+        targets2.add(MOCK_RO.resolve("folder1/"));
+        targets2.add(MOCK_RO.resolve("res2"));
         Annotation an3 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/3"), MOCK_RO.resolve("body2.rdf"),
-                targets, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
+                targets2, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
                         DateTimeZone.UTC));
         Annotation an4 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/4"), MOCK_RO.resolve("body3.rdf"),
                 MOCK_RO.resolve("folder1/"), URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06,
                         53, 551, DateTimeZone.UTC));
         ex.put(MOCK_RO, an1);
         ex.put(MOCK_RO.resolve("res1.txt"), an2);
+        ex.put(MOCK_RO.resolve("res1.txt"), an1);
         ex.put(MOCK_RO.resolve("folder1/"), an3);
         ex.put(MOCK_RO.resolve("res2"), an3);
         ex.put(MOCK_RO.resolve("folder1/"), an4);
@@ -260,5 +276,81 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void testGetEvoType() {
         Assert.assertEquals(EvoType.SNAPSHOT, ro1.getEvoType());
+    }
+
+
+    /**
+     * See name.
+     * 
+     * @throws ROSRSException
+     *             wiremock error
+     */
+    @Test
+    public final void shouldReturnTwoCommentsJoined()
+            throws ROSRSException {
+        Map<Annotation, String> map = ro1.getPropertyValues(RDFS_COMMENT);
+        assertThat(map.values(), hasSize(equalTo(1)));
+        assertThat(map, anyOf(hasValue("RO comment 1; RO comment 2"), hasValue("RO comment 2; RO comment 1")));
+    }
+
+
+    /**
+     * See name.
+     * 
+     * @throws ROSRSException
+     *             wiremock error
+     */
+    @Test
+    public final void shouldUpdateAComment()
+            throws ROSRSException {
+        Map<Annotation, String> map = ro1.getPropertyValues(RDFS_COMMENT);
+        assertThat(map.values(), hasSize(equalTo(1)));
+        Entry<Annotation, String> e = map.entrySet().iterator().next();
+        ro1.updatePropertyValue(e.getKey(), RDFS_COMMENT, "RO comment 3");
+
+        verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(matching(".*RO comment 3.*")));
+
+        map = ro1.getPropertyValues(RDFS_COMMENT);
+        assertThat(map.values(), hasSize(equalTo(1)));
+    }
+
+
+    /**
+     * See name.
+     * 
+     * @throws ROSRSException
+     *             wiremock error
+     * @throws ROException
+     *             incorrect manifest
+     */
+    @Test
+    public final void shouldCreateAComment()
+            throws ROSRSException, ROException {
+        Map<Annotation, String> map = ro1.getPropertyValues(RDFS_COMMENT);
+        assertThat(map.values(), hasSize(equalTo(1)));
+        Annotation annotation = ro1.createPropertyValue(RDFS_COMMENT, "RO comment 3");
+        assertThat(annotation, notNullValue());
+
+        verify(postRequestedFor(urlEqualTo("/ro1/")).withRequestBody(matching(".*RO comment 3.*")));
+    }
+
+
+    /**
+     * See name.
+     * 
+     * @throws ROSRSException
+     *             wiremock error
+     * @throws ROException
+     *             incorrect manifest
+     */
+    @Test
+    public final void shouldDeleteAComment()
+            throws ROSRSException, ROException {
+        Map<Annotation, String> map = ro1.getPropertyValues(RDFS_COMMENT);
+        assertThat(map.values(), hasSize(equalTo(1)));
+        Entry<Annotation, String> e = map.entrySet().iterator().next();
+        ro1.deletePropertyValue(e.getKey(), RDFS_COMMENT);
+
+        verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(notMatching(".*RO comment.*")));
     }
 }

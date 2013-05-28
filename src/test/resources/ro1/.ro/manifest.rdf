@@ -72,6 +72,7 @@
     <dct:creator rdf:resource="http://test.myopenid.com"/>
     <ao:body rdf:resource="../body.rdf"/>
     <ro:annotatesAggregatedResource rdf:resource=".."/>
+    <ro:annotatesAggregatedResource rdf:resource="../res1.txt"/>
   </rdf:Description>
   <rdf:Description rdf:about="annotations/2">
     <rdf:type rdf:resource="http://purl.org/wf4ever/ro#AggregatedAnnotation"/>

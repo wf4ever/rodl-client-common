@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.purl.wf4ever.rosrs.client.evo.EvoType;
@@ -38,10 +39,8 @@ import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
 
@@ -188,52 +187,18 @@ public class ResearchObject extends Thing implements Annotable {
             try {
                 annotation.load();
                 model.read(new ByteArrayInputStream(annotation.getBodySerializedAsString().getBytes()), null);
-            } catch (ROSRSException | IOException e) {
+            } catch (ROSRSException e) {
                 LOG.error("Can't load annotation: " + annotation.getUri(), e);
             }
         }
-        this.title = findTitle(model);
-        this.description = findDescription(model);
+        Map<Annotation, String> titles = getPropertyValues(URI.create(DCTerms.title.getURI()));
+        // choose any
+        this.title = titles.isEmpty() ? null : titles.values().iterator().next();
+        Map<Annotation, String> descriptions = getPropertyValues(URI.create(DCTerms.description.getURI()));
+        // choose any
+        this.description = descriptions.isEmpty() ? null : descriptions.values().iterator().next();
         this.evoType = findEvoType(model);
         this.loaded = true;
-    }
-
-
-    /**
-     * Look for the title of the RO.
-     * 
-     * @param model
-     *            model to search in
-     * @return any RO title found, null if not found
-     */
-    private String findTitle(Model model) {
-        com.hp.hpl.jena.rdf.model.Resource ro = model.getResource(uri.toString());
-        Set<Statement> titles = ro.listProperties(DCTerms.title).toSet();
-        for (Statement titleStmt : titles) {
-            if (titleStmt.getObject().isLiteral()) {
-                return titleStmt.getObject().asLiteral().getString();
-            }
-        }
-        return null;
-    }
-
-
-    /**
-     * Look for the description of the RO.
-     * 
-     * @param model
-     *            model to search in
-     * @return any RO title found, null if not found
-     */
-    private String findDescription(Model model) {
-        com.hp.hpl.jena.rdf.model.Resource ro = model.getResource(uri.toString());
-        Set<Statement> descs = ro.listProperties(DCTerms.description).toSet();
-        for (Statement descStmt : descs) {
-            if (descStmt.getObject().isLiteral()) {
-                return descStmt.getObject().asLiteral().getString();
-            }
-        }
-        return null;
     }
 
 
@@ -823,5 +788,52 @@ public class ResearchObject extends Thing implements Annotable {
 
     public ResearchObject getPreviousSnapshot() {
         return previousSnapshot;
+    }
+
+
+    @Override
+    public Map<Annotation, String> getPropertyValues(URI property) {
+        Map<Annotation, String> map = new HashMap<>();
+        for (Annotation annotation : getAnnotations()) {
+            try {
+                List<String> literals = annotation.getPropertyValues(this, property);
+                if (!literals.isEmpty()) {
+                    map.put(annotation, StringUtils.join(literals, "; "));
+                }
+            } catch (ROSRSException e) {
+                LOG.error("Can't load annotation body", e);
+            }
+        }
+        return map;
+    }
+
+
+    @Override
+    public Annotation createPropertyValue(URI property, String value)
+            throws ROSRSException, ROException {
+        return this.annotate(null,
+            Annotation.wrapAnnotationBody(Collections.singletonList(new Statement(this.getUri(), property, value))),
+            "RDF/XML");
+    }
+
+
+    @Override
+    public Annotation updatePropertyValue(Annotation annotation, URI property, String value)
+            throws ROSRSException {
+        annotation.updatePropertyValue(this, property, value);
+        annotation.update();
+        return annotation;
+    }
+
+
+    @Override
+    public void deletePropertyValue(Annotation annotation, URI property)
+            throws ROSRSException {
+        annotation.deletePropertyValue(this, property);
+        if (annotation.getStatements().isEmpty()) {
+            annotation.delete();
+        } else {
+            annotation.update();
+        }
     }
 }

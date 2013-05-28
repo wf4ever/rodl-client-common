@@ -15,5 +15,11 @@
     <dct:description>This RO rocks.</dct:description>
     <dct:title>The rocking RO</dct:title>
     <rdf:type rdf:resource="http://purl.org/wf4ever/roevo#SnapshotRO"/>
+    <rdfs:comment>RO comment 1</rdfs:comment>
+    <rdfs:comment>RO comment 2</rdfs:comment>
+  </rdf:Description>
+  <rdf:Description rdf:about="res1.txt">
+    <rdfs:comment>Res1 comment 1</rdfs:comment>
+    <rdfs:comment>Res1 comment 2</rdfs:comment>
   </rdf:Description>
 </rdf:RDF>

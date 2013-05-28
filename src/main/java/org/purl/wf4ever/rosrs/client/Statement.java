@@ -41,7 +41,7 @@ public class Statement implements Serializable {
     private String propertyLocalName;
 
     /** Annotation that this statement belongs to. */
-    private final Annotation annotation;
+    private Annotation annotation;
 
     /** The object URI if it's a resource with URI, the String value otherwise. */
     private String objectValue;
@@ -87,21 +87,37 @@ public class Statement implements Serializable {
 
 
     /**
-     * Constructor for an empty statement. The default property is dcterms:source, the default value is "".
+     * Constructor for an empty statement. The default property is dcterms:description, the default value is "".
      * 
      * @param subjectURI
      *            subject URI
      * @param annotation
      *            annotation this statement belongs to
      */
+    //FIXME this constructor should be deleted
     public Statement(URI subjectURI, Annotation annotation) {
-        this.subjectURI = subjectURI;
+        this(subjectURI, URI.create(DCTerms.description.getURI()), "");
+        this.annotation = annotation;
+    }
+
+
+    /**
+     * Constructor.
+     * 
+     * @param subject
+     *            subject
+     * @param property
+     *            property
+     * @param value
+     *            a literal value
+     */
+    public Statement(URI subject, URI property, String value) {
+        this.subjectURI = subject;
         subjectValue = "";
         isSubjectURIResource = false;
-        setPropertyURI(URI.create(DCTerms.source.getURI()));
+        setPropertyURI(property);
         objectURI = null;
-        objectValue = "";
-        this.annotation = annotation;
+        objectValue = value;
     }
 
 
@@ -220,6 +236,23 @@ public class Statement implements Serializable {
             object = model.createTypedLiteral(objectValue);
         }
         return model.createStatement(subject, property, object);
+    }
+
+
+    /**
+     * Return if the object of this statement is a literal.
+     * 
+     * @return true if it's a literal
+     */
+    public boolean isObjectLiteral() {
+        //FIXME this will return true also for blank nodes
+        return !isObjectURIResource();
+    }
+
+
+    @Override
+    public String toString() {
+        return subjectValue + " " + propertyURI + " " + objectValue;
     }
 
 }

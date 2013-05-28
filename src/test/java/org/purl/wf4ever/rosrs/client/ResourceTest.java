@@ -3,17 +3,30 @@ package org.purl.wf4ever.rosrs.client;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.notMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.hasValue;
+import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
@@ -23,6 +36,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
@@ -138,13 +152,19 @@ public class ResourceTest extends BaseTest {
      */
     @Test
     public final void testGetAnnotations() {
-        Set<Annotation> ex = new HashSet<>();
-        ex.add(new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/2"), URI
-                .create("http://example.org/externalbody1.rdf"), MOCK_RESOURCE, URI.create("http://test.myopenid.com"),
-                new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC)));
-        Set<Annotation> res = new HashSet<>();
-        res.addAll(res1.getAnnotations());
-        Assert.assertEquals(ex, res);
+        Annotation an1 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/2"),
+                URI.create("http://example.org/externalbody1.rdf"), MOCK_RESOURCE,
+                URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
+        Set<URI> targets = new HashSet<>();
+        targets.add(MOCK_RO);
+        targets.add(MOCK_RESOURCE);
+        Annotation an2 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/1"), MOCK_RO.resolve("body.rdf"),
+                targets, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
+                        DateTimeZone.UTC));
+        Collection<Annotation> annotations = res1.getAnnotations();
+        assertThat(annotations, hasSize(equalTo(2)));
+        assertThat(annotations, hasItem(an1));
+        assertThat(annotations, hasItem(an2));
     }
 
 
@@ -190,6 +210,82 @@ public class ResourceTest extends BaseTest {
     @Test
     public final void testGetCreated() {
         Assert.assertEquals(new DateTime(2011, 12, 02, 15, 02, 10, DateTimeZone.UTC), res1.getCreated());
+    }
+
+
+    /**
+     * See name.
+     * 
+     * @throws ROSRSException
+     *             wiremock error
+     */
+    @Test
+    public final void shouldReturnTwoCommentsJoined()
+            throws ROSRSException {
+        Map<Annotation, String> map = res1.getPropertyValues(RDFS_COMMENT);
+        assertThat(map.values(), hasSize(equalTo(1)));
+        assertThat(map, anyOf(hasValue("Res1 comment 1; Res1 comment 2"), hasValue("Res1 comment 2; Res1 comment 1")));
+    }
+
+
+    /**
+     * See name.
+     * 
+     * @throws ROSRSException
+     *             wiremock error
+     */
+    @Test
+    public final void shouldUpdateAComment()
+            throws ROSRSException {
+        Map<Annotation, String> map = res1.getPropertyValues(RDFS_COMMENT);
+        assertThat(map.values(), hasSize(equalTo(1)));
+        Entry<Annotation, String> e = map.entrySet().iterator().next();
+        res1.updatePropertyValue(e.getKey(), RDFS_COMMENT, "Res1 comment 3");
+
+        verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(matching(".*Res1 comment 3.*")));
+
+        map = res1.getPropertyValues(RDFS_COMMENT);
+        assertThat(map.values(), hasSize(equalTo(1)));
+    }
+
+
+    /**
+     * See name.
+     * 
+     * @throws ROSRSException
+     *             wiremock error
+     * @throws ROException
+     *             incorrect manifest
+     */
+    @Test
+    public final void shouldCreateAComment()
+            throws ROSRSException, ROException {
+        Map<Annotation, String> map = res1.getPropertyValues(RDFS_COMMENT);
+        assertThat(map.values(), hasSize(equalTo(1)));
+        Annotation annotation = res1.createPropertyValue(RDFS_COMMENT, "Res1 comment 3");
+        assertThat(annotation, notNullValue());
+
+        verify(postRequestedFor(urlEqualTo("/ro1/")).withRequestBody(matching(".*Res1 comment 3.*")));
+    }
+
+
+    /**
+     * See name.
+     * 
+     * @throws ROSRSException
+     *             wiremock error
+     * @throws ROException
+     *             incorrect manifest
+     */
+    @Test
+    public final void shouldDeleteAComment()
+            throws ROSRSException, ROException {
+        Map<Annotation, String> map = res1.getPropertyValues(RDFS_COMMENT);
+        assertThat(map.values(), hasSize(equalTo(1)));
+        Entry<Annotation, String> e = map.entrySet().iterator().next();
+        res1.deletePropertyValue(e.getKey(), RDFS_COMMENT);
+
+        verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(notMatching(".*Res1 comment.*")));
     }
 
 }
