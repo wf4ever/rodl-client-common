@@ -16,6 +16,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.openrdf.rio.RDFFormat;
 import org.purl.wf4ever.rosrs.client.evo.EvoType;
 import org.purl.wf4ever.rosrs.client.evo.JobStatus;
 import org.purl.wf4ever.rosrs.client.evo.ROEVOService;
@@ -813,7 +814,7 @@ public class ResearchObject extends Thing implements Annotable {
             throws ROSRSException, ROException {
         return this.annotate(null,
             Annotation.wrapAnnotationBody(Collections.singletonList(new Statement(this.getUri(), property, value))),
-            "RDF/XML");
+            RDFFormat.RDFXML.getDefaultMIMEType());
     }
 
 
