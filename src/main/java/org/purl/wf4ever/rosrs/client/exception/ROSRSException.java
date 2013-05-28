@@ -35,6 +35,25 @@ public class ROSRSException extends Exception {
     }
 
 
+    /**
+     * Constructor.
+     * 
+     * @param message
+     *            Context message
+     * @param status
+     *            Response status
+     * @param reason
+     *            Response reason
+     * @param details
+     *            details of the error
+     */
+    public ROSRSException(String message, int status, String reason, String details) {
+        super(String.format("%s (%d %s): %s", message, status, reason, details));
+        this.status = status;
+        this.reason = reason;
+    }
+
+
     public int getStatus() {
         return status;
     }

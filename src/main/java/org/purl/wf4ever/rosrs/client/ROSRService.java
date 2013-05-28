@@ -384,7 +384,7 @@ public class ROSRService implements Serializable {
             return response;
         } else {
             throw new ROSRSException("Creating the annotation failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase());
+                    .getClientResponseStatus().getReasonPhrase(), response.getEntity(String.class));
         }
     }
 
