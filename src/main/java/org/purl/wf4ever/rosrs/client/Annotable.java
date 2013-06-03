@@ -102,4 +102,13 @@ public interface Annotable extends Displayable {
      */
     void deletePropertyValue(Annotation annotation, URI property)
             throws ROSRSException;
+
+
+    /**
+     * Returns true if the metadata of this resource have been loaded. The client should not try to load any annotation
+     * if this method returns false.
+     * 
+     * @return true if the metadata have been loaded, false otherwise.
+     */
+    boolean isLoaded();
 }

@@ -315,4 +315,10 @@ public class Resource extends Thing implements Annotable {
             annotation.update();
         }
     }
+
+
+    @Override
+    public boolean isLoaded() {
+        return researchObject.isLoaded();
+    }
 }
