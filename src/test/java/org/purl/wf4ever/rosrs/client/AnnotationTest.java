@@ -13,6 +13,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -73,8 +74,8 @@ public class AnnotationTest extends BaseTest {
         super.setUp();
         setUpAnnotationCreateDelete();
 
-        an1 = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, MOCK_RO, URI.create("http://test.myopenid.com"),
-                new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
+        an1 = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, Collections.singleton(MOCK_RO),
+                URI.create("http://test.myopenid.com"), new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
         an1.load();
     }
 
@@ -116,7 +117,7 @@ public class AnnotationTest extends BaseTest {
      */
     @Test
     public final void testAnnotationResearchObjectUriUriUriUriDateTime() {
-        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, MOCK_RO,
+        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, Collections.singleton(MOCK_RO),
                 URI.create("http://test.myopenid.com"), new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
         Assert.assertFalse(annotation.isLoaded());
     }
@@ -157,7 +158,7 @@ public class AnnotationTest extends BaseTest {
     @Test
     public final void testLoad()
             throws ROSRSException, IOException {
-        Annotation an = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, MOCK_TARGET, null, null);
+        Annotation an = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, Collections.singleton(MOCK_TARGET), null, null);
         Assert.assertFalse(an.isLoaded());
         an.load();
         Assert.assertTrue(an.isLoaded());
@@ -266,7 +267,8 @@ public class AnnotationTest extends BaseTest {
     public final void testGetStatement()
             throws ROSRSException, IOException {
 
-        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, MOCK_TARGET, null, null);
+        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, Collections.singleton(MOCK_TARGET),
+                null, null);
         annotation.load();
         Assert.assertNotNull(annotation.getStatements());
     }
@@ -283,7 +285,8 @@ public class AnnotationTest extends BaseTest {
     @Test(expected = ObjectNotLoadedException.class)
     public final void testGetNotLoadedStatement()
             throws ROSRSException, IOException {
-        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, MOCK_TARGET, null, null);
+        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, Collections.singleton(MOCK_TARGET),
+                null, null);
         annotation.getStatements();
     }
 }

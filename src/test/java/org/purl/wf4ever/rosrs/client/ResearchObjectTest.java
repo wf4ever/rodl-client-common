@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -211,7 +212,7 @@ public class ResearchObjectTest extends BaseTest {
                 targets, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
                         DateTimeZone.UTC));
         Annotation an2 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/2"),
-                URI.create("http://example.org/externalbody1.rdf"), MOCK_RO.resolve("res1.txt"),
+                URI.create("http://example.org/externalbody1.rdf"), Collections.singleton(MOCK_RO.resolve("res1.txt")),
                 URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
         Set<URI> targets2 = new HashSet<>();
         targets2.add(MOCK_RO.resolve("folder1/"));
@@ -220,8 +221,8 @@ public class ResearchObjectTest extends BaseTest {
                 targets2, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
                         DateTimeZone.UTC));
         Annotation an4 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/4"), MOCK_RO.resolve("body3.rdf"),
-                MOCK_RO.resolve("folder1/"), URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06,
-                        53, 551, DateTimeZone.UTC));
+                Collections.singleton(MOCK_RO.resolve("folder1/")), URI.create("http://test.myopenid.com"),
+                new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
         ex.put(MOCK_RO, an1);
         ex.put(MOCK_RO.resolve("res1.txt"), an2);
         ex.put(MOCK_RO.resolve("res1.txt"), an1);

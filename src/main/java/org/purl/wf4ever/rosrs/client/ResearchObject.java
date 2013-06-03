@@ -504,8 +504,8 @@ public class ResearchObject extends Thing implements Annotable {
                     RDFNode createdNode = solution.get("created");
                     DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
                             .asLiteral().getString()) : null;
-                    annotation = new Annotation(this, aURI, URI.create(b.asResource().getURI()), tURI, resCreator,
-                            resCreated);
+                    annotation = new Annotation(this, aURI, URI.create(b.asResource().getURI()),
+                            Collections.singleton(tURI), resCreator, resCreated);
                 }
                 annotations2.put(tURI, annotation);
             }

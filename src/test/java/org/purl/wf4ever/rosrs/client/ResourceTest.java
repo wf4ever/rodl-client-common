@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -153,7 +154,7 @@ public class ResourceTest extends BaseTest {
     @Test
     public final void testGetAnnotations() {
         Annotation an1 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/2"),
-                URI.create("http://example.org/externalbody1.rdf"), MOCK_RESOURCE,
+                URI.create("http://example.org/externalbody1.rdf"), Collections.singleton(MOCK_RESOURCE),
                 URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
         Set<URI> targets = new HashSet<>();
         targets.add(MOCK_RO);

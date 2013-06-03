@@ -94,27 +94,6 @@ public class Annotation extends Thing {
 
 
     /**
-     * Constructor.
-     * 
-     * @param researchObject
-     *            RO aggregating the annotation
-     * @param uri
-     *            annotation URI
-     * @param body
-     *            annotation body, may be aggregated or not, may be a ro:Resource (rarely) or not
-     * @param target
-     *            annotated resource, must be the RO/aggregated resource/proxy
-     * @param creator
-     *            annotation author
-     * @param created
-     *            annotation creation time
-     */
-    public Annotation(ResearchObject researchObject, URI uri, URI body, URI target, URI creator, DateTime created) {
-        this(researchObject, uri, body, new HashSet<URI>(Arrays.asList(new URI[] { target })), creator, created);
-    }
-
-
-    /**
      * Create a new annotation. Does not add the annotation instance to the {@link ResearchObject} instance.
      * 
      * @param researchObject
