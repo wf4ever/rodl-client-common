@@ -8,15 +8,12 @@ import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 import org.joda.time.DateTime;
-import org.purl.wf4ever.rosrs.client.Creator;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.FoundRO;
@@ -105,7 +102,6 @@ public class OpenSearchSearchServer implements SearchServer {
             URI researchObjectURI = null;
             DateTime created = null;
             String title = null;
-            Set<Creator> creators = new HashSet<>();
             double score = -1;
             List<Element> dlMarkup = (List<Element>) entry.getForeignMarkup();
             for (Element element : dlMarkup) {
@@ -147,7 +143,6 @@ public class OpenSearchSearchServer implements SearchServer {
             if (researchObjectURI != null && score != -1) {
                 ResearchObject ro = new ResearchObject(researchObjectURI, null);
                 ro.setCreated(created);
-                ro.setCreators(creators);
                 ro.setTitle(title);
                 ros.add(new FoundRO(ro, score));
             }

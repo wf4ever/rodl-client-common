@@ -86,8 +86,8 @@ public class FolderTest extends BaseTest {
         setUpResourceMaps();
         setUpFolderCreateDelete();
 
-        fol1 = new Folder(ro1, MOCK_FOLDER, MOCK_FOLDER_PROXY, MOCK_RMAP, URI.create("http://test3.myopenid.com"),
-                new DateTime(2011, 12, 02, 15, 02, 12, DateTimeZone.UTC), true);
+        fol1 = new Folder(ro1, MOCK_FOLDER, MOCK_FOLDER_PROXY, MOCK_RMAP, PERSON_3, new DateTime(2011, 12, 02, 15, 02,
+                12, DateTimeZone.UTC), true);
         fol1.load(false);
     }
 
@@ -217,8 +217,8 @@ public class FolderTest extends BaseTest {
      */
     @Test
     public final void testFolder() {
-        Folder f = new Folder(ro1, MOCK_FOLDER, MOCK_FOLDER_PROXY, MOCK_RMAP, URI.create("http://test3.myopenid.com"),
-                new DateTime(2011, 12, 02, 15, 02, 12, DateTimeZone.UTC), true);
+        Folder f = new Folder(ro1, MOCK_FOLDER, MOCK_FOLDER_PROXY, MOCK_RMAP, PERSON_3, new DateTime(2011, 12, 02, 15,
+                02, 12, DateTimeZone.UTC), true);
         Assert.assertFalse(f.isLoaded());
     }
 

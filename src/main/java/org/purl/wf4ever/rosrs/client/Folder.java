@@ -88,8 +88,8 @@ public class Folder extends Resource {
      * @param rootFolder
      *            is the folder a root folder in the RO
      */
-    public Folder(ResearchObject researchObject, URI uri, URI proxyURI, URI resourceMap, URI creator, DateTime created,
-            boolean rootFolder) {
+    public Folder(ResearchObject researchObject, URI uri, URI proxyURI, URI resourceMap, Person creator,
+            DateTime created, boolean rootFolder) {
         super(researchObject, uri, proxyURI, creator, created);
         this.resourceMap = resourceMap;
         this.rootFolder = rootFolder;
@@ -122,8 +122,7 @@ public class Folder extends Resource {
 
         Individual r = model.getIndividual(folderUri.toString());
         com.hp.hpl.jena.rdf.model.Resource creatorNode = r.getPropertyResourceValue(DCTerms.creator);
-        URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode.asResource()
-                .getURI()) : null;
+        Person resCreator = Person.create(creatorNode);
         RDFNode createdNode = r.getPropertyValue(DCTerms.created);
         DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode.asLiteral()
                 .getString()) : null;

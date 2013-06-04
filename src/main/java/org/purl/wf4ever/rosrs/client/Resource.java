@@ -65,7 +65,7 @@ public class Resource extends Thing implements Annotable {
      * @param created
      *            creation date
      */
-    public Resource(ResearchObject researchObject, URI uri, URI proxyURI, URI creator, DateTime created) {
+    public Resource(ResearchObject researchObject, URI uri, URI proxyURI, Person creator, DateTime created) {
         super(uri, creator, created);
         this.researchObject = researchObject;
         this.proxyUri = proxyURI;
@@ -100,8 +100,7 @@ public class Resource extends Thing implements Annotable {
         response.close();
         Individual r = model.getIndividual(resourceUri.toString());
         com.hp.hpl.jena.rdf.model.Resource creatorNode = r.getPropertyResourceValue(DCTerms.creator);
-        URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode.asResource()
-                .getURI()) : null;
+        Person resCreator = Person.create(creatorNode);
         RDFNode createdNode = r.getPropertyValue(DCTerms.created);
         DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode.asLiteral()
                 .getString()) : null;

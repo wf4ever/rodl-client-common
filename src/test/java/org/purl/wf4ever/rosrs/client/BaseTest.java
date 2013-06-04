@@ -53,6 +53,15 @@ public class BaseTest {
     /** URI of rdfs:comment. */
     protected static final URI RDFS_COMMENT = URI.create(RDFS.comment.getURI());
 
+    /** A Person appearing in test data. */
+    protected static final Person PERSON = new Person(URI.create("http://test.myopenid.com"), "Person");
+    /** A Person appearing in test data. */
+    protected static final Person PERSON_1 = new Person(URI.create("http://test1.myopenid.com"), "Person 1");
+    /** A Person appearing in test data. */
+    protected static final Person PERSON_2 = new Person(URI.create("http://test2.myopenid.com"), "Person 2");
+    /** A Person appearing in test data. */
+    protected static final Person PERSON_3 = new Person(URI.create("http://test3.myopenid.com"), "Person 3");
+
 
     /**
      * Set up a mockup HTTP server.

@@ -24,6 +24,7 @@ import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import pl.psnc.dl.wf4ever.vocabulary.AO;
+import pl.psnc.dl.wf4ever.vocabulary.FOAF;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 import pl.psnc.dl.wf4ever.vocabulary.PROV;
 import pl.psnc.dl.wf4ever.vocabulary.RO;
@@ -174,7 +175,7 @@ public class ResearchObject extends Thing implements Annotable {
                 LOG.warn("Failed to close the manifest input stream", e);
             }
         }
-        this.creator = extractCreator(model);
+        this.creator = Person.create(model.getIndividual(uri.toString()).getPropertyValue(DCTerms.creator));
         this.created = extractCreated(model);
         this.resources = extractResources(model);
         this.folders = extractFolders(model);
@@ -329,26 +330,6 @@ public class ResearchObject extends Thing implements Annotable {
 
 
     /**
-     * Find the dcterms:creator of the RO.
-     * 
-     * @param model
-     *            manifest model
-     * @return creator URI or null if not defined
-     * @throws ROException
-     *             incorrect manifest
-     */
-    private URI extractCreator(OntModel model)
-            throws ROException {
-        Individual ro = model.getIndividual(uri.toString());
-        if (ro == null) {
-            throw new ROException("RO not found in the manifest", uri);
-        }
-        com.hp.hpl.jena.rdf.model.Resource c = ro.getPropertyResourceValue(DCTerms.creator);
-        return c != null ? URI.create(c.getURI()) : null;
-    }
-
-
-    /**
      * Find the dcterms:created date of the RO.
      * 
      * @param model
@@ -382,8 +363,8 @@ public class ResearchObject extends Thing implements Annotable {
         Map<URI, Resource> resources2 = new HashMap<>();
         String queryString = String
                 .format(
-                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> SELECT ?resource ?proxy ?created ?creator WHERE { <%s> ore:aggregates ?resource . ?resource a ro:Resource . ?proxy ore:proxyFor ?resource . OPTIONAL { ?resource dcterms:creator ?creator . } OPTIONAL { ?resource dcterms:created ?created . } }",
-                    ORE.NAMESPACE, DCTerms.NS, RO.NAMESPACE, uri.toString());
+                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> PREFIX foaf: <%s> SELECT ?resource ?proxy ?created ?creator ?creatorName WHERE { <%s> ore:aggregates ?resource . ?resource a ro:Resource . ?proxy ore:proxyFor ?resource . OPTIONAL { ?resource dcterms:creator ?creator . OPTIONAL { ?creator foaf:name ?creatorName . } } OPTIONAL { ?resource dcterms:created ?created . } }",
+                    ORE.NAMESPACE, DCTerms.NS, RO.NAMESPACE, FOAF.NAMESPACE, uri.toString());
 
         Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, model);
@@ -398,8 +379,8 @@ public class ResearchObject extends Thing implements Annotable {
                 URI rURI = URI.create(r.asResource().getURI());
                 RDFNode p = solution.get("proxy");
                 RDFNode creatorNode = solution.get("creator");
-                URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode
-                        .asResource().getURI()) : null;
+                RDFNode creatorNameNode = solution.get("creatorName");
+                Person resCreator = Person.create(creatorNode, creatorNameNode);
                 RDFNode createdNode = solution.get("created");
                 DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
                         .asLiteral().getString()) : null;
@@ -425,8 +406,8 @@ public class ResearchObject extends Thing implements Annotable {
         Map<URI, Folder> folders2 = new HashMap<>();
         String queryString = String
                 .format(
-                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> SELECT ?folder ?proxy ?resourcemap ?created ?creator WHERE { <%s> ore:aggregates ?folder . ?folder a ro:Folder ; ore:isDescribedBy ?resourcemap . ?proxy ore:proxyFor ?folder . OPTIONAL { ?folder dcterms:creator ?creator . } OPTIONAL { ?folder dcterms:created ?created . } }",
-                    ORE.NAMESPACE, DCTerms.NS, RO.NAMESPACE, uri.toString());
+                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> PREFIX foaf: <%s> SELECT ?folder ?proxy ?resourcemap ?created ?creator ?creatorName WHERE { <%s> ore:aggregates ?folder . ?folder a ro:Folder ; ore:isDescribedBy ?resourcemap . ?proxy ore:proxyFor ?folder . OPTIONAL { ?folder dcterms:creator ?creator . OPTIONAL { ?creator foaf:name ?creatorName . } } OPTIONAL { ?folder dcterms:created ?created . } }",
+                    ORE.NAMESPACE, DCTerms.NS, RO.NAMESPACE, FOAF.NAMESPACE, uri.toString());
 
         Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, model);
@@ -439,8 +420,8 @@ public class ResearchObject extends Thing implements Annotable {
                 RDFNode p = solution.get("proxy");
                 RDFNode rm = solution.get("resourcemap");
                 RDFNode creatorNode = solution.get("creator");
-                URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode
-                        .asResource().getURI()) : null;
+                RDFNode creatorNameNode = solution.get("creatorName");
+                Person resCreator = Person.create(creatorNode, creatorNameNode);
                 RDFNode createdNode = solution.get("created");
                 DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
                         .asLiteral().getString()) : null;
@@ -480,8 +461,8 @@ public class ResearchObject extends Thing implements Annotable {
         Map<URI, Annotation> annotationsByUri = new HashMap<>();
         String queryString = String
                 .format(
-                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ao: <%s> PREFIX ro: <%s> SELECT ?annotation ?body ?target ?created ?creator WHERE { <%s> ore:aggregates ?annotation . ?annotation a ro:AggregatedAnnotation ; ao:body ?body ; ro:annotatesAggregatedResource ?target . OPTIONAL { ?annotation dcterms:creator ?creator . } OPTIONAL { ?annotation dcterms:created ?created . } }",
-                    ORE.NAMESPACE, DCTerms.NS, AO.NAMESPACE, RO.NAMESPACE, uri.toString());
+                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ao: <%s> PREFIX ro: <%s> PREFIX foaf: <%s> SELECT ?annotation ?body ?target ?created ?creator ?creatorName WHERE { <%s> ore:aggregates ?annotation . ?annotation a ro:AggregatedAnnotation ; ao:body ?body ; ro:annotatesAggregatedResource ?target . OPTIONAL { ?annotation dcterms:creator ?creator . OPTIONAL { ?creator foaf:name ?creatorName . } } OPTIONAL { ?annotation dcterms:created ?created . } }",
+                    ORE.NAMESPACE, DCTerms.NS, AO.NAMESPACE, RO.NAMESPACE, FOAF.NAMESPACE, uri.toString());
 
         Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, model);
@@ -500,8 +481,8 @@ public class ResearchObject extends Thing implements Annotable {
                 } else {
                     RDFNode b = solution.get("body");
                     RDFNode creatorNode = solution.get("creator");
-                    URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode
-                            .asResource().getURI()) : null;
+                    RDFNode creatorNameNode = solution.get("creatorName");
+                    Person resCreator = Person.create(creatorNode, creatorNameNode);
                     RDFNode createdNode = solution.get("created");
                     DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
                             .asLiteral().getString()) : null;

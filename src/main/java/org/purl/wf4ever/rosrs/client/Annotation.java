@@ -84,7 +84,8 @@ public class Annotation extends Thing {
      * @param created
      *            annotation creation time
      */
-    public Annotation(ResearchObject researchObject, URI uri, URI body, Set<URI> targets, URI creator, DateTime created) {
+    public Annotation(ResearchObject researchObject, URI uri, URI body, Set<URI> targets, Person creator,
+            DateTime created) {
         super(uri, creator, created);
         this.researchObject = researchObject;
         this.body = body;
@@ -118,8 +119,7 @@ public class Annotation extends Thing {
 
         Individual r = model.getIndividual(annUri.toString());
         com.hp.hpl.jena.rdf.model.Resource creatorNode = r.getPropertyResourceValue(DCTerms.creator);
-        URI resCreator = creatorNode != null && creatorNode.isURIResource() ? URI.create(creatorNode.asResource()
-                .getURI()) : null;
+        Person resCreator = Person.create(creatorNode);
         RDFNode createdNode = r.getPropertyValue(DCTerms.created);
         DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode.asLiteral()
                 .getString()) : null;

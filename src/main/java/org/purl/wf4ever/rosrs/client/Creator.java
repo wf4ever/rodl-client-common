@@ -26,6 +26,7 @@ import com.hp.hpl.jena.rdf.model.Resource;
  * @author piotrhol
  * 
  */
+@Deprecated
 public class Creator implements Serializable {
 
     /** id. */

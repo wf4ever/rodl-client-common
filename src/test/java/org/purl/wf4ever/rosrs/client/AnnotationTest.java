@@ -74,8 +74,8 @@ public class AnnotationTest extends BaseTest {
         super.setUp();
         setUpAnnotationCreateDelete();
 
-        an1 = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, Collections.singleton(MOCK_RO),
-                URI.create("http://test.myopenid.com"), new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
+        an1 = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, Collections.singleton(MOCK_RO), PERSON, new DateTime(
+                2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
         an1.load();
     }
 
@@ -106,8 +106,8 @@ public class AnnotationTest extends BaseTest {
     public final void testAnnotationResearchObjectUriUriSetOfURIURIDateTime() {
         Set<URI> targets = new HashSet<>();
         targets.add(MOCK_RO);
-        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, targets,
-                URI.create("http://test.myopenid.com"), new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
+        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, targets, PERSON, new DateTime(2011, 12,
+                02, 16, 01, 10, DateTimeZone.UTC));
         Assert.assertFalse(annotation.isLoaded());
     }
 
@@ -117,8 +117,8 @@ public class AnnotationTest extends BaseTest {
      */
     @Test
     public final void testAnnotationResearchObjectUriUriUriUriDateTime() {
-        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, Collections.singleton(MOCK_RO),
-                URI.create("http://test.myopenid.com"), new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
+        Annotation annotation = new Annotation(ro1, MOCK_ANNOTATION, MOCK_BODY, Collections.singleton(MOCK_RO), PERSON,
+                new DateTime(2011, 12, 02, 16, 01, 10, DateTimeZone.UTC));
         Assert.assertFalse(annotation.isLoaded());
     }
 
@@ -196,8 +196,8 @@ public class AnnotationTest extends BaseTest {
      * The correct creator is returned.
      */
     @Test
-    public final void testGetCreator() {
-        Assert.assertEquals(URI.create("http://test.myopenid.com"), an1.getCreator());
+    public final void testGetAuthor() {
+        Assert.assertEquals(PERSON, an1.getAuthor());
     }
 
 

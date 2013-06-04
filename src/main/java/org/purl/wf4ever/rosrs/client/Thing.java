@@ -3,11 +3,10 @@ package org.purl.wf4ever.rosrs.client;
 import java.io.Serializable;
 import java.net.URI;
 import java.text.SimpleDateFormat;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 
 import org.joda.time.DateTime;
-import org.purl.wf4ever.rosrs.client.users.UserManagementService;
 
 /**
  * Base of all resources.
@@ -33,13 +32,10 @@ public class Thing implements Serializable {
     protected final String name;
 
     /** creator URI. */
-    protected URI creator;
+    protected Person creator;
 
     /** creation date. */
     protected DateTime created;
-
-    /** temporary, moved from the portal. */
-    private Set<Creator> creators;
 
 
     /**
@@ -50,9 +46,9 @@ public class Thing implements Serializable {
      * @param created
      *            creation date
      * @param creator
-     *            creator URI
+     *            creator URI and name
      */
-    public Thing(URI uri, URI creator, DateTime created) {
+    public Thing(URI uri, Person creator, DateTime created) {
         this.uri = uri;
         this.creator = creator;
         this.created = created;
@@ -65,8 +61,26 @@ public class Thing implements Serializable {
     }
 
 
+    @Deprecated
     public URI getCreator() {
-        return creator;
+        return null;
+    }
+
+
+    /**
+     * Set creators.
+     * 
+     * @param creators
+     *            creators
+     */
+    @Deprecated
+    public void setCreators(Set<Creator> creators) {
+    }
+
+
+    @Deprecated
+    public Set<Creator> getCreators() {
+        return Collections.emptySet();
     }
 
 
@@ -120,45 +134,18 @@ public class Thing implements Serializable {
     }
 
 
-    public void setCreator(URI creator) {
-        this.creator = creator;
-    }
-
-
     public void setCreated(DateTime created) {
         this.created = created;
     }
 
 
-    public Set<Creator> getCreators() {
-        return creators;
-    }
-
-
-    public void setCreators(Set<Creator> creators) {
-        this.creators = creators;
-    }
-
-
-    /**
-     * Add a new creator instance.
-     * 
-     * @param ums
-     *            user management service to use to look for name
-     * @param creator
-     *            creator URI
-     */
-    public void addCreator(UserManagementService ums, URI creator) {
-        if (this.creators == null) {
-            this.creators = new HashSet<>();
-        }
-        creators.add(new Creator(ums, creator));
-    }
-
-
     public Person getAuthor() {
-        //FIXME make the name real
-        return new Person(creator, "Unknown");
+        return creator;
+    }
+
+
+    public void setAuthor(Person author) {
+        this.creator = author;
     }
 
 

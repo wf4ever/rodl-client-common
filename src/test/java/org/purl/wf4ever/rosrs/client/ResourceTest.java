@@ -70,8 +70,8 @@ public class ResourceTest extends BaseTest {
     public void setUp()
             throws Exception {
         super.setUp();
-        res1 = new Resource(ro1, MOCK_RESOURCE, MOCK_RESOURCE_PROXY, URI.create("http://test1.myopenid.com"),
-                new DateTime(2011, 12, 02, 15, 02, 10, DateTimeZone.UTC));
+        res1 = new Resource(ro1, MOCK_RESOURCE, MOCK_RESOURCE_PROXY, PERSON_1, new DateTime(2011, 12, 02, 15, 02, 10,
+                DateTimeZone.UTC));
     }
 
 
@@ -98,8 +98,8 @@ public class ResourceTest extends BaseTest {
      */
     @Test
     public final void testResource() {
-        Resource res = new Resource(ro1, MOCK_RESOURCE, MOCK_RESOURCE_PROXY, URI.create("http://test1.myopenid.com"),
-                new DateTime(2011, 12, 02, 15, 02, 10, DateTimeZone.UTC));
+        Resource res = new Resource(ro1, MOCK_RESOURCE, MOCK_RESOURCE_PROXY, PERSON_1, new DateTime(2011, 12, 02, 15,
+                02, 10, DateTimeZone.UTC));
         Assert.assertNotNull(res);
     }
 
@@ -154,14 +154,13 @@ public class ResourceTest extends BaseTest {
     @Test
     public final void testGetAnnotations() {
         Annotation an1 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/2"),
-                URI.create("http://example.org/externalbody1.rdf"), Collections.singleton(MOCK_RESOURCE),
-                URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
+                URI.create("http://example.org/externalbody1.rdf"), Collections.singleton(MOCK_RESOURCE), PERSON,
+                new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
         Set<URI> targets = new HashSet<>();
         targets.add(MOCK_RO);
         targets.add(MOCK_RESOURCE);
         Annotation an2 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/1"), MOCK_RO.resolve("body.rdf"),
-                targets, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
-                        DateTimeZone.UTC));
+                targets, PERSON, new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
         Collection<Annotation> annotations = res1.getAnnotations();
         assertThat(annotations, hasSize(equalTo(2)));
         assertThat(annotations, hasItem(an1));
@@ -200,8 +199,8 @@ public class ResourceTest extends BaseTest {
      * Test we can get the creator.
      */
     @Test
-    public final void testGetCreator() {
-        Assert.assertEquals(URI.create("http://test1.myopenid.com"), res1.getCreator());
+    public final void testGetAuthor() {
+        Assert.assertEquals(PERSON_1, res1.getAuthor());
     }
 
 

@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
+import org.purl.wf4ever.rosrs.client.Person;
 import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.FoundRO;
@@ -85,7 +86,7 @@ public class SparqlSearchServer implements SearchServer {
                 continue;
             }
             URI uri = URI.create(solution.get("ro").asResource().getURI());
-            URI creator = URI.create(solution.get("thecreator").asResource().getURI());
+            Person creator = Person.create(solution.get("thecreator"));
             DateTime created = null;
             Object date = solution.getLiteral("mincreated").getValue();
             if (date instanceof XSDDateTime) {
@@ -100,7 +101,7 @@ public class SparqlSearchServer implements SearchServer {
             }
             String title = solution.getLiteral("title") != null ? solution.getLiteral("title").getString() : null;
             ResearchObject ro = new ResearchObject(uri, null);
-            ro.setCreator(creator);
+            ro.setAuthor(creator);
             ro.setCreated(created);
             ro.setTitle(title);
             FoundRO result = new FoundRO(ro, -1);

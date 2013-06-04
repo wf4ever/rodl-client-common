@@ -152,12 +152,12 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void testGetResources() {
         Set<Resource> ex = new HashSet<>();
-        ex.add(new Resource(ro1, MOCK_RO.resolve("res1.txt"), MOCK_RO.resolve("proxies/1"), URI
-                .create("http://test1.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 10, DateTimeZone.UTC)));
-        ex.add(new Resource(ro1, MOCK_RO.resolve("res2"), MOCK_RO.resolve("proxies/2"), URI
-                .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
-        ex.add(new Resource(ro1, MOCK_RO.resolve("res3"), MOCK_RO.resolve("proxies/5"), URI
-                .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
+        ex.add(new Resource(ro1, MOCK_RO.resolve("res1.txt"), MOCK_RO.resolve("proxies/1"), PERSON_1, new DateTime(
+                2011, 12, 02, 15, 02, 10, DateTimeZone.UTC)));
+        ex.add(new Resource(ro1, MOCK_RO.resolve("res2"), MOCK_RO.resolve("proxies/2"), PERSON_2, new DateTime(2011,
+                12, 02, 15, 02, 11, DateTimeZone.UTC)));
+        ex.add(new Resource(ro1, MOCK_RO.resolve("res3"), MOCK_RO.resolve("proxies/5"), PERSON_2, new DateTime(2011,
+                12, 02, 15, 02, 11, DateTimeZone.UTC)));
         Set<Resource> res = new HashSet<>();
         res.addAll(ro1.getResources().values());
         Assert.assertEquals(ex, res);
@@ -174,8 +174,8 @@ public class ResearchObjectTest extends BaseTest {
     public final void testGetResourcesWithoutFolders()
             throws ROSRSException {
         List<Resource> ex = new ArrayList<>();
-        ex.add(new Resource(ro1, MOCK_RO.resolve("res3"), MOCK_RO.resolve("proxies/5"), URI
-                .create("http://test2.myopenid.com"), new DateTime(2011, 12, 02, 15, 02, 11, DateTimeZone.UTC)));
+        ex.add(new Resource(ro1, MOCK_RO.resolve("res3"), MOCK_RO.resolve("proxies/5"), PERSON_2, new DateTime(2011,
+                12, 02, 15, 02, 11, DateTimeZone.UTC)));
         List<Resource> res = ro1.getResourcesWithoutFolders();
         Assert.assertEquals(ex, res);
     }
@@ -188,11 +188,9 @@ public class ResearchObjectTest extends BaseTest {
     public final void testGetFolders() {
         Set<Folder> folders = new HashSet<>();
         folders.add(new Folder(ro1, MOCK_RO.resolve("folder1/"), MOCK_RO.resolve("proxies/3"), MOCK_RO
-                .resolve("folder1.rdf"), URI.create("http://test3.myopenid.com"), new DateTime(2011, 12, 02, 15, 02,
-                12, DateTimeZone.UTC), true));
+                .resolve("folder1.rdf"), PERSON_3, new DateTime(2011, 12, 02, 15, 02, 12, DateTimeZone.UTC), true));
         folders.add(new Folder(ro1, MOCK_RO.resolve("folder1/folder2/"), MOCK_RO.resolve("proxies/4"), MOCK_RO
-                .resolve("folder2.rdf"), URI.create("http://test3.myopenid.com"), new DateTime(2011, 12, 02, 15, 02,
-                12, DateTimeZone.UTC), false));
+                .resolve("folder2.rdf"), PERSON_3, new DateTime(2011, 12, 02, 15, 02, 12, DateTimeZone.UTC), false));
         Set<Folder> res = new HashSet<>();
         res.addAll(ro1.getFolders().values());
         Assert.assertEquals(folders, res);
@@ -209,20 +207,18 @@ public class ResearchObjectTest extends BaseTest {
         targets.add(MOCK_RO);
         targets.add(MOCK_RESOURCE);
         Annotation an1 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/1"), MOCK_RO.resolve("body.rdf"),
-                targets, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
-                        DateTimeZone.UTC));
+                targets, PERSON, new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
         Annotation an2 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/2"),
                 URI.create("http://example.org/externalbody1.rdf"), Collections.singleton(MOCK_RO.resolve("res1.txt")),
-                URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
+                PERSON, new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
         Set<URI> targets2 = new HashSet<>();
         targets2.add(MOCK_RO.resolve("folder1/"));
         targets2.add(MOCK_RO.resolve("res2"));
         Annotation an3 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/3"), MOCK_RO.resolve("body2.rdf"),
-                targets2, URI.create("http://test.myopenid.com"), new DateTime(2012, 12, 11, 12, 06, 53, 551,
-                        DateTimeZone.UTC));
+                targets2, PERSON, new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
         Annotation an4 = new Annotation(ro1, MOCK_RO.resolve(".ro/annotations/4"), MOCK_RO.resolve("body3.rdf"),
-                Collections.singleton(MOCK_RO.resolve("folder1/")), URI.create("http://test.myopenid.com"),
-                new DateTime(2012, 12, 11, 12, 06, 53, 551, DateTimeZone.UTC));
+                Collections.singleton(MOCK_RO.resolve("folder1/")), PERSON, new DateTime(2012, 12, 11, 12, 06, 53, 551,
+                        DateTimeZone.UTC));
         ex.put(MOCK_RO, an1);
         ex.put(MOCK_RO.resolve("res1.txt"), an2);
         ex.put(MOCK_RO.resolve("res1.txt"), an1);
@@ -238,8 +234,8 @@ public class ResearchObjectTest extends BaseTest {
      * Test dcterms:creator.
      */
     @Test
-    public final void testCreator() {
-        Assert.assertEquals(URI.create("http://test.myopenid.com"), ro1.getCreator());
+    public final void testAuthor() {
+        Assert.assertEquals(PERSON, ro1.getAuthor());
     }
 
 
