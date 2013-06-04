@@ -21,6 +21,7 @@ import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
@@ -284,6 +285,12 @@ public class Resource extends Thing implements Annotable {
             }
         }
         return map;
+    }
+
+
+    @Override
+    public Map<Annotation, String> getPropertyValues(Property property) {
+        return getPropertyValues(URI.create(property.getURI()));
     }
 
 

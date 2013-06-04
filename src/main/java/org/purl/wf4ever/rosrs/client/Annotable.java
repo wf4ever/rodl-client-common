@@ -1,6 +1,7 @@
 package org.purl.wf4ever.rosrs.client;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
@@ -8,13 +9,15 @@ import java.util.Map;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
+import com.hp.hpl.jena.rdf.model.Property;
+
 /**
  * An interface for the resource that may be the target of an ro:AggregatedAnnotation.
  * 
  * @author piotrekhol
  * 
  */
-public interface Annotable extends Displayable {
+public interface Annotable extends Displayable, Serializable {
 
     /**
      * Get all annotations with the target including this resource.
@@ -52,6 +55,17 @@ public interface Annotable extends Displayable {
      * @return a map of annotation and property values found in their bodies
      */
     Map<Annotation, String> getPropertyValues(URI property);
+
+
+    /**
+     * Find all literal properties of this resource in all annotations. If an annotation has many values for this
+     * property, merge them using a semicolon "; ". Properties whose values are not literals are ignored.
+     * 
+     * @param property
+     *            the Jena the property
+     * @return a map of annotation and property values found in their bodies
+     */
+    Map<Annotation, String> getPropertyValues(Property property);
 
 
     /**

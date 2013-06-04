@@ -41,6 +41,7 @@ import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
@@ -810,6 +811,12 @@ public class ResearchObject extends Thing implements Annotable {
 
 
     @Override
+    public Map<Annotation, String> getPropertyValues(Property property) {
+        return getPropertyValues(URI.create(property.getURI()));
+    }
+
+
+    @Override
     public Annotation createPropertyValue(URI property, String value)
             throws ROSRSException, ROException {
         return this.annotate(null,
@@ -837,4 +844,5 @@ public class ResearchObject extends Thing implements Annotable {
             annotation.update();
         }
     }
+
 }
