@@ -156,6 +156,12 @@ public class Thing implements Serializable {
     }
 
 
+    public Person getAuthor() {
+        //FIXME make the name real
+        return new Person(creator, "Unknown");
+    }
+
+
     @Override
     public int hashCode() {
         final int prime = 31;
