@@ -11,6 +11,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.openrdf.rio.RDFFormat;
 import org.purl.wf4ever.rosrs.client.exception.ROException;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
@@ -299,7 +300,7 @@ public class Resource extends Thing implements Annotable {
             throws ROSRSException, ROException {
         return this.annotate(null,
             Annotation.wrapAnnotationBody(Collections.singletonList(new Statement(this.getUri(), property, value))),
-            "RDF/XML");
+            RDFFormat.RDFXML.getDefaultMIMEType());
     }
 
 
