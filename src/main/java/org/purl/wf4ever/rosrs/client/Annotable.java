@@ -86,6 +86,23 @@ public interface Annotable extends Displayable, Serializable {
 
 
     /**
+     * Create a new annotation describing this resource with a given property and URI value.
+     * 
+     * @param property
+     *            the URI of the property
+     * @param value
+     *            the value to be used as an RDF node
+     * @return the new annotation
+     * @throws ROSRSException
+     *             server returned an unexpected response
+     * @throws ROException
+     *             the manifest is incorrect
+     */
+    Annotation createPropertyValue(URI property, URI value)
+            throws ROSRSException, ROException;
+
+
+    /**
      * Update an annotation by setting the property value to a given literal value. All other literal values of this
      * property describing this resource are removed.
      * 

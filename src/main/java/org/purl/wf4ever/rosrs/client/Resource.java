@@ -304,6 +304,15 @@ public class Resource extends Thing implements Annotable {
 
 
     @Override
+    public Annotation createPropertyValue(URI property, URI value)
+            throws ROSRSException, ROException {
+        return this.annotate(null,
+            Annotation.wrapAnnotationBody(Collections.singletonList(new Statement(this.getUri(), property, value))),
+            RDFFormat.RDFXML.getDefaultMIMEType());
+    }
+
+
+    @Override
     public Annotation updatePropertyValue(Annotation annotation, URI property, String value)
             throws ROSRSException {
         annotation.updatePropertyValue(this, property, value);

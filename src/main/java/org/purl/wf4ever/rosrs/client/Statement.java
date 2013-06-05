@@ -121,6 +121,26 @@ public class Statement implements Serializable {
     }
 
 
+    /**
+     * Constructor.
+     * 
+     * @param subject
+     *            subject
+     * @param property
+     *            property
+     * @param value
+     *            a URI value
+     */
+    public Statement(URI subject, URI property, URI value) {
+        this.subjectURI = subject;
+        subjectValue = "";
+        isSubjectURIResource = false;
+        setPropertyURI(property);
+        objectURI = value;
+        objectValue = null;
+    }
+
+
     public Annotation getAnnotation() {
         return annotation;
     }
