@@ -84,12 +84,12 @@ public class Annotation extends Thing {
      * @param created
      *            annotation creation time
      */
-    public Annotation(ResearchObject researchObject, URI uri, URI body, Set<URI> targets, Person creator,
+    public Annotation(ResearchObject researchObject, URI uri, URI body, Collection<URI> targets, Person creator,
             DateTime created) {
         super(uri, creator, created);
         this.researchObject = researchObject;
         this.body = body;
-        this.targets = targets;
+        this.targets = new HashSet<>(targets);
         this.loaded = false;
     }
 
