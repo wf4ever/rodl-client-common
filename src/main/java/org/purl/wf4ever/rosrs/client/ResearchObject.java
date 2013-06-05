@@ -275,6 +275,9 @@ public class ResearchObject extends Thing implements Annotable {
      */
     public List<Resource> getResourcesWithoutFolders()
             throws ROSRSException {
+        if (!isLoaded()) {
+            return Collections.emptyList();
+        }
         List<Resource> resourcesWithoutFolders = new ArrayList<>(getResources().values());
         for (Folder folder : getFolders().values()) {
             if (!folder.isLoaded()) {
