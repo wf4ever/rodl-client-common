@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.openrdf.rio.RDFFormat;
@@ -92,6 +93,9 @@ public class Resource extends Thing implements Annotable {
             throws ROSRSException {
         ClientResponse response = researchObject.getRosrs().aggregateInternalResource(researchObject.getUri(), path,
             content, contentType);
+        if (response.getStatus() != HttpStatus.SC_CREATED) {
+            throw new ROSRSException("Can't createResource", response.getStatus(), response.getEntity(String.class));
+        }
         Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
         URI resourceUri = headers.get(ORE.proxyFor.getURI()).isEmpty() ? null : headers.get(ORE.proxyFor.getURI())
                 .iterator().next();
