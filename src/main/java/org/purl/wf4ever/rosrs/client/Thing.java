@@ -3,8 +3,6 @@ package org.purl.wf4ever.rosrs.client;
 import java.io.Serializable;
 import java.net.URI;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Set;
 
 import org.joda.time.DateTime;
 
@@ -64,23 +62,6 @@ public class Thing implements Serializable {
     @Deprecated
     public URI getCreator() {
         return null;
-    }
-
-
-    /**
-     * Set creators.
-     * 
-     * @param creators
-     *            creators
-     */
-    @Deprecated
-    public void setCreators(Set<Creator> creators) {
-    }
-
-
-    @Deprecated
-    public Set<Creator> getCreators() {
-        return Collections.emptySet();
     }
 
 
