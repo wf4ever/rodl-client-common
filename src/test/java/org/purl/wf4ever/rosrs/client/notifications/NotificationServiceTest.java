@@ -4,7 +4,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
@@ -233,7 +232,7 @@ public class NotificationServiceTest {
 
         // make sure the request was made
         verify(getRequestedFor(urlMatching("/")));
-        verify(getRequestedFor(urlMatching("/notifications?.+")).withHeader("Content-Type",
-            matching(MediaType.APPLICATION_ATOM_XML)));
+        verify(getRequestedFor(urlMatching("/notifications?.+")).withHeader("Accept",
+            equalTo(MediaType.APPLICATION_ATOM_XML)));
     }
 }

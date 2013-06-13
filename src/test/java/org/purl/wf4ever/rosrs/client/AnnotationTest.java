@@ -9,6 +9,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.purl.wf4ever.rosrs.client.BaseTest.MOCK_ANNOTATION;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,14 +47,8 @@ public class AnnotationTest extends BaseTest {
     @Rule
     public static final WireMockRule WIREMOCK_RULE = new WireMockRule(8089); // No-args constructor defaults to port 8080
 
-    /** Annotation. */
-    private static final URI MOCK_ANNOTATION = URI.create("http://localhost:8089/ann");
-
     /** Annotation proxy. */
     private static final URI MOCK_ANNOTATION_PROXY = URI.create("http://localhost:8089/annproxy");
-
-    /** Body in the ro1 folder. */
-    private static final URI MOCK_BODY = URI.create("http://localhost:8089/ro1/body.rdf");
 
     /** Annotation target. */
     private static final URI MOCK_TARGET = URI.create("http://localhost:8089/ro1/");

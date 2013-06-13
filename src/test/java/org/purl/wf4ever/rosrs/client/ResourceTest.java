@@ -84,11 +84,12 @@ public class ResourceTest extends BaseTest {
     protected void setUpExternalResourceCreateDelete()
             throws IOException {
         InputStream response = getClass().getClassLoader().getResourceAsStream("resources/response_external.rdf");
-        stubFor(post(urlEqualTo("/ro1/")).withHeader("Slug", equalTo("application/vnd.wf4ever.proxy")).willReturn(
-            aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
-                    .withHeader("Location", MOCK_EXT_RESOURCE_PROXY.toString())
-                    .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
-                    .withBody(IOUtils.toByteArray(response))));
+        stubFor(post(urlEqualTo("/ro1/")).withHeader("Content-Type", equalTo("application/vnd.wf4ever.proxy"))
+                .willReturn(
+                    aResponse().withStatus(201).withHeader("Content-Type", "application/rdf+xml")
+                            .withHeader("Location", MOCK_EXT_RESOURCE_PROXY.toString())
+                            .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
+                            .withBody(IOUtils.toByteArray(response))));
         stubFor(delete(urlEqualTo("/extresproxy")).willReturn(aResponse().withStatus(204)));
     }
 

@@ -1,6 +1,7 @@
 package org.purl.wf4ever.rosrs.client;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -16,6 +17,7 @@ import java.net.URI;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 
+import pl.psnc.dl.wf4ever.vocabulary.AO;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -46,6 +48,12 @@ public class BaseTest {
 
     /** Some resource available by HTTP. */
     protected static final URI MOCK_EXT_RESOURCE_PROXY = URI.create("http://localhost:8089/extresproxy");
+
+    /** Annotation. */
+    protected static final URI MOCK_ANNOTATION = URI.create("http://localhost:8089/ann");
+
+    /** Body in the ro1 folder. */
+    protected static final URI MOCK_BODY = URI.create("http://localhost:8089/ro1/body.rdf");
 
     /** A loaded RO. */
     protected ResearchObject ro1;
@@ -140,6 +148,14 @@ public class BaseTest {
                     .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + ORE.proxyFor.toString() + "\"")
                     .withBody(IOUtils.toByteArray(response))));
         stubFor(delete(urlEqualTo("/ro1/res1.txt")).willReturn(aResponse().withStatus(204)));
+        InputStream annotationResponse = getClass().getClassLoader().getResourceAsStream(
+            "resources/response_annotation.rdf");
+        stubFor(post(urlEqualTo("/ro1/")).withHeader("Link", containing(AO.annotatesResource.toString())).willReturn(
+            aResponse().withStatus(201).withHeader("Content-Type", "text/plain")
+                    .withHeader("Location", MOCK_ANNOTATION.toString())
+                    .withHeader("Link", "<" + MOCK_RESOURCE + ">; rel=\"" + AO.annotatesResource.toString() + "\"")
+                    .withHeader("Link", "<" + MOCK_BODY + ">; rel=\"" + AO.body.toString() + "\"")
+                    .withBody(IOUtils.toByteArray(annotationResponse))));
     }
 
 }

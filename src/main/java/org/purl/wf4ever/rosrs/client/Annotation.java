@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -107,7 +106,7 @@ public class Annotation extends Thing {
      * @throws ROSRSException
      *             unexpected response from the server
      */
-    public static Annotation create(ResearchObject researchObject, URI body, Set<URI> targets)
+    public static Annotation create(ResearchObject researchObject, URI body, Collection<URI> targets)
             throws ROSRSException {
         ClientResponse response = researchObject.getRosrs().addAnnotation(researchObject.getUri(), targets, body);
         Multimap<String, URI> links = Utils.getLinkHeaders(response.getHeaders().get("Link"));
@@ -117,14 +116,42 @@ public class Annotation extends Thing {
         model.read(response.getEntityInputStream(), null);
         response.close();
 
+        return readFromModel(researchObject, body, targets, response.getLocation(), annUri, model);
+    }
+
+
+    /**
+     * Create an annotation based on an RDF description.
+     * 
+     * @param researchObject
+     *            research object
+     * @param body
+     *            body URI
+     * @param targets
+     *            a collection of target URIs
+     * @param proxyUri
+     *            annotation proxy URI. If null, will be searched for in the model
+     * @param annUri
+     *            annotation URI
+     * @param model
+     *            Jena model
+     * @return a new annotation
+     */
+    static Annotation readFromModel(ResearchObject researchObject, URI body, Collection<URI> targets, URI proxyUri,
+            URI annUri, OntModel model) {
         Individual r = model.getIndividual(annUri.toString());
         com.hp.hpl.jena.rdf.model.Resource creatorNode = r.getPropertyResourceValue(DCTerms.creator);
         Person resCreator = Person.create(creatorNode);
         RDFNode createdNode = r.getPropertyValue(DCTerms.created);
         DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode.asLiteral()
                 .getString()) : null;
-
-        return new Annotation(researchObject, response.getLocation(), body, targets, resCreator, resCreated);
+        if (proxyUri == null) {
+            List<com.hp.hpl.jena.rdf.model.Resource> proxies = model.listSubjectsWithProperty(ORE.proxyFor, r).toList();
+            if (!proxies.isEmpty()) {
+                proxyUri = URI.create(proxies.get(0).getURI());
+            }
+        }
+        return new Annotation(researchObject, proxyUri, body, targets, resCreator, resCreated);
     }
 
 
@@ -143,7 +170,7 @@ public class Annotation extends Thing {
      */
     public static Annotation create(ResearchObject researchObject, URI body, URI target)
             throws ROSRSException {
-        return create(researchObject, body, new HashSet<URI>(Arrays.asList(new URI[] { target })));
+        return create(researchObject, body, Collections.singleton(target));
     }
 
 

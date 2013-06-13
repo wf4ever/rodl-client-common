@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -365,7 +366,7 @@ public class ROSRService implements Serializable {
      * @throws ROSRSException
      *             when the response code is not 201
      */
-    public ClientResponse addAnnotation(URI researchObject, Set<URI> targets, URI bodyURI)
+    public ClientResponse addAnnotation(URI researchObject, Collection<URI> targets, URI bodyURI)
             throws ROSRSException {
         WebResource webResource = getClient().resource(researchObject.toString());
         OntModel model = ModelFactory.createOntologyModel();
@@ -411,8 +412,10 @@ public class ROSRService implements Serializable {
             throws ROSRSException {
         if (!ANNOTATION_MIME_TYPE.equals(contentType)) {
             WebResource webResource = getClient().resource(researchObject.toString());
-            Builder builder = webResource.header("Authorization", "Bearer " + token).header("Slug", bodyPath)
-                    .type(contentType);
+            Builder builder = webResource.header("Authorization", "Bearer " + token).type(contentType);
+            if (bodyPath != null) {
+                builder = builder.header("Slug", bodyPath);
+            }
             for (URI target : targets) {
                 builder = builder.header("Link",
                     String.format("<%s>; rel=\"http://purl.org/ao/annotatesResource\"", target.toString()));

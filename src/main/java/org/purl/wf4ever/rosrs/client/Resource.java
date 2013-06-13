@@ -94,7 +94,7 @@ public class Resource extends Thing implements Annotable {
         ClientResponse response = researchObject.getRosrs().aggregateInternalResource(researchObject.getUri(), path,
             content, contentType);
         if (response.getStatus() != HttpStatus.SC_CREATED) {
-            throw new ROSRSException("Can't createResource", response.getStatus(), response.getEntity(String.class));
+            throw new ROSRSException("Can't create a resource", response.getStatus(), response.getEntity(String.class));
         }
         Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
         URI resourceUri = headers.get(ORE.proxyFor.getURI()).isEmpty() ? null : headers.get(ORE.proxyFor.getURI())
@@ -102,13 +102,37 @@ public class Resource extends Thing implements Annotable {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
         model.read(response.getEntityInputStream(), null);
         response.close();
+        return readFromModel(researchObject, response.getLocation(), resourceUri, model);
+    }
+
+
+    /**
+     * Create a resource based on an RDF description.
+     * 
+     * @param researchObject
+     *            the research object
+     * @param proxyUri
+     *            proxy URI. If null, will be searched for in the model
+     * @param resourceUri
+     *            resource URI
+     * @param model
+     *            Jena model
+     * @return a new resource
+     */
+    static Resource readFromModel(ResearchObject researchObject, URI proxyUri, URI resourceUri, OntModel model) {
         Individual r = model.getIndividual(resourceUri.toString());
         com.hp.hpl.jena.rdf.model.Resource creatorNode = r.getPropertyResourceValue(DCTerms.creator);
         Person resCreator = Person.create(creatorNode);
         RDFNode createdNode = r.getPropertyValue(DCTerms.created);
         DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode.asLiteral()
                 .getString()) : null;
-        return new Resource(researchObject, resourceUri, response.getLocation(), resCreator, resCreated);
+        if (proxyUri == null) {
+            List<com.hp.hpl.jena.rdf.model.Resource> proxies = model.listSubjectsWithProperty(ORE.proxyFor, r).toList();
+            if (!proxies.isEmpty()) {
+                proxyUri = URI.create(proxies.get(0).getURI());
+            }
+        }
+        return new Resource(researchObject, resourceUri, proxyUri, resCreator, resCreated);
     }
 
 

@@ -592,8 +592,20 @@ public class ResearchObject extends Thing implements Annotable {
      */
     public Annotation annotate(Annotable target, String path, InputStream content, String contentType)
             throws ROSRSException, ROException {
-        Resource body = aggregate(path, content, contentType);
-        Annotation annotation = Annotation.create(this, body.getUri(), target.getUri());
+        ClientResponse response = getRosrs().addAnnotation(uri, Collections.singleton(target.getUri()), path, content,
+            contentType);
+        Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
+        Collection<URI> targetUri = headers.get(AO.annotatesResource.getURI());
+        URI resourceUri = headers.get(AO.body.getURI()).isEmpty() ? null : headers.get(AO.body.getURI()).iterator()
+                .next();
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
+        model.read(response.getEntityInputStream(), null);
+        response.close();
+
+        Resource body = Resource.readFromModel(this, null, resourceUri, model);
+        //FIXME because of the RO API 6, the annotation proxy URI is unknown
+        Annotation annotation = Annotation.readFromModel(this, resourceUri, targetUri, null, response.getLocation(),
+            model);
         if (!loaded) {
             load();
         }
