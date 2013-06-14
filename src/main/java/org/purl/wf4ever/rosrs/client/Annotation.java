@@ -201,7 +201,7 @@ public class Annotation extends Thing {
         try {
             model.read(response.getEntityInputStream(), body.toString());
         } catch (JenaException e) {
-            throw new ROSRSException("Can't load annotation", HttpStatus.SC_NOT_FOUND, "Not found");
+            throw new ROSRSException("Can't load annotation", HttpStatus.SC_NOT_FOUND, "Not found", null);
         } finally {
             try {
                 response.getEntityInputStream().close();

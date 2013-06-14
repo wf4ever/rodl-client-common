@@ -1,5 +1,7 @@
 package org.purl.wf4ever.rosrs.client.exception;
 
+import com.sun.jersey.api.client.ClientResponse;
+
 /**
  * Exception that indicates an unexpected response from the ROSR Service.
  * 
@@ -27,9 +29,11 @@ public class ROSRSException extends Exception {
      *            Response status
      * @param reason
      *            Response reason
+     * @param details
+     *            details of the error
      */
-    public ROSRSException(String message, int status, String reason) {
-        super(String.format("%s (%d %s)", message, status, reason));
+    public ROSRSException(String message, int status, String reason, String details) {
+        super(String.format("%s (%d %s): %s", message, status, reason, details != null ? details : "-"));
         this.status = status;
         this.reason = reason;
     }
@@ -40,17 +44,12 @@ public class ROSRSException extends Exception {
      * 
      * @param message
      *            Context message
-     * @param status
-     *            Response status
-     * @param reason
-     *            Response reason
-     * @param details
-     *            details of the error
+     * @param response
+     *            from the server
      */
-    public ROSRSException(String message, int status, String reason, String details) {
-        super(String.format("%s (%d %s): %s", message, status, reason, details));
-        this.status = status;
-        this.reason = reason;
+    public ROSRSException(String message, ClientResponse response) {
+        this(message, response.getStatus(), response.getClientResponseStatus().getReasonPhrase(), response
+                .getEntity(String.class));
     }
 
 

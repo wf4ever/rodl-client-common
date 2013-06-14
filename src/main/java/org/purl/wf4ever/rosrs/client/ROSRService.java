@@ -126,8 +126,7 @@ public class ROSRService implements Serializable {
         if (response.getStatus() == HttpStatus.SC_CREATED) {
             return response;
         } else {
-            throw new ROSRSException("Creating the RO failed", response.getStatus(), response.getClientResponseStatus()
-                    .getReasonPhrase());
+            throw new ROSRSException("Creating the RO failed", response);
         }
     }
 
@@ -148,8 +147,7 @@ public class ROSRService implements Serializable {
         if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return response;
         } else {
-            throw new ROSRSException("Deleting the RO failed", response.getStatus(), response.getClientResponseStatus()
-                    .getReasonPhrase());
+            throw new ROSRSException("Deleting the RO failed", response);
         }
     }
 
@@ -172,8 +170,7 @@ public class ROSRService implements Serializable {
         if (response.getStatus() == HttpStatus.SC_OK) {
             return response;
         } else {
-            throw new ROSRSException("Getting the resource failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException("Getting the resource failed", response);
         }
     }
 
@@ -194,8 +191,7 @@ public class ROSRService implements Serializable {
         if (response.getStatus() == HttpStatus.SC_OK || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return response;
         } else {
-            throw new ROSRSException("Getting the resource head failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException("Getting the resource head failed", response);
         }
     }
 
@@ -225,8 +221,7 @@ public class ROSRService implements Serializable {
             if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
                 return response;
             } else {
-                throw new ROSRSException("Creating the resource failed", response.getStatus(), response
-                        .getClientResponseStatus().getReasonPhrase());
+                throw new ROSRSException("Creating the resource failed", response);
             }
         } else {
             URI resource = researchObject.resolve(resourcePath);
@@ -263,8 +258,7 @@ public class ROSRService implements Serializable {
         if (response.getStatus() == HttpStatus.SC_CREATED) {
             return response;
         } else {
-            throw new ROSRSException("Aggregating the resource failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException("Aggregating the resource failed", response);
         }
     }
 
@@ -290,8 +284,7 @@ public class ROSRService implements Serializable {
         if (response.getStatus() == HttpStatus.SC_OK) {
             return response;
         } else {
-            throw new ROSRSException("Updating the resource failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException("Updating the resource failed", response);
         }
     }
 
@@ -312,8 +305,7 @@ public class ROSRService implements Serializable {
         if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return response;
         } else {
-            throw new ROSRSException("Deleting the resource failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException("Deleting the resource failed", response);
         }
     }
 
@@ -340,8 +332,7 @@ public class ROSRService implements Serializable {
                 response = webResource.header("Authorization", "Bearer " + token).get(String.class);
             }
         } catch (UniformInterfaceException e) {
-            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
-                    .getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse());
         }
         List<URI> uris = new ArrayList<URI>();
         for (String s : response.split("[\\r\\n]+")) {
@@ -384,8 +375,7 @@ public class ROSRService implements Serializable {
         if (response.getStatus() == HttpStatus.SC_CREATED) {
             return response;
         } else {
-            throw new ROSRSException("Creating the annotation failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase(), response.getEntity(String.class));
+            throw new ROSRSException("Creating the annotation failed", response);
         }
     }
 
@@ -424,8 +414,7 @@ public class ROSRService implements Serializable {
             if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
                 return response;
             } else {
-                throw new ROSRSException("Creating the resource failed", response.getStatus(), response
-                        .getClientResponseStatus().getReasonPhrase());
+                throw new ROSRSException("Creating the resource failed", response);
             }
         } else {
             URI resource = researchObject.resolve(bodyPath);
@@ -460,8 +449,7 @@ public class ROSRService implements Serializable {
         if (response.getStatus() == HttpStatus.SC_NO_CONTENT || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
             return response;
         } else {
-            throw new ROSRSException("Deleting the annotation failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException("Deleting the annotation failed", response);
         }
     }
 
@@ -511,8 +499,7 @@ public class ROSRService implements Serializable {
         if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
             return response;
         } else {
-            throw new ROSRSException("Creating the folder failed", response.getStatus(), response
-                    .getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException("Creating the folder failed", response);
         }
     }
 
@@ -548,8 +535,7 @@ public class ROSRService implements Serializable {
         if (response.getStatus() == HttpStatus.SC_CREATED || response.getStatus() == HttpStatus.SC_CONFLICT) {
             return response;
         } else {
-            throw new ROSRSException("Creating the folder entry failed, " + response.getEntity(String.class),
-                    response.getStatus(), response.getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException("Creating the folder entry failed", response);
         }
     }
 

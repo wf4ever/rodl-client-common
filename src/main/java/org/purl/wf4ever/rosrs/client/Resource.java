@@ -94,7 +94,7 @@ public class Resource extends Thing implements Annotable {
         ClientResponse response = researchObject.getRosrs().aggregateInternalResource(researchObject.getUri(), path,
             content, contentType);
         if (response.getStatus() != HttpStatus.SC_CREATED) {
-            throw new ROSRSException("Can't create a resource", response.getStatus(), response.getEntity(String.class));
+            throw new ROSRSException("Can't create a resource", response);
         }
         Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
         URI resourceUri = headers.get(ORE.proxyFor.getURI()).isEmpty() ? null : headers.get(ORE.proxyFor.getURI())

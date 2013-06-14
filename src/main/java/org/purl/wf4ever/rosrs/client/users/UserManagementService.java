@@ -204,8 +204,7 @@ public final class UserManagementService {
         try {
             return webResource.get(InputStream.class);
         } catch (UniformInterfaceException e) {
-            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
-                    .getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse());
         }
     }
 
@@ -239,8 +238,7 @@ public final class UserManagementService {
                 throw new IllegalArgumentException("No user data found");
             }
         } catch (UniformInterfaceException e) {
-            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse().getStatus(), e.getResponse()
-                    .getClientResponseStatus().getReasonPhrase());
+            throw new ROSRSException(e.getLocalizedMessage(), e.getResponse());
         }
 
     }
