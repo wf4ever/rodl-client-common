@@ -80,7 +80,7 @@ public class ResearchObject extends Thing implements Annotable {
     private Multimap<URI, Annotation> annotations;
 
     /** root folders of the RO. */
-    private Set<Folder> rootFolders;
+    private List<Folder> rootFolders;
 
     /** RO title from annotations (any one in case of many). */
     private String title;
@@ -179,12 +179,13 @@ public class ResearchObject extends Thing implements Annotable {
         this.created = extractCreated(model);
         this.resources = extractResources(model);
         this.folders = extractFolders(model);
-        this.rootFolders = new HashSet<>();
+        this.rootFolders = new ArrayList<>();
         for (Folder folder : folders.values()) {
             if (folder.isRootFolder()) {
                 rootFolders.add(folder);
             }
         }
+        Collections.sort(rootFolders, new ResourceByNameComparator());
         this.annotations = extractAnnotations(model);
         for (Annotation annotation : this.getAnnotations()) {
             try {
@@ -290,7 +291,7 @@ public class ResearchObject extends Thing implements Annotable {
     }
 
 
-    public Set<Folder> getRootFolders() {
+    public List<Folder> getRootFolders() {
         return rootFolders;
     }
 
