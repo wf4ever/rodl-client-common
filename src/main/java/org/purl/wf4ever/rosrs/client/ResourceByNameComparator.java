@@ -8,7 +8,7 @@ import java.util.Comparator;
  * @author piotrekhol
  * 
  */
-final class ResourceByNameComparator implements Comparator<Resource> {
+public final class ResourceByNameComparator implements Comparator<Resource> {
 
     @Override
     public int compare(Resource o1, Resource o2) {

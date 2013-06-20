@@ -339,6 +339,36 @@ public class Annotation extends Thing {
 
 
     /**
+     * Return all property values that describe the given resource. They DO NOT have to be literals.
+     * 
+     * @param resource
+     *            the subject
+     * @return a (possibly empty) list of quads
+     * @throws ROSRSException
+     *             unexpected server response when downloading the body
+     */
+    public List<AnnotationTriple> getPropertyValues(Annotable resource)
+            throws ROSRSException {
+        if (!isLoaded()) {
+            load();
+        }
+        List<AnnotationTriple> quads = new ArrayList<>();
+        for (Statement statement : getStatements()) {
+            if (statement.getSubjectURI().equals(resource.getUri())) {
+                if (statement.isObjectLiteral()) {
+                    quads.add(new AnnotationTriple(this, resource, statement.getPropertyURI(), statement
+                            .getObjectValue()));
+                } else {
+                    quads.add(new AnnotationTriple(this, resource, statement.getPropertyURI(), statement.getObjectURI()
+                            .toString()));
+                }
+            }
+        }
+        return quads;
+    }
+
+
+    /**
      * Update the list of statements by setting the property value to a given literal value. All other literal values of
      * this property describing this resource are removed.
      * 

@@ -2,6 +2,7 @@ package org.purl.wf4ever.rosrs.client;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -358,6 +359,21 @@ public class Resource extends Thing implements Annotable {
         } else {
             annotation.update();
         }
+    }
+
+
+    @Override
+    public List<AnnotationTriple> getAnnotationTriples() {
+        List<AnnotationTriple> list = new ArrayList<>();
+        for (Annotation annotation : getAnnotations()) {
+            try {
+                list.addAll(annotation.getPropertyValues(this));
+            } catch (ROSRSException e) {
+                LOG.error("Can't load annotation body", e);
+            }
+        }
+        Collections.sort(list, new AnnotationTripleByPredicateLocalNameComparator());
+        return list;
     }
 
 

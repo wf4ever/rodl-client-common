@@ -19,6 +19,7 @@
     <rdfs:comment>RO comment 2</rdfs:comment>
   </rdf:Description>
   <rdf:Description rdf:about="res1.txt">
+    <rdf:type rdf:resource="http://purl.org/dc/terms/BibliographicResource"/>
     <rdfs:comment>Res1 comment 1</rdfs:comment>
     <rdfs:comment>Res1 comment 2</rdfs:comment>
   </rdf:Description>

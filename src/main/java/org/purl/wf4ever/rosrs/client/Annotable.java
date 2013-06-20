@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.purl.wf4ever.rosrs.client.exception.ROException;
@@ -133,6 +134,14 @@ public interface Annotable extends Displayable, Serializable {
      */
     void deletePropertyValue(Annotation annotation, URI property)
             throws ROSRSException;
+
+
+    /**
+     * Return a list of all quads for which the subject is this resource, sorted by the predicate local name.
+     * 
+     * @return a list of annotation triples, possibly empty
+     */
+    List<AnnotationTriple> getAnnotationTriples();
 
 
     /**

@@ -851,4 +851,18 @@ public class ResearchObject extends Thing implements Annotable {
         }
     }
 
+
+    @Override
+    public List<AnnotationTriple> getAnnotationTriples() {
+        List<AnnotationTriple> list = new ArrayList<>();
+        for (Annotation annotation : getAnnotations()) {
+            try {
+                list.addAll(annotation.getPropertyValues(this));
+            } catch (ROSRSException e) {
+                LOG.error("Can't load annotation body", e);
+            }
+        }
+        Collections.sort(list, new AnnotationTripleByPredicateLocalNameComparator());
+        return list;
+    }
 }

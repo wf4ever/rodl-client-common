@@ -13,11 +13,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.hasValue;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.IOException;
@@ -26,6 +29,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -43,6 +47,9 @@ import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.hp.hpl.jena.vocabulary.DCTerms;
+import com.hp.hpl.jena.vocabulary.RDF;
+import com.hp.hpl.jena.vocabulary.RDFS;
 
 /**
  * Test {@link Resource} methods.
@@ -226,6 +233,32 @@ public class ResourceTest extends BaseTest {
         Map<Annotation, String> map = res1.getPropertyValues(RDFS_COMMENT);
         assertThat(map.values(), hasSize(equalTo(1)));
         assertThat(map, anyOf(hasValue("Res1 comment 1; Res1 comment 2"), hasValue("Res1 comment 2; Res1 comment 1")));
+    }
+
+
+    /**
+     * See name.
+     * 
+     * @throws ROSRSException
+     *             wiremock error
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public final void shouldReturnAllTriples()
+            throws ROSRSException {
+        List<Object> quads = (List<Object>) ((List<?>) res1.getAnnotationTriples());
+        assertThat(quads, hasSize(3));
+        // I've had problems using 'contains' so this test doesn't test the order
+        URI type = URI.create(RDF.type.getURI());
+        URI comment = URI.create(RDFS.comment.getURI());
+        assertThat(
+            quads,
+            hasItem(allOf(hasProperty("property", is(type)),
+                hasProperty("value", is(DCTerms.BibliographicResource.getURI())))));
+        assertThat(quads,
+            hasItem(allOf(hasProperty("property", is(comment)), hasProperty("value", is("Res1 comment 1")))));
+        assertThat(quads,
+            hasItem(allOf(hasProperty("property", is(comment)), hasProperty("value", is("Res1 comment 2")))));
     }
 
 

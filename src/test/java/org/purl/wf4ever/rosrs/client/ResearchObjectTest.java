@@ -10,10 +10,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.hasValue;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 import java.net.URI;
@@ -38,6 +42,9 @@ import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.hp.hpl.jena.vocabulary.DCTerms;
+import com.hp.hpl.jena.vocabulary.RDF;
+import com.hp.hpl.jena.vocabulary.RDFS;
 
 /**
  * Test the ResearchObject class.
@@ -288,6 +295,37 @@ public class ResearchObjectTest extends BaseTest {
         Map<Annotation, String> map = ro1.getPropertyValues(RDFS_COMMENT);
         assertThat(map.values(), hasSize(equalTo(1)));
         assertThat(map, anyOf(hasValue("RO comment 1; RO comment 2"), hasValue("RO comment 2; RO comment 1")));
+    }
+
+
+    /**
+     * See name.
+     * 
+     * @throws ROSRSException
+     *             wiremock error
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public final void shouldReturnAllTriples()
+            throws ROSRSException {
+        List<Object> quads = (List<Object>) ((List<?>) ro1.getAnnotationTriples());
+        assertThat(quads, hasSize(5));
+        // I've had problems using 'contains' so this test doesn't test the order
+        URI desc = URI.create(DCTerms.description.getURI());
+        URI title = URI.create(DCTerms.title.getURI());
+        URI type = URI.create(RDF.type.getURI());
+        URI comment = URI.create(RDFS.comment.getURI());
+        assertThat(quads, hasItem(allOf(hasProperty("property", is(desc)), hasProperty("value", is("This RO rocks.")))));
+        assertThat(quads,
+            hasItem(allOf(hasProperty("property", is(title)), hasProperty("value", is("The rocking RO")))));
+        assertThat(
+            quads,
+            hasItem(allOf(hasProperty("property", is(type)),
+                hasProperty("value", is("http://purl.org/wf4ever/roevo#SnapshotRO")))));
+        assertThat(quads,
+            hasItem(allOf(hasProperty("property", is(comment)), hasProperty("value", is("RO comment 1")))));
+        assertThat(quads,
+            hasItem(allOf(hasProperty("property", is(comment)), hasProperty("value", is("RO comment 2")))));
     }
 
 

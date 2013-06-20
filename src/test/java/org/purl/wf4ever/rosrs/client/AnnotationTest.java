@@ -9,7 +9,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static org.purl.wf4ever.rosrs.client.BaseTest.MOCK_ANNOTATION;
 
 import java.io.IOException;
 import java.io.InputStream;
