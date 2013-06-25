@@ -82,6 +82,9 @@ public class ResearchObject extends Thing implements Annotable {
     /** root folders of the RO. */
     private List<Folder> rootFolders;
 
+    /** resources not in any folder. */
+    private List<Resource> rootResources;
+
     /** RO title from annotations (any one in case of many). */
     private String title;
 
@@ -179,13 +182,6 @@ public class ResearchObject extends Thing implements Annotable {
         this.created = extractCreated(model);
         this.resources = extractResources(model);
         this.folders = extractFolders(model);
-        this.rootFolders = new ArrayList<>();
-        for (Folder folder : folders.values()) {
-            if (folder.isRootFolder()) {
-                rootFolders.add(folder);
-            }
-        }
-        Collections.sort(rootFolders, new ResourceByNameComparator());
         this.annotations = extractAnnotations(model);
         for (Annotation annotation : this.getAnnotations()) {
             try {
@@ -203,6 +199,56 @@ public class ResearchObject extends Thing implements Annotable {
         this.description = descriptions.isEmpty() ? null : descriptions.values().iterator().next();
         this.evoType = findEvoType(model);
         this.loaded = true;
+        this.rootFolders = extractRootFolders(folders.values());
+        this.rootResources = extractRootResources(folders.values(), resources.values());
+    }
+
+
+    /**
+     * Find all resources that are not in any folder.
+     * 
+     * @param folders
+     *            all folders
+     * @param resources
+     *            all resources
+     * @return a possibly empty list of resources
+     * @throws ROSRSException
+     *             when a folder can't be loaded
+     */
+    private List<Resource> extractRootResources(Collection<Folder> folders, Collection<Resource> resources)
+            throws ROSRSException {
+        List<Resource> resourcesWithoutFolders = new ArrayList<>(resources);
+        for (Folder folder : folders) {
+            if (!folder.isLoaded()) {
+                folder.load(true);
+            }
+            resourcesWithoutFolders.removeAll(folder.getResources());
+        }
+        Collections.sort(resourcesWithoutFolders, new ResourceByNameComparator());
+        return resourcesWithoutFolders;
+    }
+
+
+    /**
+     * Find all folders that are not in any folder. Doesn't depend on the ro:rootFolder property.
+     * 
+     * @param folders
+     *            all folders
+     * @return a possibly empty list of folders
+     * @throws ROSRSException
+     *             when a folder can't be loaded
+     */
+    private List<Folder> extractRootFolders(Collection<Folder> folders)
+            throws ROSRSException {
+        List<Folder> rootFolders2 = new ArrayList<>(folders);
+        for (Folder folder : folders) {
+            if (!folder.isLoaded()) {
+                folder.load(true);
+            }
+            rootFolders2.removeAll(folder.getSubfolders());
+        }
+        Collections.sort(rootFolders2, new ResourceByNameComparator());
+        return rootFolders2;
     }
 
 
@@ -279,15 +325,7 @@ public class ResearchObject extends Thing implements Annotable {
         if (!isLoaded()) {
             return Collections.emptyList();
         }
-        List<Resource> resourcesWithoutFolders = new ArrayList<>(getResources().values());
-        for (Folder folder : getFolders().values()) {
-            if (!folder.isLoaded()) {
-                folder.load(true);
-            }
-            resourcesWithoutFolders.removeAll(folder.getResources());
-        }
-        Collections.sort(resourcesWithoutFolders, new ResourceByNameComparator());
-        return resourcesWithoutFolders;
+        return rootResources;
     }
 
 
