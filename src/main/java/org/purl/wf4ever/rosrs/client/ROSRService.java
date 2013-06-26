@@ -182,13 +182,13 @@ public class ROSRService implements Serializable {
      *            resource URI
      * @return RODL response
      * @throws ROSRSException
-     *             when the response code is neither 200 nor 404
+     *             when the response code is neither 200
      */
     public ClientResponse getResourceHead(URI resource)
             throws ROSRSException {
         WebResource webResource = getClient().resource(resource.toString());
         ClientResponse response = webResource.head();
-        if (response.getStatus() == HttpStatus.SC_OK || response.getStatus() == HttpStatus.SC_NOT_FOUND) {
+        if (response.getStatus() == HttpStatus.SC_OK) {
             return response;
         } else {
             throw new ROSRSException("Getting the resource head failed", response);
