@@ -1,5 +1,6 @@
 package org.purl.wf4ever.rosrs.client;
 
+import java.io.Serializable;
 import java.net.URI;
 
 import com.hp.hpl.jena.rdf.model.Property;
@@ -10,7 +11,10 @@ import com.hp.hpl.jena.rdf.model.Property;
  * @author piotrekhol
  * 
  */
-public class AnnotationTriple {
+public class AnnotationTriple implements Serializable {
+
+    /** id. */
+    private static final long serialVersionUID = 889959786166231224L;
 
     /** The annotation containing the triple. */
     private final Annotation annotation;
