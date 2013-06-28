@@ -99,11 +99,9 @@ public class SparqlSearchServer implements SearchServer {
                     LOG.warn("Don't know how to parse date: " + date);
                 }
             }
-            String title = solution.getLiteral("title") != null ? solution.getLiteral("title").getString() : null;
             ResearchObject ro = new ResearchObject(uri, null);
             ro.setAuthor(creator);
             ro.setCreated(created);
-            ro.setTitle(title);
             FoundRO result = new FoundRO(ro, -1);
             searchResults.add(result);
         }

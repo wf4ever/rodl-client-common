@@ -101,7 +101,6 @@ public class OpenSearchSearchServer implements SearchServer {
         for (SyndEntry entry : entries) {
             URI researchObjectURI = null;
             DateTime created = null;
-            String title = null;
             double score = -1;
             List<Element> dlMarkup = (List<Element>) entry.getForeignMarkup();
             for (Element element : dlMarkup) {
@@ -125,9 +124,6 @@ public class OpenSearchSearchServer implements SearchServer {
                                     created = null;
                                 }
                                 break;
-                            case "Title":
-                                title = element.getValue();
-                                break;
                             default:
                                 break;
                         }
@@ -143,7 +139,6 @@ public class OpenSearchSearchServer implements SearchServer {
             if (researchObjectURI != null && score != -1) {
                 ResearchObject ro = new ResearchObject(researchObjectURI, null);
                 ro.setCreated(created);
-                ro.setTitle(title);
                 ros.add(new FoundRO(ro, score));
             }
         }

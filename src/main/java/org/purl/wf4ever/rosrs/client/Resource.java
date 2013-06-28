@@ -5,9 +5,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -301,64 +299,49 @@ public class Resource extends Thing implements Annotable {
 
 
     @Override
-    public Map<Annotation, String> getPropertyValues(URI property) {
-        Map<Annotation, String> map = new HashMap<>();
+    public List<AnnotationTriple> getPropertyValues(URI property, boolean merge) {
+        List<AnnotationTriple> list = new ArrayList<>();
         for (Annotation annotation : getAnnotations()) {
             try {
                 List<String> literals = annotation.getPropertyValues(this, property);
                 if (!literals.isEmpty()) {
-                    map.put(annotation, StringUtils.join(literals, "; "));
+                    if (merge) {
+                        list.add(new AnnotationTriple(annotation, this, property, StringUtils.join(literals, "; "),
+                                true));
+                    } else {
+                        for (String literal : literals) {
+                            list.add(new AnnotationTriple(annotation, this, property, literal, false));
+                        }
+                    }
                 }
             } catch (ROSRSException e) {
                 LOG.error("Can't load annotation body", e);
             }
         }
-        return map;
+        return list;
     }
 
 
     @Override
-    public Map<Annotation, String> getPropertyValues(Property property) {
-        return getPropertyValues(URI.create(property.getURI()));
+    public List<AnnotationTriple> getPropertyValues(Property property, boolean merge) {
+        return getPropertyValues(URI.create(property.getURI()), merge);
     }
 
 
     @Override
-    public Annotation createPropertyValue(URI property, String value)
+    public AnnotationTriple createPropertyValue(URI property, String value)
             throws ROSRSException, ROException {
-        return this.annotate(null,
+        Annotation annotation = this.annotate(null,
             Annotation.wrapAnnotationBody(Collections.singletonList(new Statement(this.getUri(), property, value))),
             RDFFormat.RDFXML.getDefaultMIMEType());
+        return new AnnotationTriple(annotation, this, property, value, false);
     }
 
 
     @Override
-    public Annotation createPropertyValue(URI property, URI value)
+    public AnnotationTriple createPropertyValue(URI property, URI value)
             throws ROSRSException, ROException {
-        return this.annotate(null,
-            Annotation.wrapAnnotationBody(Collections.singletonList(new Statement(this.getUri(), property, value))),
-            RDFFormat.RDFXML.getDefaultMIMEType());
-    }
-
-
-    @Override
-    public Annotation updatePropertyValue(Annotation annotation, URI property, String value)
-            throws ROSRSException {
-        annotation.updatePropertyValue(this, property, value);
-        annotation.update();
-        return annotation;
-    }
-
-
-    @Override
-    public void deletePropertyValue(Annotation annotation, URI property)
-            throws ROSRSException {
-        annotation.deletePropertyValue(this, property);
-        if (annotation.getStatements().isEmpty()) {
-            annotation.delete();
-        } else {
-            annotation.update();
-        }
+        return createPropertyValue(property, value.toString());
     }
 
 

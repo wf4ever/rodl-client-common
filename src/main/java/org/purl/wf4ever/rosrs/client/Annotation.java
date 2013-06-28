@@ -357,10 +357,10 @@ public class Annotation extends Thing {
             if (statement.getSubjectURI().equals(resource.getUri())) {
                 if (statement.isObjectLiteral()) {
                     quads.add(new AnnotationTriple(this, resource, statement.getPropertyURI(), statement
-                            .getObjectValue()));
+                            .getObjectValue(), false));
                 } else {
                     quads.add(new AnnotationTriple(this, resource, statement.getPropertyURI(), statement.getObjectURI()
-                            .toString()));
+                            .toString(), false));
                 }
             }
         }

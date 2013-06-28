@@ -19,7 +19,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.hasValue;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -30,11 +29,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
+import org.hamcrest.Matchers;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
@@ -227,12 +225,16 @@ public class ResourceTest extends BaseTest {
      * @throws ROSRSException
      *             wiremock error
      */
+    @SuppressWarnings("unchecked")
     @Test
     public final void shouldReturnTwoCommentsJoined()
             throws ROSRSException {
-        Map<Annotation, String> map = res1.getPropertyValues(RDFS_COMMENT);
-        assertThat(map.values(), hasSize(equalTo(1)));
-        assertThat(map, anyOf(hasValue("Res1 comment 1; Res1 comment 2"), hasValue("Res1 comment 2; Res1 comment 1")));
+        List<?> list = res1.getPropertyValues(RDFS_COMMENT, true);
+        assertThat(list, hasSize(equalTo(1)));
+        assertThat(
+            (List<Object>) list,
+            hasItem(anyOf(hasProperty("value", Matchers.equalTo("Res1 comment 1; Res1 comment 2")),
+                hasProperty("value", Matchers.equalTo("Res1 comment 2; Res1 comment 1")))));
     }
 
 
@@ -271,15 +273,15 @@ public class ResourceTest extends BaseTest {
     @Test
     public final void shouldUpdateAComment()
             throws ROSRSException {
-        Map<Annotation, String> map = res1.getPropertyValues(RDFS_COMMENT);
-        assertThat(map.values(), hasSize(equalTo(1)));
-        Entry<Annotation, String> e = map.entrySet().iterator().next();
-        res1.updatePropertyValue(e.getKey(), RDFS_COMMENT, "Res1 comment 3");
+        List<AnnotationTriple> list = res1.getPropertyValues(RDFS_COMMENT, true);
+        assertThat(list, hasSize(equalTo(1)));
+        AnnotationTriple triple = list.get(0);
+        triple.setValue("Res1 comment 3");
 
         verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(matching(".*Res1 comment 3.*")));
 
-        map = res1.getPropertyValues(RDFS_COMMENT);
-        assertThat(map.values(), hasSize(equalTo(1)));
+        list = res1.getPropertyValues(RDFS_COMMENT, true);
+        assertThat(list, hasSize(equalTo(1)));
     }
 
 
@@ -294,10 +296,10 @@ public class ResourceTest extends BaseTest {
     @Test
     public final void shouldCreateAComment()
             throws ROSRSException, ROException {
-        Map<Annotation, String> map = res1.getPropertyValues(RDFS_COMMENT);
-        assertThat(map.values(), hasSize(equalTo(1)));
-        Annotation annotation = res1.createPropertyValue(RDFS_COMMENT, "Res1 comment 3");
-        assertThat(annotation, notNullValue());
+        List<AnnotationTriple> list = res1.getPropertyValues(RDFS_COMMENT, true);
+        assertThat(list, hasSize(equalTo(1)));
+        AnnotationTriple triple = res1.createPropertyValue(RDFS_COMMENT, "Res1 comment 3");
+        assertThat(triple, notNullValue());
 
         verify(postRequestedFor(urlEqualTo("/ro1/")).withRequestBody(matching(".*Res1 comment 3.*")));
     }
@@ -314,10 +316,10 @@ public class ResourceTest extends BaseTest {
     @Test
     public final void shouldDeleteAComment()
             throws ROSRSException, ROException {
-        Map<Annotation, String> map = res1.getPropertyValues(RDFS_COMMENT);
-        assertThat(map.values(), hasSize(equalTo(1)));
-        Entry<Annotation, String> e = map.entrySet().iterator().next();
-        res1.deletePropertyValue(e.getKey(), RDFS_COMMENT);
+        List<AnnotationTriple> list = res1.getPropertyValues(RDFS_COMMENT, true);
+        assertThat(list, hasSize(equalTo(1)));
+        AnnotationTriple triple = list.get(0);
+        triple.delete();
 
         verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(notMatching(".*Res1 comment.*")));
     }

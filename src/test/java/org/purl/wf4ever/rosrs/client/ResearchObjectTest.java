@@ -16,7 +16,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.hasValue;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -25,10 +24,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
+import org.hamcrest.Matchers;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
@@ -257,24 +255,6 @@ public class ResearchObjectTest extends BaseTest {
 
 
     /**
-     * Test RO dcterms:title taken from an annotation.
-     */
-    @Test
-    public final void testGetTitle() {
-        Assert.assertEquals("The rocking RO", ro1.getTitle());
-    }
-
-
-    /**
-     * Test RO dcterms:description taken from an annotation.
-     */
-    @Test
-    public final void testGetDescription() {
-        Assert.assertEquals("This RO rocks.", ro1.getDescription());
-    }
-
-
-    /**
      * Test RO evo class taken from an annotation.
      */
     @Test
@@ -289,12 +269,16 @@ public class ResearchObjectTest extends BaseTest {
      * @throws ROSRSException
      *             wiremock error
      */
+    @SuppressWarnings("unchecked")
     @Test
     public final void shouldReturnTwoCommentsJoined()
             throws ROSRSException {
-        Map<Annotation, String> map = ro1.getPropertyValues(RDFS_COMMENT);
-        assertThat(map.values(), hasSize(equalTo(1)));
-        assertThat(map, anyOf(hasValue("RO comment 1; RO comment 2"), hasValue("RO comment 2; RO comment 1")));
+        List<?> list = ro1.getPropertyValues(RDFS_COMMENT, true);
+        assertThat(list, hasSize(equalTo(1)));
+        assertThat(
+            (List<Object>) list,
+            hasItem(anyOf(hasProperty("value", Matchers.equalTo("RO comment 1; RO comment 2")),
+                hasProperty("value", Matchers.equalTo("RO comment 2; RO comment 1")))));
     }
 
 
@@ -338,15 +322,15 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void shouldUpdateAComment()
             throws ROSRSException {
-        Map<Annotation, String> map = ro1.getPropertyValues(RDFS_COMMENT);
-        assertThat(map.values(), hasSize(equalTo(1)));
-        Entry<Annotation, String> e = map.entrySet().iterator().next();
-        ro1.updatePropertyValue(e.getKey(), RDFS_COMMENT, "RO comment 3");
+        List<AnnotationTriple> list = ro1.getPropertyValues(RDFS_COMMENT, true);
+        assertThat(list, hasSize(equalTo(1)));
+        AnnotationTriple triple = list.get(0);
+        triple.setValue("RO comment 3");
 
         verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(matching(".*RO comment 3.*")));
 
-        map = ro1.getPropertyValues(RDFS_COMMENT);
-        assertThat(map.values(), hasSize(equalTo(1)));
+        list = ro1.getPropertyValues(RDFS_COMMENT, true);
+        assertThat(list, hasSize(equalTo(1)));
     }
 
 
@@ -361,10 +345,10 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void shouldCreateAComment()
             throws ROSRSException, ROException {
-        Map<Annotation, String> map = ro1.getPropertyValues(RDFS_COMMENT);
-        assertThat(map.values(), hasSize(equalTo(1)));
-        Annotation annotation = ro1.createPropertyValue(RDFS_COMMENT, "RO comment 3");
-        assertThat(annotation, notNullValue());
+        List<AnnotationTriple> list = ro1.getPropertyValues(RDFS_COMMENT, true);
+        assertThat(list, hasSize(equalTo(1)));
+        AnnotationTriple triple = ro1.createPropertyValue(RDFS_COMMENT, "RO comment 3");
+        assertThat(triple, notNullValue());
 
         verify(postRequestedFor(urlEqualTo("/ro1/")).withRequestBody(matching(".*RO comment 3.*")));
     }
@@ -381,10 +365,10 @@ public class ResearchObjectTest extends BaseTest {
     @Test
     public final void shouldDeleteAComment()
             throws ROSRSException, ROException {
-        Map<Annotation, String> map = ro1.getPropertyValues(RDFS_COMMENT);
-        assertThat(map.values(), hasSize(equalTo(1)));
-        Entry<Annotation, String> e = map.entrySet().iterator().next();
-        ro1.deletePropertyValue(e.getKey(), RDFS_COMMENT);
+        List<AnnotationTriple> list = ro1.getPropertyValues(RDFS_COMMENT, true);
+        assertThat(list, hasSize(equalTo(1)));
+        AnnotationTriple triple = list.get(0);
+        triple.delete();
 
         verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(notMatching(".*RO comment.*")));
     }
