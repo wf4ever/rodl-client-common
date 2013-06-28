@@ -25,7 +25,7 @@ public class AnnotationTriple implements Serializable {
     private final Annotable subject;
 
     /** The property (predicate). */
-    private final URI property;
+    private URI property;
 
     /** The object. */
     private String value;
@@ -92,8 +92,18 @@ public class AnnotationTriple implements Serializable {
     }
 
 
+    public void setProperty(URI property) {
+        this.property = property;
+    }
+
+
     public String getValue() {
         return value;
+    }
+
+
+    public void setValue(String value) {
+        this.value = value;
     }
 
 
@@ -123,11 +133,30 @@ public class AnnotationTriple implements Serializable {
      * @throws ROSRSException
      *             unexpected response from the server
      */
-    public void setValue(String newValue)
+    public void updateValue(String newValue)
+            throws ROSRSException {
+        updatePropertyValue(property, newValue);
+    }
+
+
+    /**
+     * Update the list of statements by setting the property and value to given values. All other values of this
+     * property describing this resource are removed.
+     * 
+     * @param newProperty
+     *            the new property
+     * @param newValue
+     *            the new value
+     * @throws ROSRSException
+     *             unexpected response from the server
+     */
+    public void updatePropertyValue(URI newProperty, String newValue)
             throws ROSRSException {
         annotation.deletePropertyValues(subject, property, merge ? null : value);
+        property = newProperty;
         value = newValue;
         annotation.getStatements().add(new Statement(subject.getUri(), property, value));
         annotation.update();
     }
+
 }

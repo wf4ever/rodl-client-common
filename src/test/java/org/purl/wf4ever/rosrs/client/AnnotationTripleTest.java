@@ -67,7 +67,7 @@ public class AnnotationTripleTest extends BaseTest {
         List<AnnotationTriple> list = res1.getPropertyValues(RDFS_COMMENT, true);
         assertThat(list, hasSize(equalTo(1)));
         AnnotationTriple triple = list.get(0);
-        triple.setValue("Res1 comment 3");
+        triple.updateValue("Res1 comment 3");
 
         verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(matching(".*Res1 comment 3.*")));
 
@@ -89,7 +89,7 @@ public class AnnotationTripleTest extends BaseTest {
         List<AnnotationTriple> list = res1.getPropertyValues(RDFS_COMMENT, false);
         assertThat(list, hasSize(equalTo(2)));
         AnnotationTriple triple = list.get(0);
-        triple.setValue("Res1 comment 3");
+        triple.updateValue("Res1 comment 3");
         String theOtherValue = list.get(1).getValue();
 
         verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(matching(".*Res1 comment 3.*")));
