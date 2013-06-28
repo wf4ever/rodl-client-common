@@ -43,11 +43,8 @@ public class Statement implements Serializable {
     /** Annotation that this statement belongs to. */
     private Annotation annotation;
 
-    /** The object URI if it's a resource with URI, the String value otherwise. */
-    private String objectValue;
-
-    /** The object URI if it's a resource with URI, the String value otherwise. */
-    private URI objectURI;
+    /** The object as String. If the original object is a URI reference, the URI is used. */
+    private String object;
 
 
     /**
@@ -73,14 +70,11 @@ public class Statement implements Serializable {
         setPropertyURI(new URI(original.getPredicate().getURI()));
         RDFNode node = original.getObject();
         if (node.isURIResource()) {
-            objectURI = new URI(node.asResource().getURI());
-            objectValue = node.asResource().toString();
+            object = node.asResource().getURI();
         } else if (node.isResource()) {
-            objectURI = null;
-            objectValue = original.getObject().asResource().getId().getLabelString();
+            object = original.getObject().asResource().getId().getLabelString();
         } else {
-            objectURI = null;
-            objectValue = original.getObject().asLiteral().getValue().toString();
+            object = original.getObject().asLiteral().getValue().toString();
         }
         this.annotation = annotation;
     }
@@ -116,28 +110,7 @@ public class Statement implements Serializable {
         subjectValue = "";
         isSubjectURIResource = false;
         setPropertyURI(property);
-        objectURI = null;
-        objectValue = value;
-    }
-
-
-    /**
-     * Constructor.
-     * 
-     * @param subject
-     *            subject
-     * @param property
-     *            property
-     * @param value
-     *            a URI value
-     */
-    public Statement(URI subject, URI property, URI value) {
-        this.subjectURI = subject;
-        subjectValue = "";
-        isSubjectURIResource = false;
-        setPropertyURI(property);
-        objectURI = value;
-        objectValue = null;
+        object = value;
     }
 
 
@@ -161,18 +134,13 @@ public class Statement implements Serializable {
     }
 
 
-    public String getObjectValue() {
-        return objectValue;
+    public String getObject() {
+        return object;
     }
 
 
-    public URI getObjectURI() {
-        return objectURI;
-    }
-
-
-    public boolean isObjectURIResource() {
-        return this.objectURI != null;
+    public void setObject(String object) {
+        this.object = object;
     }
 
 
@@ -192,39 +160,6 @@ public class Statement implements Serializable {
     }
 
 
-    /**
-     * Is object a resource with a URI.
-     * 
-     * @param isObjectURIResource
-     *            is it
-     */
-    public void setObjectURIResource(boolean isObjectURIResource) {
-        if (isObjectURIResource) {
-            this.objectURI = URI.create("");
-            this.objectValue = null;
-        } else {
-            this.objectURI = null;
-            this.objectValue = "";
-        }
-    }
-
-
-    public void setObjectValue(String objectValue) {
-        this.objectValue = objectValue;
-    }
-
-
-    /**
-     * Set object URI, resolved against subject URI.
-     * 
-     * @param objectURI
-     *            object URI
-     */
-    public void setObjectURI(URI objectURI) {
-        this.objectURI = subjectURI.resolve(objectURI);
-    }
-
-
     public URI getSubjectURI() {
         return subjectURI;
     }
@@ -241,6 +176,32 @@ public class Statement implements Serializable {
 
 
     /**
+     * Check if the statement has the subject, predicate or object matching the given parameters. Any parameter can be
+     * set to null to match everything.
+     * 
+     * @param subjectUri2
+     *            subject to match or null
+     * @param property2
+     *            property to match or null
+     * @param value2
+     *            value to match or null
+     * @return true if all non-null parameters are equal to these of this statement
+     */
+    public boolean matches(URI subjectUri2, URI property2, String value2) {
+        if (subjectUri2 != null && !getSubjectURI().equals(subjectUri2)) {
+            return false;
+        }
+        if (property2 != null && !propertyURI.equals(property2)) {
+            return false;
+        }
+        if (value2 != null && !object.equals(value2)) {
+            return false;
+        }
+        return true;
+    }
+
+
+    /**
      * Create a {@link com.hp.hpl.jena.rdf.model.Statement} based on this one.
      * 
      * @return a statement
@@ -249,30 +210,20 @@ public class Statement implements Serializable {
         Model model = ModelFactory.createDefaultModel();
         Resource subject = model.createResource(subjectURI.toString());
         Property property = model.createProperty(propertyURI.toString());
-        RDFNode object = null;
-        if (isObjectURIResource()) {
-            object = model.createResource(objectURI.toString());
-        } else {
-            object = model.createTypedLiteral(objectValue);
+        RDFNode objectNode = null;
+        try {
+            URI uri = new URI(object);
+            objectNode = model.createResource(uri.toString());
+        } catch (URISyntaxException e) {
+            objectNode = model.createTypedLiteral(object);
         }
-        return model.createStatement(subject, property, object);
-    }
-
-
-    /**
-     * Return if the object of this statement is a literal.
-     * 
-     * @return true if it's a literal
-     */
-    public boolean isObjectLiteral() {
-        //FIXME this will return true also for blank nodes
-        return !isObjectURIResource();
+        return model.createStatement(subject, property, objectNode);
     }
 
 
     @Override
     public String toString() {
-        return subjectValue + " " + propertyURI + " " + objectValue;
+        return subjectValue + " " + propertyURI + " " + object;
     }
 
 }

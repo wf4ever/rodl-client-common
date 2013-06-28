@@ -4,10 +4,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
-import static com.github.tomakehurst.wiremock.client.WireMock.notMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
@@ -269,27 +267,6 @@ public class ResourceTest extends BaseTest {
      * 
      * @throws ROSRSException
      *             wiremock error
-     */
-    @Test
-    public final void shouldUpdateAComment()
-            throws ROSRSException {
-        List<AnnotationTriple> list = res1.getPropertyValues(RDFS_COMMENT, true);
-        assertThat(list, hasSize(equalTo(1)));
-        AnnotationTriple triple = list.get(0);
-        triple.setValue("Res1 comment 3");
-
-        verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(matching(".*Res1 comment 3.*")));
-
-        list = res1.getPropertyValues(RDFS_COMMENT, true);
-        assertThat(list, hasSize(equalTo(1)));
-    }
-
-
-    /**
-     * See name.
-     * 
-     * @throws ROSRSException
-     *             wiremock error
      * @throws ROException
      *             incorrect manifest
      */
@@ -302,26 +279,6 @@ public class ResourceTest extends BaseTest {
         assertThat(triple, notNullValue());
 
         verify(postRequestedFor(urlEqualTo("/ro1/")).withRequestBody(matching(".*Res1 comment 3.*")));
-    }
-
-
-    /**
-     * See name.
-     * 
-     * @throws ROSRSException
-     *             wiremock error
-     * @throws ROException
-     *             incorrect manifest
-     */
-    @Test
-    public final void shouldDeleteAComment()
-            throws ROSRSException, ROException {
-        List<AnnotationTriple> list = res1.getPropertyValues(RDFS_COMMENT, true);
-        assertThat(list, hasSize(equalTo(1)));
-        AnnotationTriple triple = list.get(0);
-        triple.delete();
-
-        verify(putRequestedFor(urlEqualTo("/ro1/body.rdf")).withRequestBody(notMatching(".*Res1 comment.*")));
     }
 
 }

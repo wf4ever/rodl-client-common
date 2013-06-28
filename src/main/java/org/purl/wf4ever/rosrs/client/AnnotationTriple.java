@@ -28,7 +28,10 @@ public class AnnotationTriple implements Serializable {
     private final URI property;
 
     /** The object. */
-    private final String value;
+    private String value;
+
+    /** True if the values are a merge of multiple values in this annotation. */
+    private boolean merge;
 
 
     /**
@@ -51,6 +54,7 @@ public class AnnotationTriple implements Serializable {
         this.annotation = annotation;
         this.property = property;
         this.value = value;
+        this.merge = merge;
     }
 
 
@@ -94,15 +98,14 @@ public class AnnotationTriple implements Serializable {
 
 
     /**
-     * Delete all literal values of a property describing this resource from an annotation. Property values that are not
-     * literals are ignored (preserved).
+     * Delete all values of a property describing this resource from an annotation.
      * 
      * @throws ROSRSException
      *             unexpected response from the server
      */
     public void delete()
             throws ROSRSException {
-        annotation.deletePropertyValue(subject, property);
+        annotation.deletePropertyValues(subject, property, merge ? null : value);
         if (annotation.getStatements().isEmpty()) {
             annotation.delete();
         } else {
@@ -112,18 +115,19 @@ public class AnnotationTriple implements Serializable {
 
 
     /**
-     * Update an annotation by setting the property value to a given literal value. All other literal values of this
-     * property describing this resource are removed.
+     * Update the list of statements by setting the property value to a given value. All other values of this property
+     * describing this resource are removed.
      * 
-     * @param object
-     *            the value to be used as a literal
+     * @param newValue
+     *            the new value
      * @throws ROSRSException
      *             unexpected response from the server
      */
-    public void setValue(String object)
+    public void setValue(String newValue)
             throws ROSRSException {
-        annotation.updatePropertyValue(subject, property, object);
+        annotation.deletePropertyValues(subject, property, merge ? null : value);
+        value = newValue;
+        annotation.getStatements().add(new Statement(subject.getUri(), property, value));
         annotation.update();
     }
-
 }

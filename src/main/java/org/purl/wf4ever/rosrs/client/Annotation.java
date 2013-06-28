@@ -312,7 +312,7 @@ public class Annotation extends Thing {
 
 
     /**
-     * Return all property values that describe the given resource and are literals.
+     * Return all property values that describe the given resource.
      * 
      * @param resource
      *            the subject
@@ -327,14 +327,13 @@ public class Annotation extends Thing {
         if (!isLoaded()) {
             load();
         }
-        List<String> literals = new ArrayList<>();
+        List<String> objects = new ArrayList<>();
         for (Statement statement : getStatements()) {
-            if (statement.getSubjectURI().equals(resource.getUri()) && statement.getPropertyURI().equals(property)
-                    && statement.isObjectLiteral()) {
-                literals.add(statement.getObjectValue());
+            if (statement.matches(resource.getUri(), property, null)) {
+                objects.add(statement.getObject());
             }
         }
-        return literals;
+        return objects;
     }
 
 
@@ -354,14 +353,8 @@ public class Annotation extends Thing {
         }
         List<AnnotationTriple> quads = new ArrayList<>();
         for (Statement statement : getStatements()) {
-            if (statement.getSubjectURI().equals(resource.getUri())) {
-                if (statement.isObjectLiteral()) {
-                    quads.add(new AnnotationTriple(this, resource, statement.getPropertyURI(), statement
-                            .getObjectValue(), false));
-                } else {
-                    quads.add(new AnnotationTriple(this, resource, statement.getPropertyURI(), statement.getObjectURI()
-                            .toString(), false));
-                }
+            if (statement.matches(resource.getUri(), null, null)) {
+                quads.add(new AnnotationTriple(this, resource, statement.getPropertyURI(), statement.getObject(), false));
             }
         }
         return quads;
@@ -369,35 +362,18 @@ public class Annotation extends Thing {
 
 
     /**
-     * Update the list of statements by setting the property value to a given literal value. All other literal values of
-     * this property describing this resource are removed.
+     * Delete all statements matching the given parameters.
      * 
      * @param resource
      *            the subject
      * @param property
      *            the URI of the property
      * @param value
-     *            the value to be used as a literal
+     *            object
      */
-    public void updatePropertyValue(Annotable resource, URI property, String value) {
-        deletePropertyValue(resource, property);
-        statements.add(new Statement(resource.getUri(), property, value));
-    }
-
-
-    /**
-     * Delete all literal values of a property describing a resource from the list of statements. Property values that
-     * are not literals are ignored (preserved).
-     * 
-     * @param resource
-     *            the subject
-     * @param property
-     *            the URI of the property
-     */
-    public void deletePropertyValue(Annotable resource, URI property) {
+    public void deletePropertyValues(Annotable resource, URI property, String value) {
         for (Statement statement : new ArrayList<>(getStatements())) {
-            if (statement.getSubjectURI().equals(resource.getUri()) && statement.getPropertyURI().equals(property)
-                    && statement.isObjectLiteral()) {
+            if (statement.matches(resource.getUri(), property, value)) {
                 statements.remove(statement);
             }
         }

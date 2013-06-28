@@ -47,8 +47,7 @@ public interface Annotable extends Displayable, Serializable {
 
 
     /**
-     * Find all literal properties of this resource in all annotations. Properties whose values are not literals are
-     * ignored.
+     * Find all properties of this resource in all annotations.
      * 
      * @param property
      *            the URI of the property
@@ -60,8 +59,7 @@ public interface Annotable extends Displayable, Serializable {
 
 
     /**
-     * Find all literal properties of this resource in all annotations. Properties whose values are not literals are
-     * ignored.
+     * Find all properties of this resource in all annotations.
      * 
      * @param property
      *            the Jena the property
