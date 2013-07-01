@@ -44,6 +44,7 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.shared.JenaException;
 import com.hp.hpl.jena.vocabulary.DCTerms;
 import com.sun.jersey.api.client.ClientResponse;
 
@@ -249,14 +250,18 @@ public class ResearchObject extends Thing implements Annotable {
      */
     private EvoType findEvoType(OntModel model) {
         Individual ro = model.getIndividual(uri.toString());
-        for (com.hp.hpl.jena.rdf.model.Resource clazz : ro.listRDFTypes(true).toSet()) {
-            if (clazz.equals(ROEVO.LiveRO)) {
-                return EvoType.LIVE;
-            } else if (clazz.equals(ROEVO.SnapshotRO)) {
-                return EvoType.SNAPSHOT;
-            } else if (clazz.equals(ROEVO.ArchivedRO)) {
-                return EvoType.ARCHIVE;
+        try {
+            for (com.hp.hpl.jena.rdf.model.Resource clazz : ro.listRDFTypes(true).toSet()) {
+                if (clazz.equals(ROEVO.LiveRO)) {
+                    return EvoType.LIVE;
+                } else if (clazz.equals(ROEVO.SnapshotRO)) {
+                    return EvoType.SNAPSHOT;
+                } else if (clazz.equals(ROEVO.ArchivedRO)) {
+                    return EvoType.ARCHIVE;
+                }
             }
+        } catch (JenaException e) {
+            LOG.error("Can't find the evo type", e);
         }
         return null;
     }
