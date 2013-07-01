@@ -211,13 +211,29 @@ public class Statement implements Serializable {
         Resource subject = model.createResource(subjectURI.toString());
         Property property = model.createProperty(propertyURI.toString());
         RDFNode objectNode = null;
-        try {
-            URI uri = new URI(object);
-            objectNode = model.createResource(uri.toString());
-        } catch (URISyntaxException e) {
+        if (isAbsoluteURI(object)) {
+            objectNode = model.createResource(URI.create(object).toString());
+        } else {
             objectNode = model.createTypedLiteral(object);
         }
         return model.createStatement(subject, property, objectNode);
+    }
+
+
+    /**
+     * Check if this text can be converted into an absolute URI.
+     * 
+     * @param text
+     *            the text to verify
+     * @return true of the text represents a well-encoded absolute URI
+     */
+    private boolean isAbsoluteURI(String text) {
+        try {
+            URI uri = new URI(text);
+            return uri.isAbsolute();
+        } catch (URISyntaxException e) {
+            return false;
+        }
     }
 
 
