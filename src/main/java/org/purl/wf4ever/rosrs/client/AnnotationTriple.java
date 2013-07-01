@@ -107,6 +107,11 @@ public class AnnotationTriple implements Serializable {
     }
 
 
+    public boolean isMerge() {
+        return merge;
+    }
+
+
     /**
      * Delete all values of a property describing this resource from an annotation.
      * 
