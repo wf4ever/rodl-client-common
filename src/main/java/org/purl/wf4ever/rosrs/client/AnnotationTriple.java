@@ -73,7 +73,7 @@ public class AnnotationTriple implements Serializable {
      *            true if the values are a merge of multiple values in this annotation
      */
     public AnnotationTriple(Annotation annotation, Annotable subject, Property property, String value, boolean merge) {
-        this(annotation, subject, URI.create(property.getURI()), value, merge);
+        this(annotation, subject, property != null ? URI.create(property.getURI()) : null, value, merge);
     }
 
 
