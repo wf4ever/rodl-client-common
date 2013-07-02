@@ -854,6 +854,20 @@ public class ResearchObject extends Thing implements Annotable {
 
 
     @Override
+    public AnnotationTriple createPropertyValue(Property property, String value)
+            throws ROSRSException, ROException {
+        return createPropertyValue(URI.create(property.getURI()), value);
+    }
+
+
+    @Override
+    public AnnotationTriple createPropertyValue(Property property, URI value)
+            throws ROSRSException, ROException {
+        return createPropertyValue(URI.create(property.getURI()), value.toString());
+    }
+
+
+    @Override
     public List<AnnotationTriple> getAnnotationTriples() {
         List<AnnotationTriple> list = new ArrayList<>();
         for (Annotation annotation : getAnnotations()) {
@@ -866,4 +880,5 @@ public class ResearchObject extends Thing implements Annotable {
         Collections.sort(list, new AnnotationTripleByPredicateLocalNameComparator());
         return list;
     }
+
 }

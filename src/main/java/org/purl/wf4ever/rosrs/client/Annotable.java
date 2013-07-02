@@ -105,6 +105,40 @@ public interface Annotable extends Displayable, Serializable {
 
 
     /**
+     * Create a new annotation describing this resource with a given property and literal value.
+     * 
+     * @param property
+     *            the property
+     * @param value
+     *            the value to be used as a literal
+     * @return the new annotation
+     * @throws ROSRSException
+     *             server returned an unexpected response
+     * @throws ROException
+     *             the manifest is incorrect
+     */
+    AnnotationTriple createPropertyValue(Property property, String value)
+            throws ROSRSException, ROException;
+
+
+    /**
+     * Create a new annotation describing this resource with a given property and URI value.
+     * 
+     * @param property
+     *            the property
+     * @param value
+     *            the value to be used as an RDF node
+     * @return the new annotation
+     * @throws ROSRSException
+     *             server returned an unexpected response
+     * @throws ROException
+     *             the manifest is incorrect
+     */
+    AnnotationTriple createPropertyValue(Property property, URI value)
+            throws ROSRSException, ROException;
+
+
+    /**
      * Return a list of all quads for which the subject is this resource, sorted by the predicate local name.
      * 
      * @return a list of annotation triples, possibly empty
