@@ -131,4 +131,21 @@ public final class Utils {
             " ");
     }
 
+
+    /**
+     * Check if this text can be converted into an absolute URI.
+     * 
+     * @param text
+     *            the text to verify
+     * @return true of the text represents a well-encoded absolute URI
+     */
+    public static boolean isAbsoluteURI(String text) {
+        try {
+            URI uri = new URI(text);
+            return uri.isAbsolute();
+        } catch (URISyntaxException e) {
+            return false;
+        }
+    }
+
 }
