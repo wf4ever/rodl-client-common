@@ -80,8 +80,11 @@ public class ResearchObject extends Thing implements Annotable {
     /** aggregated annotations, grouped based on ao:annotatesResource. */
     private Multimap<URI, Annotation> annotations;
 
-    /** root folders of the RO. */
+    /** root folders of the RO, sorted by name. */
     private List<Folder> rootFolders;
+
+    /** all folders of the RO, sorted by name. */
+    private List<Folder> allFolders;
 
     /** resources not in any folder. */
     private List<Resource> rootResources;
@@ -190,6 +193,8 @@ public class ResearchObject extends Thing implements Annotable {
         this.loaded = true;
         this.rootFolders = extractRootFolders(folders.values());
         this.rootResources = extractRootResources(folders.values(), resources.values());
+        this.allFolders = new ArrayList<>(folders.values());
+        Collections.sort(allFolders, new ResourceByNameComparator());
     }
 
 
@@ -310,11 +315,8 @@ public class ResearchObject extends Thing implements Annotable {
      * Returns resources which are not aggregated in any folder.
      * 
      * @return a list of resources sorted by name
-     * @throws ROSRSException
-     *             unexpected response from the server when loading the folders
      */
-    public List<Resource> getResourcesWithoutFolders()
-            throws ROSRSException {
+    public List<Resource> getResourcesWithoutFolders() {
         if (!isLoaded()) {
             return Collections.emptyList();
         }
@@ -322,7 +324,28 @@ public class ResearchObject extends Thing implements Annotable {
     }
 
 
+    /**
+     * Returns all folders sorted by name.
+     * 
+     * @return a list of folders sorted by name
+     */
+    public List<Folder> getAllFolders() {
+        if (!isLoaded()) {
+            return Collections.emptyList();
+        }
+        return allFolders;
+    }
+
+
+    /**
+     * Returns all folders not in any other folder.
+     * 
+     * @return a list of folders sorted by name
+     */
     public List<Folder> getRootFolders() {
+        if (!isLoaded()) {
+            return Collections.emptyList();
+        }
         return rootFolders;
     }
 
@@ -541,6 +564,8 @@ public class ResearchObject extends Thing implements Annotable {
             load();
         }
         this.resources.put(resource.getUri(), resource);
+        this.rootResources.add(resource);
+        Collections.sort(rootResources, new ResourceByNameComparator());
         return resource;
     }
 
@@ -563,6 +588,8 @@ public class ResearchObject extends Thing implements Annotable {
             load();
         }
         this.resources.put(resource.getUri(), resource);
+        this.rootResources.add(resource);
+        Collections.sort(rootResources, new ResourceByNameComparator());
         return resource;
     }
 
@@ -585,6 +612,10 @@ public class ResearchObject extends Thing implements Annotable {
             load();
         }
         this.folders.put(folder.getUri(), folder);
+        this.rootFolders.add(folder);
+        Collections.sort(rootFolders, new ResourceByNameComparator());
+        this.allFolders.add(folder);
+        Collections.sort(allFolders, new ResourceByNameComparator());
         //FIXME seems that the manifest needs to be reloaded to fetch creator/created/rootfolder
         return folder;
     }
@@ -662,6 +693,7 @@ public class ResearchObject extends Thing implements Annotable {
     void removeResource(Resource resource) {
         if (resources != null) {
             this.resources.remove(resource.getUri());
+            this.rootResources.remove(resource);
         }
         if (annotations != null) {
             for (Annotation annotation : this.annotations.get(resource.getUri())) {
@@ -681,6 +713,8 @@ public class ResearchObject extends Thing implements Annotable {
     void removeFolder(Folder folder) {
         if (folders != null) {
             this.folders.remove(folder.getUri());
+            allFolders.remove(folder);
+            rootFolders.remove(folder);
         }
         if (annotations != null) {
             for (Annotation annotation : this.annotations.get(folder.getUri())) {
