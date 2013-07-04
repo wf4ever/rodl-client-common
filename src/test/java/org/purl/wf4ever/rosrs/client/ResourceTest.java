@@ -281,4 +281,13 @@ public class ResourceTest extends BaseTest {
         verify(postRequestedFor(urlEqualTo("/ro1/")).withRequestBody(matching(".*Res1 comment 3.*")));
     }
 
+
+    /**
+     * {@link Resource#getPath()}.
+     */
+    @Test
+    public final void shouldReturnAPath() {
+        assertThat(res1.getPath(), Matchers.equalTo("res1.txt"));
+    }
+
 }

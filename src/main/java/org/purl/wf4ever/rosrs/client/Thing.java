@@ -59,12 +59,6 @@ public class Thing implements Serializable {
     }
 
 
-    @Deprecated
-    public URI getCreator() {
-        return null;
-    }
-
-
     public DateTime getCreated() {
         return created;
     }

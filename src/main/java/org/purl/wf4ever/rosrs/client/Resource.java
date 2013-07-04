@@ -378,4 +378,9 @@ public class Resource extends Thing implements Annotable {
     public boolean isLoaded() {
         return researchObject.isLoaded();
     }
+
+
+    public String getPath() {
+        return researchObject.getUri().relativize(uri).getPath();
+    }
 }
