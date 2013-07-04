@@ -286,6 +286,19 @@ public class Folder extends Resource {
 
 
     /**
+     * Remove all traces of a folder entry.
+     * 
+     * @param entry
+     *            the folder entry
+     */
+    public void deleteFolderEntry(FolderEntry entry) {
+        getFolderEntries().remove(entry);
+        getResources().remove(entry.getResource());
+        getSubfolders().remove(entry.getResource());
+    }
+
+
+    /**
      * Delete the folder from ROSRS and from the research object.
      * 
      * @throws ROSRSException
