@@ -1,6 +1,7 @@
 package org.purl.wf4ever.rosrs.client.users;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,7 +28,10 @@ import com.sun.jersey.api.client.WebResource;
  * @author Piotr Hołubowicz
  * 
  */
-public final class UserManagementService {
+public final class UserManagementService implements Serializable {
+
+    /** id. */
+    private static final long serialVersionUID = -1552015553276990744L;
 
     /** RODL URI. */
     private URI rodlURI;
@@ -36,7 +40,7 @@ public final class UserManagementService {
     private String token;
 
     /** web client. */
-    private Client client;
+    private transient Client client;
 
 
     /**
@@ -50,7 +54,19 @@ public final class UserManagementService {
     public UserManagementService(URI rodlURI, String token) {
         this.rodlURI = rodlURI;
         this.token = token;
-        this.client = Client.create();
+    }
+
+
+    /**
+     * Return an HTTP client, creating it if necessary.
+     * 
+     * @return an HTTP client
+     */
+    private Client getClient() {
+        if (client == null) {
+            client = Client.create();
+        }
+        return client;
     }
 
 
@@ -62,7 +78,7 @@ public final class UserManagementService {
      * @return true if the user id is already taken
      */
     public boolean userExistsInDlibra(String userId) {
-        WebResource webResource = client.resource(rodlURI.toString()).path("users")
+        WebResource webResource = getClient().resource(rodlURI.toString()).path("users")
                 .path(Base64.encodeBase64URLSafeString(userId.getBytes()));
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).type("text/plain")
                 .get(ClientResponse.class);
@@ -85,7 +101,7 @@ public final class UserManagementService {
      */
     public ClientResponse createOrUpdateUser(String openId, String username) {
         String payload = username != null && !username.isEmpty() ? username : openId;
-        WebResource webResource = client.resource(rodlURI.toString()).path("users")
+        WebResource webResource = getClient().resource(rodlURI.toString()).path("users")
                 .path(Base64.encodeBase64URLSafeString(openId.getBytes()));
         return webResource.header("Authorization", "Bearer " + token).type("text/plain")
                 .put(ClientResponse.class, payload);
@@ -100,7 +116,7 @@ public final class UserManagementService {
      * @return RODL response
      */
     public ClientResponse deleteUser(String userId) {
-        WebResource webResource = client.resource(rodlURI.toString()).path("users")
+        WebResource webResource = getClient().resource(rodlURI.toString()).path("users")
                 .path(Base64.encodeBase64URLSafeString(userId.getBytes()));
         return webResource.header("Authorization", "Bearer " + token).type("text/plain").delete(ClientResponse.class);
     }
@@ -114,7 +130,7 @@ public final class UserManagementService {
      * @return the OAuth client
      */
     public OAuthClient getClient(String clientId) {
-        WebResource webResource = client.resource(rodlURI.toString()).path("clients")
+        WebResource webResource = getClient().resource(rodlURI.toString()).path("clients")
                 .path(Base64.encodeBase64URLSafeString(clientId.getBytes()));
         return webResource.header("Authorization", "Bearer " + token).type("text/plain").get(OAuthClient.class);
     }
@@ -126,7 +142,7 @@ public final class UserManagementService {
      * @return a list of OAuth clients
      */
     public List<OAuthClient> getClients() {
-        WebResource webResource = client.resource(rodlURI.toString()).path("clients").path("/");
+        WebResource webResource = getClient().resource(rodlURI.toString()).path("clients").path("/");
         return webResource.header("Authorization", "Bearer " + token).type("text/plain").get(OAuthClientList.class)
                 .getList();
     }
@@ -146,7 +162,7 @@ public final class UserManagementService {
     public String createAccessToken(String userId, String clientId)
             throws UniformInterfaceException {
         String payload = clientId + "\r\n" + userId;
-        WebResource webResource = client.resource(rodlURI.toString()).path("accesstokens");
+        WebResource webResource = getClient().resource(rodlURI.toString()).path("accesstokens");
         ClientResponse response = webResource.header("Authorization", "Bearer " + token).type("text/plain")
                 .post(ClientResponse.class, payload);
         if (response.getStatus() == HttpURLConnection.HTTP_CREATED) {
@@ -168,7 +184,7 @@ public final class UserManagementService {
      * @return a list of {@link AccessToken}
      */
     public List<AccessToken> getAccessTokens(String userId) {
-        WebResource webResource = client.resource(rodlURI.toString()).path("accesstokens")
+        WebResource webResource = getClient().resource(rodlURI.toString()).path("accesstokens")
                 .queryParam("user_id", userId);
         return webResource.header("Authorization", "Bearer " + token).type("text/plain").get(AccessTokenList.class)
                 .getList();
@@ -183,7 +199,7 @@ public final class UserManagementService {
      * @return RODL response
      */
     public ClientResponse deleteAccessToken(String accesstoken) {
-        WebResource webResource = client.resource(rodlURI.toString()).path("accesstokens").path(accesstoken);
+        WebResource webResource = getClient().resource(rodlURI.toString()).path("accesstokens").path(accesstoken);
         return webResource.header("Authorization", "Bearer " + token).type("text/plain").delete(ClientResponse.class);
     }
 
@@ -199,7 +215,7 @@ public final class UserManagementService {
      */
     public InputStream getUser(URI userURI)
             throws ROSRSException {
-        WebResource webResource = client.resource(rodlURI.toString()).path("users")
+        WebResource webResource = getClient().resource(rodlURI.toString()).path("users")
                 .path(Base64.encodeBase64URLSafeString(userURI.toString().getBytes()));
         try {
             return webResource.get(InputStream.class);
@@ -222,7 +238,7 @@ public final class UserManagementService {
      */
     public User getWhoAmi(String token)
             throws ROSRSException, URISyntaxException {
-        WebResource webResource = client.resource(rodlURI.toString()).path("whoami");
+        WebResource webResource = getClient().resource(rodlURI.toString()).path("whoami");
         try {
             InputStream data = webResource.header("Authorization", "Bearer " + token).get(InputStream.class);
             OntModel userModel = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
