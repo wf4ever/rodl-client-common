@@ -194,7 +194,7 @@ public class ResearchObject extends Thing implements Annotable {
         this.rootFolders = extractRootFolders(folders.values());
         this.rootResources = extractRootResources(folders.values(), resources.values());
         this.allFolders = new ArrayList<>(folders.values());
-        Collections.sort(allFolders, new ResourceByNameComparator());
+        Collections.sort(allFolders, new ResourceByPathComparator());
     }
 
 
@@ -241,7 +241,7 @@ public class ResearchObject extends Thing implements Annotable {
             }
             rootFolders2.removeAll(folder.getSubfolders());
         }
-        Collections.sort(rootFolders2, new ResourceByNameComparator());
+        Collections.sort(rootFolders2, new ResourceByPathComparator());
         return rootFolders2;
     }
 
@@ -613,9 +613,9 @@ public class ResearchObject extends Thing implements Annotable {
         }
         this.folders.put(folder.getUri(), folder);
         this.rootFolders.add(folder);
-        Collections.sort(rootFolders, new ResourceByNameComparator());
+        Collections.sort(rootFolders, new ResourceByPathComparator());
         this.allFolders.add(folder);
-        Collections.sort(allFolders, new ResourceByNameComparator());
+        Collections.sort(allFolders, new ResourceByPathComparator());
         //FIXME seems that the manifest needs to be reloaded to fetch creator/created/rootfolder
         return folder;
     }
