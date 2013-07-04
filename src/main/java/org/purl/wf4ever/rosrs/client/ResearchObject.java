@@ -709,12 +709,17 @@ public class ResearchObject extends Thing implements Annotable {
      * 
      * @param folder
      *            folder to delete
+     * @throws ROSRSException
+     *             unexpected response when recalculating the root folders
      */
-    void removeFolder(Folder folder) {
+    void removeFolder(Folder folder)
+            throws ROSRSException {
         if (folders != null) {
             this.folders.remove(folder.getUri());
             allFolders.remove(folder);
             rootFolders.remove(folder);
+            this.rootResources = extractRootResources(folders.values(), resources.values());
+            this.rootFolders = extractRootFolders(folders.values());
         }
         if (annotations != null) {
             for (Annotation annotation : this.annotations.get(folder.getUri())) {
