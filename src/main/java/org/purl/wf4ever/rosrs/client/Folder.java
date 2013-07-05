@@ -260,6 +260,7 @@ public class Folder extends Resource {
                 subfolders.add(researchObject.getFolder(entry.getResourceUri()));
                 Collections.sort(subfolders, new ResourceByNameComparator());
             }
+            researchObject.addFolderEntry(entry);
         }
         return entry;
     }
@@ -291,7 +292,7 @@ public class Folder extends Resource {
      * @param entry
      *            the folder entry
      */
-    public void deleteFolderEntry(FolderEntry entry) {
+    void removeFolderEntry(FolderEntry entry) {
         getFolderEntries().remove(entry);
         getResources().remove(entry.getResource());
         getSubfolders().remove(entry.getResource());

@@ -622,6 +622,18 @@ public class ResearchObject extends Thing implements Annotable {
 
 
     /**
+     * Remove this resource from cached root resources (if it was there).
+     * 
+     * @param entry
+     *            the new folder entry
+     */
+    void addFolderEntry(FolderEntry entry) {
+        this.rootResources.remove(entry.getResource());
+        this.rootFolders.remove(entry.getResource());
+    }
+
+
+    /**
      * Add an annotation about this research object.
      * 
      * @param target
@@ -727,6 +739,21 @@ public class ResearchObject extends Thing implements Annotable {
             }
             this.annotations.removeAll(folder.getUri());
         }
+    }
+
+
+    /**
+     * Remove all traces of a folder entry.
+     * 
+     * @param entry
+     *            the folder entry
+     * @throws ROSRSException
+     *             unexpected response when recalculating the root folders
+     */
+    void removeFolderEntry(FolderEntry entry)
+            throws ROSRSException {
+        this.rootResources = extractRootResources(folders.values(), resources.values());
+        this.rootFolders = extractRootFolders(folders.values());
     }
 
 

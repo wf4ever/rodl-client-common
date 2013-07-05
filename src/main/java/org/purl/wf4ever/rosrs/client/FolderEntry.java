@@ -97,7 +97,8 @@ public class FolderEntry implements Serializable {
     public void delete()
             throws ROSRSException {
         folder.getResearchObject().getRosrs().deleteResource(uri);
-        folder.deleteFolderEntry(this);
+        folder.removeFolderEntry(this);
+        folder.getResearchObject().removeFolderEntry(this);
     }
 
 
