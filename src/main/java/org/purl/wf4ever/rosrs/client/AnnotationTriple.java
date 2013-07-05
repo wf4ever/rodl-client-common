@@ -126,6 +126,7 @@ public class AnnotationTriple implements Serializable {
         } else {
             annotation.update();
         }
+        value = null;
     }
 
 

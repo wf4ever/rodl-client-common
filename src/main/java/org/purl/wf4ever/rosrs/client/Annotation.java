@@ -151,7 +151,7 @@ public class Annotation extends Thing {
                 proxyUri = URI.create(proxies.get(0).getURI());
             }
         }
-        return new Annotation(researchObject, proxyUri, body, targets, resCreator, resCreated);
+        return new Annotation(researchObject, annUri, body, targets, resCreator, resCreated);
     }
 
 
