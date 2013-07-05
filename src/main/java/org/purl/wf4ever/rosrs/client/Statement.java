@@ -188,13 +188,13 @@ public class Statement implements Serializable {
      * @return true if all non-null parameters are equal to these of this statement
      */
     public boolean matches(URI subjectUri2, URI property2, String value2) {
-        if (subjectUri2 != null && !getSubjectURI().equals(subjectUri2)) {
+        if (subjectUri2 != null && !subjectUri2.equals(subjectURI)) {
             return false;
         }
-        if (property2 != null && !propertyURI.equals(property2)) {
+        if (property2 != null && !property2.equals(propertyURI)) {
             return false;
         }
-        if (value2 != null && !object.equals(value2)) {
+        if (value2 != null && !value2.equals(object)) {
             return false;
         }
         return true;
