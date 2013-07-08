@@ -176,7 +176,7 @@ public class NotificationService implements Serializable {
      * @throws NotificationsException
      *             when the feed is invalid
      */
-    public List<Notification> getNotifications(InputStream feedInputStream)
+    public ArrayList<Notification> getNotifications(InputStream feedInputStream)
             throws NotificationsException {
         SyndFeedInput input = new SyndFeedInput();
         SyndFeed feed;
@@ -197,7 +197,7 @@ public class NotificationService implements Serializable {
 
         @SuppressWarnings("unchecked")
         List<SyndEntry> entries = feed.getEntries();
-        List<Notification> notifications = new ArrayList<>();
+        ArrayList<Notification> notifications = new ArrayList<>();
         for (SyndEntry entry : entries) {
             String id = entry.getUri();
             String title = entry.getTitle();
@@ -237,7 +237,7 @@ public class NotificationService implements Serializable {
      * @throws NotificationsException
      *             when the feed is invalid
      */
-    public List<Notification> getNotifications(URI researchObjectUri, DateTime from, DateTime to)
+    public ArrayList<Notification> getNotifications(URI researchObjectUri, DateTime from, DateTime to)
             throws NotificationsException {
         URI feedUri = getNotificationsUri(researchObjectUri, from, to);
         WebResource webResource = getClient().resource(feedUri);
