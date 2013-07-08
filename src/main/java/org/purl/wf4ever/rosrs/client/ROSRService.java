@@ -176,7 +176,7 @@ public class ROSRService implements Serializable {
 
 
     /**
-     * Get a HEAD response to an RODL resource.
+     * Get a HEAD response to an RODL resource asking for RDF/XML.
      * 
      * @param resource
      *            resource URI
@@ -187,7 +187,7 @@ public class ROSRService implements Serializable {
     public ClientResponse getResourceHead(URI resource)
             throws ROSRSException {
         WebResource webResource = getClient().resource(resource.toString());
-        ClientResponse response = webResource.head();
+        ClientResponse response = webResource.accept("application/rdf+xml").head();
         if (response.getStatus() == HttpStatus.SC_OK) {
             return response;
         } else {
