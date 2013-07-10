@@ -111,7 +111,8 @@ public class Folder extends Resource {
     public static Folder create(ResearchObject researchObject, String path)
             throws ROSRSException {
         ClientResponse response = researchObject.getRosrs().createFolder(researchObject.getUri(), path);
-        Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link"));
+        Multimap<String, URI> headers = Utils.getLinkHeaders(response.getHeaders().get("Link") != null ? response
+                .getHeaders().get("Link") : Collections.<String> emptyList());
         URI folderUri = headers.get("http://www.openarchives.org/ore/terms/proxyFor").isEmpty() ? null : headers
                 .get("http://www.openarchives.org/ore/terms/proxyFor").iterator().next();
         URI resourceMapUri = headers.get("http://www.openarchives.org/ore/terms/isDescribedBy").iterator().next();
