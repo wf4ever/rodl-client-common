@@ -6,12 +6,12 @@
 	</subtitle>
 	<!-- link to this feed -->
 	<link
-		href="http://example.org/rodl/notifications?ro=http://example.org/rodl/ROs/myGenes/&from=2000-06-13T16:20:02Z&to=2006-06-13T16:20:02Z"
+		href="http://example.org/rodl/notifications?ro=http://example.org/rodl/ROs/myGenes/&amp;from=2000-06-13T16:20:02Z&amp;to=2006-06-13T16:20:02Z"
 		rel="self" />
 	<!-- link to RO -->
 	<link href="http://example.org/rodl/ROs/myPuzzles/" rel="http://www.openarchives.org/ore/terms/describes" />
 	<!-- id is the feed URI -->
-	<id>http://example.org/rodl/notifications?ro=http://example.org/rodl/ROs/myGenes/&from=2000-06-13T16:20:02Z&to=2006-06-13T16:20:02Z
+	<id>http://example.org/rodl/notifications?ro=http://example.org/rodl/ROs/myGenes/&amp;from=2000-06-13T16:20:02Z&amp;to=2006-06-13T16:20:02Z
 	</id>
 	<updated>2005-06-13T16:20:02Z</updated>
 	<author>
