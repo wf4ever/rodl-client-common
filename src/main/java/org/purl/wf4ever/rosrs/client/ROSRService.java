@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
@@ -26,7 +25,6 @@ import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.shared.DoesNotExistException;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -545,31 +543,6 @@ public class ROSRService implements Serializable {
 
 
     /**
-     * Create a Jena {@link OntModel} of a manifest.
-     * 
-     * @param researchObjectURI
-     *            RO URI
-     * @return the OntModel
-     */
-    public static OntModel createManifestModel(URI researchObjectURI) {
-        URI manifestURI = researchObjectURI.resolve(".ro/manifest.rdf");
-        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM);
-        try {
-            model.read(manifestURI.toString());
-        } catch (DoesNotExistException e) {
-            // do nothing, model will be empty
-            LOG.trace("The manifest does not exist for RO: " + researchObjectURI, e);
-        }
-        if (model.isEmpty()) {
-            // HACK for old ROs
-            manifestURI = researchObjectURI.resolve(".ro/manifest");
-            model.read(manifestURI.toString());
-        }
-        return model;
-    }
-
-
-    /**
      * Create a Jena {@link OntModel} of a manifest and its annotations.
      * 
      * @param researchObjectURI
@@ -588,27 +561,6 @@ public class ROSRService implements Serializable {
             graphset.asJenaModel(researchObjectURI.resolve(".ro/manifest.rdf").toString()));
         model.add(W4E.DEFAULT_MODEL);
         return model;
-    }
-
-
-    /**
-     * Generate a path for an annotation body of a resource. The template is ["ro"|resource_name] + "-" + random_string.
-     * 
-     * @param targetPath
-     *            the annotation body target relative to the RO URI. null means the RO itself
-     * @return an annotation body path relative to the RO URI
-     */
-    public static String createAnnotationBodyPath(String targetPath) {
-        String targetName;
-        if (targetPath == null || targetPath.isEmpty()) {
-            targetName = "ro";
-        } else {
-            String[] segments = targetPath.split("/");
-            targetName = segments[segments.length - 1];
-        }
-        String randomBit = "" + Math.abs(UUID.randomUUID().getLeastSignificantBits());
-
-        return ".ro/" + targetName + "-" + randomBit + ".rdf";
     }
 
 }
