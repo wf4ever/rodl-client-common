@@ -172,6 +172,22 @@ public class Resource extends Thing implements Annotable {
     }
 
 
+    /**
+     * Update the content of an aggregated resource.
+     * 
+     * @param content
+     *            content
+     * @param contentType
+     *            content MIME type
+     * @throws ROSRSException
+     *             unexpected response from the server
+     */
+    public void update(InputStream content, String contentType)
+            throws ROSRSException {
+        researchObject.getRosrs().updateResource(uri, content, contentType);
+    }
+
+
     public ResearchObject getResearchObject() {
         return researchObject;
     }
