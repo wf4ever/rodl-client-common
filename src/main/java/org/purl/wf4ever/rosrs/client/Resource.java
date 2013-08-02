@@ -399,4 +399,17 @@ public class Resource extends Thing implements Annotable {
     public String getPath() {
         return researchObject.getUri().relativize(uri).getPath();
     }
+
+
+    /**
+     * Get client response when doing a HEAD request.
+     * 
+     * @return a client response with headers
+     * @throws ROSRSException
+     *             when the response from the server is not 200 OK
+     */
+    public ClientResponse getHead()
+            throws ROSRSException {
+        return researchObject.getRosrs().getResourceHead(uri);
+    }
 }
