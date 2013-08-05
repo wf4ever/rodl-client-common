@@ -53,9 +53,6 @@ public class ResearchObjectTest extends BaseTest {
     @Rule
     public static final WireMockRule WIREMOCK_RULE = new WireMockRule(8089); // No-args constructor defaults to port 8080
 
-    /** A loaded RO. */
-    private static ResearchObject ro1;
-
 
     /**
      * Test that an initial RO is not loaded.
