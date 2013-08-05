@@ -28,7 +28,6 @@ import org.hamcrest.Matchers;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.purl.wf4ever.rosrs.client.evo.EvoType;
@@ -56,22 +55,6 @@ public class ResearchObjectTest extends BaseTest {
 
     /** A loaded RO. */
     private static ResearchObject ro1;
-
-
-    /**
-     * Prepare the HTTP server mockup.
-     * 
-     * @throws Exception
-     *             if the super method throws it
-     */
-    @Before
-    public void setUp()
-            throws Exception {
-        super.setUp();
-
-        ro1 = new ResearchObject(MOCK_RO, rosrs);
-        ro1.load();
-    }
 
 
     /**
