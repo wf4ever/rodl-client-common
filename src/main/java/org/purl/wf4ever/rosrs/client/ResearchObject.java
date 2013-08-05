@@ -72,13 +72,13 @@ public class ResearchObject extends Thing implements Annotable {
     private boolean loaded;
 
     /** aggregated ro:Resources, excluding ro:Folders. */
-    private Map<URI, Resource> resources;
+    private Map<URI, Resource> resources = new HashMap<>();
 
     /** aggregated ro:Folders. */
-    private Map<URI, Folder> folders;
+    private Map<URI, Folder> folders = new HashMap<>();
 
     /** aggregated annotations, grouped based on ao:annotatesResource. */
-    private Multimap<URI, Annotation> annotations;
+    private Multimap<URI, Annotation> annotations = HashMultimap.<URI, Annotation> create();;
 
     /** root folders of the RO, sorted by name. */
     private List<Folder> rootFolders;
@@ -178,9 +178,23 @@ public class ResearchObject extends Thing implements Annotable {
         }
         this.creator = Person.create(model.getIndividual(uri.toString()).getPropertyValue(DCTerms.creator));
         this.created = extractCreated(model);
-        this.resources = extractResources(model);
-        this.folders = extractFolders(model);
-        this.annotations = extractAnnotations(model);
+        for (Resource resource : extractResources(model)) {
+            if (!this.resources.containsKey(resource.getUri())) {
+                this.resources.put(resource.getUri(), resource);
+            }
+        }
+        for (Folder folder : extractFolders(model)) {
+            if (!this.folders.containsKey(folder.getUri())) {
+                this.folders.put(folder.getUri(), folder);
+            }
+        }
+        for (Annotation annotation : extractAnnotations(model)) {
+            if (!this.annotations.containsValue(annotation)) {
+                for (URI target : annotation.getTargets()) {
+                    this.annotations.put(target, annotation);
+                }
+            }
+        }
         for (Annotation annotation : this.getAnnotations()) {
             try {
                 annotation.load();
@@ -282,8 +296,9 @@ public class ResearchObject extends Thing implements Annotable {
             throws ROSRSException {
         this.rosrs.deleteResearchObject(uri);
         this.loaded = false;
-        this.resources = null;
-        this.folders = null;
+        this.resources.clear();
+        this.folders.clear();
+        this.annotations.clear();
         this.created = null;
         this.creator = null;
     }
@@ -402,8 +417,8 @@ public class ResearchObject extends Thing implements Annotable {
      *            manifest model
      * @return a set of resources (not loaded)
      */
-    private Map<URI, Resource> extractResources(OntModel model) {
-        Map<URI, Resource> resources2 = new HashMap<>();
+    private Set<Resource> extractResources(OntModel model) {
+        Set<Resource> resources2 = new HashSet<>();
         String queryString = String
                 .format(
                     "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> PREFIX foaf: <%s> SELECT ?resource ?proxy ?created ?creator ?creatorName WHERE { <%s> ore:aggregates ?resource . ?resource a ro:Resource . ?proxy ore:proxyFor ?resource . OPTIONAL { ?resource dcterms:creator ?creator . OPTIONAL { ?creator foaf:name ?creatorName . } } OPTIONAL { ?resource dcterms:created ?created . } }",
@@ -427,8 +442,7 @@ public class ResearchObject extends Thing implements Annotable {
                 RDFNode createdNode = solution.get("created");
                 DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
                         .asLiteral().getString()) : null;
-                resources2.put(rURI, new Resource(this, rURI, URI.create(p.asResource().getURI()), resCreator,
-                        resCreated));
+                resources2.add(new Resource(this, rURI, URI.create(p.asResource().getURI()), resCreator, resCreated));
             }
         } finally {
             qe.close();
@@ -445,8 +459,8 @@ public class ResearchObject extends Thing implements Annotable {
      *            manifest model
      * @return a set of folders (not loaded)
      */
-    private Map<URI, Folder> extractFolders(OntModel model) {
-        Map<URI, Folder> folders2 = new HashMap<>();
+    private Set<Folder> extractFolders(OntModel model) {
+        Set<Folder> folders2 = new HashSet<>();
         String queryString = String
                 .format(
                     "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> PREFIX foaf: <%s> SELECT ?folder ?proxy ?resourcemap ?created ?creator ?creatorName WHERE { <%s> ore:aggregates ?folder . ?folder a ro:Folder ; ore:isDescribedBy ?resourcemap . ?proxy ore:proxyFor ?folder . OPTIONAL { ?folder dcterms:creator ?creator . OPTIONAL { ?creator foaf:name ?creatorName . } } OPTIONAL { ?folder dcterms:created ?created . } }",
@@ -480,9 +494,8 @@ public class ResearchObject extends Thing implements Annotable {
                     qe2.close();
                 }
 
-                folders2.put(fURI,
-                    new Folder(this, fURI, URI.create(p.asResource().getURI()), URI.create(rm.asResource().getURI()),
-                            resCreator, resCreated, isRootFolder));
+                folders2.add(new Folder(this, fURI, URI.create(p.asResource().getURI()), URI.create(rm.asResource()
+                        .getURI()), resCreator, resCreated, isRootFolder));
             }
         } finally {
             qe.close();
@@ -499,8 +512,8 @@ public class ResearchObject extends Thing implements Annotable {
      *            manifest model
      * @return a multivalued map of annotations, with bodies not loaded
      */
-    private Multimap<URI, Annotation> extractAnnotations(OntModel model) {
-        Multimap<URI, Annotation> annotations2 = HashMultimap.<URI, Annotation> create();
+    private Set<Annotation> extractAnnotations(OntModel model) {
+        Set<Annotation> annotations2 = new HashSet<>();
         Map<URI, Annotation> annotationsByUri = new HashMap<>();
         String queryString = String
                 .format(
@@ -531,8 +544,9 @@ public class ResearchObject extends Thing implements Annotable {
                             .asLiteral().getString()) : null;
                     annotation = new Annotation(this, aURI, URI.create(b.asResource().getURI()),
                             Collections.singleton(tURI), resCreator, resCreated);
+                    annotationsByUri.put(annotation.getUri(), annotation);
                 }
-                annotations2.put(tURI, annotation);
+                annotations2.add(annotation);
             }
         } finally {
             qe.close();
@@ -703,11 +717,9 @@ public class ResearchObject extends Thing implements Annotable {
      *            resource to delete
      */
     void removeResource(Resource resource) {
-        if (resources != null) {
+        if (loaded) {
             this.resources.remove(resource.getUri());
             this.rootResources.remove(resource);
-        }
-        if (annotations != null) {
             for (Annotation annotation : this.annotations.get(resource.getUri())) {
                 annotation.getTargets().remove(resource.getUri());
             }
@@ -726,14 +738,12 @@ public class ResearchObject extends Thing implements Annotable {
      */
     void removeFolder(Folder folder)
             throws ROSRSException {
-        if (folders != null) {
+        if (loaded) {
             this.folders.remove(folder.getUri());
             allFolders.remove(folder);
             rootFolders.remove(folder);
             this.rootResources = extractRootResources(folders.values(), resources.values());
             this.rootFolders = extractRootFolders(folders.values());
-        }
-        if (annotations != null) {
             for (Annotation annotation : this.annotations.get(folder.getUri())) {
                 annotation.getTargets().remove(folder.getUri());
             }
@@ -764,9 +774,6 @@ public class ResearchObject extends Thing implements Annotable {
      *            the annotation
      */
     void removeAnnotation(Annotation annotation) {
-        if (annotations == null) {
-            return;
-        }
         for (URI target : annotation.getTargets()) {
             annotations.get(target).remove(annotation);
         }
@@ -946,5 +953,4 @@ public class ResearchObject extends Thing implements Annotable {
         Collections.sort(list, new AnnotationTripleByPredicateLocalNameComparator());
         return list;
     }
-
 }
