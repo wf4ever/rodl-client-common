@@ -831,22 +831,26 @@ public class ResearchObject extends Thing implements Annotable {
         if (liveR == null) {
             liveR = thisRO.getPropertyResourceValue(ROEVO.isSnapshotOf);
         }
+        liveRO = null;
         if (liveR != null && liveR.isURIResource()) {
             liveRO = new ResearchObject(URI.create(liveR.getURI()), rosrs);
         }
         Set<RDFNode> archivesR = thisRO.listPropertyValues(ROEVO.hasArchive).toSet();
+        archives.clear();
         for (RDFNode node : archivesR) {
             if (node.isURIResource()) {
                 archives.add(new ResearchObject(URI.create(node.asResource().getURI()), rosrs));
             }
         }
         Set<RDFNode> snapshotsR = thisRO.listPropertyValues(ROEVO.hasSnapshot).toSet();
+        snapshots.clear();
         for (RDFNode node : snapshotsR) {
             if (node.isURIResource()) {
                 snapshots.add(new ResearchObject(URI.create(node.asResource().getURI()), rosrs));
             }
         }
         com.hp.hpl.jena.rdf.model.Resource previousR = thisRO.getPropertyResourceValue(PROV.wasRevisionOf);
+        previousSnapshot = null;
         if (previousR != null && previousR.isURIResource()) {
             previousSnapshot = new ResearchObject(URI.create(previousR.getURI()), rosrs);
         }
