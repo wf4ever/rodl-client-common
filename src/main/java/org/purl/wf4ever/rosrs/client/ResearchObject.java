@@ -93,16 +93,16 @@ public class ResearchObject extends Thing implements Annotable {
     private EvoType evoType;
 
     /** All snapshots of this RO. */
-    private Set<ResearchObject> snapshots = new HashSet<>();;
+    private Set<URI> snapshots = new HashSet<>();
 
     /** All archives of this RO. */
-    private Set<ResearchObject> archives = new HashSet<>();;
+    private Set<URI> archives = new HashSet<>();
 
     /** Any live RO that this RO comes from. */
     private ResearchObject liveRO;
 
     /** A previous snapshot of this RO. */
-    private ResearchObject previousSnapshot;
+    private URI previousSnapshot;
 
     /** Has the evolution information been loaded. */
     private boolean evolutionInformationLoaded;
@@ -836,23 +836,21 @@ public class ResearchObject extends Thing implements Annotable {
             liveRO = new ResearchObject(URI.create(liveR.getURI()), rosrs);
         }
         Set<RDFNode> archivesR = thisRO.listPropertyValues(ROEVO.hasArchive).toSet();
-        archives.clear();
         for (RDFNode node : archivesR) {
             if (node.isURIResource()) {
-                archives.add(new ResearchObject(URI.create(node.asResource().getURI()), rosrs));
+                archives.add(URI.create(node.asResource().getURI()));
             }
         }
         Set<RDFNode> snapshotsR = thisRO.listPropertyValues(ROEVO.hasSnapshot).toSet();
-        snapshots.clear();
         for (RDFNode node : snapshotsR) {
             if (node.isURIResource()) {
-                snapshots.add(new ResearchObject(URI.create(node.asResource().getURI()), rosrs));
+                snapshots.add(URI.create(node.asResource().getURI()));
             }
         }
         com.hp.hpl.jena.rdf.model.Resource previousR = thisRO.getPropertyResourceValue(PROV.wasRevisionOf);
         previousSnapshot = null;
         if (previousR != null && previousR.isURIResource()) {
-            previousSnapshot = new ResearchObject(URI.create(previousR.getURI()), rosrs);
+            previousSnapshot = URI.create(previousR.getURI());
         }
         evolutionInformationLoaded = true;
     }
@@ -863,12 +861,12 @@ public class ResearchObject extends Thing implements Annotable {
     }
 
 
-    public Set<ResearchObject> getSnapshots() {
+    public Set<URI> getSnapshots() {
         return snapshots;
     }
 
 
-    public Set<ResearchObject> getArchives() {
+    public Set<URI> getArchives() {
         return archives;
     }
 
@@ -878,7 +876,7 @@ public class ResearchObject extends Thing implements Annotable {
     }
 
 
-    public ResearchObject getPreviousSnapshot() {
+    public URI getPreviousSnapshot() {
         return previousSnapshot;
     }
 
