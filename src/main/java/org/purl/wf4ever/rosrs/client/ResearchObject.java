@@ -442,7 +442,20 @@ public class ResearchObject extends Thing implements Annotable {
                 RDFNode createdNode = solution.get("created");
                 DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
                         .asLiteral().getString()) : null;
-                resources2.add(new Resource(this, rURI, URI.create(p.asResource().getURI()), resCreator, resCreated));
+                Resource resource = new Resource(this, rURI, URI.create(p.asResource().getURI()), resCreator,
+                        resCreated);
+
+                String queryString2 = String.format("PREFIX ro: <%s> ASK { <%s> a ro:ResearchObject }", RO.NAMESPACE,
+                    resource.getUri().toString());
+                Query query2 = QueryFactory.create(queryString2);
+                QueryExecution qe2 = QueryExecutionFactory.create(query2, model);
+                try {
+                    resource.setNestedRO(qe2.execAsk());
+                } finally {
+                    qe2.close();
+                }
+
+                resources2.add(resource);
             }
         } finally {
             qe.close();

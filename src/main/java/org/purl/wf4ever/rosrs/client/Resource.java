@@ -50,6 +50,9 @@ public class Resource extends Thing implements Annotable {
     /** Resource size in bytes. */
     protected long size = -1;
 
+    /** Is this resource a nested RO? */
+    boolean nestedRO = false;
+
 
     /**
      * Constructor.
@@ -411,5 +414,15 @@ public class Resource extends Thing implements Annotable {
     public ClientResponse getHead()
             throws ROSRSException {
         return researchObject.getRosrs().getResourceHead(uri);
+    }
+
+
+    public boolean isNestedRO() {
+        return nestedRO;
+    }
+
+
+    public void setNestedRO(boolean nestedRO) {
+        this.nestedRO = nestedRO;
     }
 }
