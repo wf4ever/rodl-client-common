@@ -107,6 +107,9 @@ public class ResearchObject extends Thing implements Annotable {
     /** Has the evolution information been loaded. */
     private boolean evolutionInformationLoaded;
 
+    /** URI of an RO that aggregates this RO, if this is a nested RO. */
+    private URI aggregatingRO;
+
 
     /**
      * Constructor.
@@ -178,6 +181,7 @@ public class ResearchObject extends Thing implements Annotable {
         }
         this.creator = Person.create(model.getIndividual(uri.toString()).getPropertyValue(DCTerms.creator));
         this.created = extractCreated(model);
+        this.aggregatingRO = extractIsAggregated(model);
         for (Resource resource : extractResources(model)) {
             if (!this.resources.containsKey(resource.getUri())) {
                 this.resources.put(resource.getUri(), resource);
@@ -407,6 +411,33 @@ public class ResearchObject extends Thing implements Annotable {
             return null;
         }
         return DateTime.parse(d.asLiteral().getString());
+    }
+
+
+    /**
+     * Find the URI of an RO that aggregated this RO (if it is nested).
+     * 
+     * @param model
+     *            manifest model
+     * @return parent RO URI or null
+     * @throws ROException
+     *             incorrect manifest
+     */
+    private URI extractIsAggregated(OntModel model)
+            throws ROException {
+        Individual ro = model.getIndividual(uri.toString());
+        if (ro == null) {
+            throw new ROException("RO not found in the manifest", uri);
+        }
+        com.hp.hpl.jena.rdf.model.Resource parent = ro.getPropertyResourceValue(ORE.isAggregatedBy);
+        if (parent == null) {
+            return null;
+        }
+        if (!parent.isURIResource()) {
+            LOG.warn("The aggregating RO is not a URI resource");
+            return null;
+        }
+        return URI.create(parent.getURI());
     }
 
 
@@ -797,6 +828,16 @@ public class ResearchObject extends Thing implements Annotable {
     @Override
     public Collection<Annotation> getAnnotations() {
         return getAllAnnotations() != null ? getAllAnnotations().get(uri) : Collections.<Annotation> emptyList();
+    }
+
+
+    public URI getAggregatingRO() {
+        return aggregatingRO;
+    }
+
+
+    public void setAggregatingRO(URI aggregatingRO) {
+        this.aggregatingRO = aggregatingRO;
     }
 
 
