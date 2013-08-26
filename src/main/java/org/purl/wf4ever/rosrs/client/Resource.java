@@ -353,6 +353,7 @@ public class Resource extends Thing implements Annotable {
         Annotation annotation = this.annotate(null,
             Annotation.wrapAnnotationBody(Collections.singletonList(new Statement(this.getUri(), property, value))),
             RDFFormat.RDFXML.getDefaultMIMEType());
+        this.researchObject.getAllAnnotations().put(uri, annotation);
         return new AnnotationTriple(annotation, this, property, value, false);
     }
 
