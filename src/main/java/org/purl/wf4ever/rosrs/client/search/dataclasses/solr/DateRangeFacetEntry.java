@@ -27,6 +27,7 @@ public class DateRangeFacetEntry extends FacetEntry {
      */
     public DateRangeFacetEntry(RangeFacet<?, ?> rangeFacet, String name) {
         super();
+        setDefault(true);
         this.fieldName = rangeFacet.getName();
         this.readableName = name;
 

@@ -27,6 +27,9 @@ public class FacetEntry implements Serializable {
     /** can this facet be used for sorting, default true. */
     protected boolean sorteable = true;
 
+    /** Should this facet be default when sorting. */
+    private boolean defaults = false;
+
 
     /**
      * Constructor.
@@ -99,4 +102,13 @@ public class FacetEntry implements Serializable {
         this.sorteable = sorteable;
     }
 
+
+    public boolean isDefault() {
+        return defaults;
+    }
+
+
+    public void setDefault(boolean defaults) {
+        this.defaults = defaults;
+    }
 }

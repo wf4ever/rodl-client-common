@@ -20,10 +20,10 @@ import org.purl.wf4ever.rosrs.client.ResearchObject;
 import org.purl.wf4ever.rosrs.client.exception.SearchException;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.FoundRO;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.SearchResult;
+import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.CreatorFacetEntry;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.DateRangeFacetEntry;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.FacetEntry;
 import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.RangeFacetEntry;
-import org.purl.wf4ever.rosrs.client.search.dataclasses.solr.CreatorFacetEntry;
 
 /**
  * An implementation connecting to the Solr instance in RODL. Note that the response schema is hardcoded.
