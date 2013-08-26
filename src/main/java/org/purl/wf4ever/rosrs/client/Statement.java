@@ -5,14 +5,13 @@ package org.purl.wf4ever.rosrs.client;
 
 import java.io.Serializable;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.Objects;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.vocabulary.DCTerms;
 
 /**
  * A simplified verion of {@link com.hp.hpl.jena.rdf.model.Statement}, which unlike the original is serializable.
@@ -25,9 +24,6 @@ public class Statement implements Serializable {
     /** id. */
     private static final long serialVersionUID = 1704407898614509230L;
 
-    /** Is the subject a resource with a URI, based on {@link RDFNode#isURIResource()}. */
-    private final boolean isSubjectURIResource;
-
     /** The subject URI if it's a resource with URI, the String value otherwise. */
     private final String subjectValue;
 
@@ -35,40 +31,23 @@ public class Statement implements Serializable {
     private final URI subjectURI;
 
     /** Property URI. */
-    private URI propertyURI;
-
-    /** Property local name, based on {@link Property#getLocalName()}. */
-    private String propertyLocalName;
-
-    /** Annotation that this statement belongs to. */
-    private Annotation annotation;
+    private final URI propertyURI;
 
     /** The object as String. If the original object is a URI reference, the URI is used. */
-    private String object;
+    private final String object;
 
 
     /**
-     * Constructor.
+     * Create a statement from a Jena statement.
      * 
      * @param original
      *            the original {@link com.hp.hpl.jena.rdf.model.Statement}
-     * @param annotation
-     *            annotation this statement belongs to
-     * @throws URISyntaxException
-     *             some URI in the original is incorrect
+     * @return a new statement
      */
-    public Statement(com.hp.hpl.jena.rdf.model.Statement original, Annotation annotation)
-            throws URISyntaxException {
-        isSubjectURIResource = original.getSubject().isURIResource();
-        if (isSubjectURIResource) {
-            subjectURI = new URI(original.getSubject().getURI());
-            subjectValue = original.getSubject().getURI();
-        } else {
-            subjectURI = null;
-            subjectValue = original.getSubject().asResource().getId().getLabelString();
-        }
-        setPropertyURI(new URI(original.getPredicate().getURI()));
+    public static Statement create(com.hp.hpl.jena.rdf.model.Statement original) {
+        URI property = URI.create(original.getPredicate().getURI());
         RDFNode node = original.getObject();
+        String object;
         if (node.isURIResource()) {
             object = node.asResource().getURI();
         } else if (node.isResource()) {
@@ -76,22 +55,15 @@ public class Statement implements Serializable {
         } else {
             object = original.getObject().asLiteral().getValue().toString();
         }
-        this.annotation = annotation;
-    }
-
-
-    /**
-     * Constructor for an empty statement. The default property is dcterms:description, the default value is "".
-     * 
-     * @param subjectURI
-     *            subject URI
-     * @param annotation
-     *            annotation this statement belongs to
-     */
-    //FIXME this constructor should be deleted
-    public Statement(URI subjectURI, Annotation annotation) {
-        this(subjectURI, URI.create(DCTerms.description.getURI()), "");
-        this.annotation = annotation;
+        Statement statement;
+        if (original.getSubject().isURIResource()) {
+            URI subject = URI.create(original.getSubject().getURI());
+            statement = new Statement(subject, property, object);
+        } else {
+            String subject = original.getSubject().asResource().getId().getLabelString();
+            statement = new Statement(subject, property, object);
+        }
+        return statement;
     }
 
 
@@ -106,16 +78,30 @@ public class Statement implements Serializable {
      *            a literal value
      */
     public Statement(URI subject, URI property, String value) {
+        Objects.requireNonNull(property);
         this.subjectURI = subject;
-        subjectValue = "";
-        isSubjectURIResource = false;
-        setPropertyURI(property);
+        this.subjectValue = subject.toString();
+        this.propertyURI = property;
         object = value;
     }
 
 
-    public Annotation getAnnotation() {
-        return annotation;
+    /**
+     * Constructor.
+     * 
+     * @param subject
+     *            subject
+     * @param property
+     *            property
+     * @param value
+     *            a literal value
+     */
+    public Statement(String subject, URI property, String value) {
+        Objects.requireNonNull(property);
+        this.subjectURI = null;
+        this.subjectValue = subject;
+        this.propertyURI = property;
+        object = value;
     }
 
 
@@ -124,39 +110,8 @@ public class Statement implements Serializable {
     }
 
 
-    public String getPropertyLocalName() {
-        return propertyLocalName;
-    }
-
-
-    public String getPropertyLocalNameNice() {
-        return Utils.splitCamelCase(getPropertyLocalName()).toLowerCase();
-    }
-
-
     public String getObject() {
         return object;
-    }
-
-
-    public void setObject(String object) {
-        this.object = object;
-    }
-
-
-    /**
-     * Set property URI and its local name.
-     * 
-     * @param propertyURI
-     *            property URI, not null
-     */
-    public void setPropertyURI(URI propertyURI) {
-        if (propertyURI == null) {
-            throw new NullPointerException("Property URI cannot be null");
-        }
-        this.propertyURI = propertyURI;
-        this.propertyLocalName = ModelFactory.createDefaultModel().createProperty(propertyURI.toString())
-                .getLocalName();
     }
 
 
@@ -167,11 +122,6 @@ public class Statement implements Serializable {
 
     public String getSubjectValue() {
         return subjectValue;
-    }
-
-
-    public boolean isSubjectURIResource() {
-        return isSubjectURIResource;
     }
 
 
@@ -223,6 +173,54 @@ public class Statement implements Serializable {
     @Override
     public String toString() {
         return subjectValue + " " + propertyURI + " " + object;
+    }
+
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((object == null) ? 0 : object.hashCode());
+        result = prime * result + ((propertyURI == null) ? 0 : propertyURI.hashCode());
+        result = prime * result + ((subjectValue == null) ? 0 : subjectValue.hashCode());
+        return result;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Statement other = (Statement) obj;
+        if (object == null) {
+            if (other.object != null) {
+                return false;
+            }
+        } else if (!object.equals(other.object)) {
+            return false;
+        }
+        if (propertyURI == null) {
+            if (other.propertyURI != null) {
+                return false;
+            }
+        } else if (!propertyURI.equals(other.propertyURI)) {
+            return false;
+        }
+        if (subjectValue == null) {
+            if (other.subjectValue != null) {
+                return false;
+            }
+        } else if (!subjectValue.equals(other.subjectValue)) {
+            return false;
+        }
+        return true;
     }
 
 }
