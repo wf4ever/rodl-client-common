@@ -237,7 +237,7 @@ public class AnnotationTest extends BaseTest {
         Assert.assertNotNull(body);
 
         Model ex = ModelFactory.createDefaultModel();
-        try (InputStream in = getClass().getClassLoader().getResourceAsStream("ro1/body1.rdf")) {
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream("ro1/body.rdf")) {
             ex.read(in, MOCK_BODY.toString());
         }
 

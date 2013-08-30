@@ -88,7 +88,7 @@ public class FolderTest extends BaseTest {
 
         fol1 = new Folder(ro1, MOCK_FOLDER, MOCK_FOLDER_PROXY, MOCK_RMAP, PERSON_3, new DateTime(2011, 12, 02, 15, 02,
                 12, DateTimeZone.UTC), true);
-        fol1.load(false);
+        fol1.load();
     }
 
 
@@ -255,7 +255,7 @@ public class FolderTest extends BaseTest {
             throws ROSRSException {
         Folder f = new Folder(ro1, MOCK_FOLDER, null, MOCK_RMAP, null, null, false);
         Assert.assertFalse(f.isLoaded());
-        f.load(false);
+        f.load();
         Assert.assertTrue(f.isLoaded());
     }
 
@@ -278,7 +278,7 @@ public class FolderTest extends BaseTest {
         Folder f = Folder.create(ro, "folder/");
         Assert.assertNotNull(f);
 
-        f.load(false);
+        f.load();
         Resource res = null;
         try (InputStream in = getClass().getClassLoader().getResourceAsStream("resources/res1.txt")) {
             res = Resource.create(ro, "ro1/res1.txt", in, "text/plain");
@@ -289,7 +289,7 @@ public class FolderTest extends BaseTest {
         Assert.assertTrue(f.getFolderEntries().containsValue(entry));
 
         Folder f2 = new Folder(ro, f.getUri(), f.getProxyUri(), f.getResourceMap(), null, null, f.isRootFolder());
-        f2.load(false);
+        f2.load();
         Assert.assertTrue(f2.getFolderEntries().containsValue(entry));
 
         verify(postRequestedFor(urlMatching("/ro1/")).withHeader("Content-Type",
@@ -322,14 +322,14 @@ public class FolderTest extends BaseTest {
 
         Folder f = Folder.create(ro, "folder/");
         Assert.assertNotNull(f);
-        f.load(false);
+        f.load();
 
         FolderEntry entry = f.addSubFolder("subfolder/");
         Assert.assertEquals(f.getUri().resolve("subfolder/"), entry.getResourceUri());
         Assert.assertTrue(f.getFolderEntries().containsValue(entry));
 
         Folder f2 = new Folder(ro, f.getUri(), f.getProxyUri(), f.getResourceMap(), null, null, f.isRootFolder());
-        f2.load(false);
+        f2.load();
         Assert.assertTrue(f2.getFolderEntries().containsValue(entry));
 
         f.delete();

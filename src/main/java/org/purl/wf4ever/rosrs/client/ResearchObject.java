@@ -1,6 +1,5 @@
 package org.purl.wf4ever.rosrs.client;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -14,6 +13,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.openrdf.rio.RDFFormat;
@@ -35,12 +36,15 @@ import com.google.common.collect.Multimap;
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
+import com.hp.hpl.jena.query.Dataset;
+import com.hp.hpl.jena.query.DatasetFactory;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
@@ -221,11 +225,10 @@ public class ResearchObject extends Thing implements Annotable {
      */
     public void load()
             throws ROSRSException, ROException {
-        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-        ClientResponse response = rosrs.getResource(uri, "application/rdf+xml");
+        Dataset dataset = DatasetFactory.createMem();
+        ClientResponse response = rosrs.getResource(uri, RDFFormat.TRIG.getDefaultMIMEType());
         try {
-            //HACK there's no way to get the URI after redirection, so we're using a fixed one which may change for different ROSR services
-            model.read(response.getEntityInputStream(), uri.resolve(".ro/manifest.rdf").toString());
+            RDFDataMgr.read(dataset, response.getEntityInputStream(), Lang.TRIG);
         } finally {
             try {
                 response.getEntityInputStream().close();
@@ -233,6 +236,12 @@ public class ResearchObject extends Thing implements Annotable {
                 LOG.warn("Failed to close the manifest input stream", e);
             }
         }
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+        //HACK there's no way to get the URI after redirection, so we're using a fixed one which may change for different ROSR services
+        model.add(dataset.getNamedModel(uri.resolve(".ro/manifest.rdf").toString()));
+
+        OntModel allAnnotations = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+
         this.creator = Person.create(model.getIndividual(uri.toString()).getPropertyValue(DCTerms.creator));
         this.created = extractCreated(model);
         this.aggregatingRO = extractIsAggregated(model);
@@ -253,16 +262,26 @@ public class ResearchObject extends Thing implements Annotable {
                 }
             }
         }
+        this.loaded = true;
+        //load all annotation bodies from the dataset
         for (Annotation annotation : this.getAnnotations()) {
-            try {
-                annotation.load();
-                model.read(new ByteArrayInputStream(annotation.getBodySerializedAsString().getBytes()), null);
-            } catch (ROSRSException e) {
-                LOG.error("Can't load annotation: " + annotation.getUri(), e);
+            annotation.load(dataset.getNamedModel(annotation.getBody().toString()));
+            allAnnotations.add(dataset.getNamedModel(annotation.getBody().toString()));
+        }
+        this.evoType = findEvoType(allAnnotations);
+        //load all folders from the dataset
+        for (Folder folder : folders.values()) {
+            if (!folder.isLoaded()) {
+                if (dataset.containsNamedModel(folder.getResourceMap().toString())) {
+                    Model resourceMapModel = dataset.getNamedModel(folder.getResourceMap().toString());
+                    folder.load(resourceMapModel);
+                } else {
+                    LOG.warn("Trig dataset does not contain the folder resource map: "
+                            + folder.getResourceMap().toString());
+                    folder.load();
+                }
             }
         }
-        this.evoType = findEvoType(model);
-        this.loaded = true;
         this.rootFolders = extractRootFolders(folders.values());
         this.rootResources = extractRootResources(folders.values(), resources.values());
         this.allFolders = new ArrayList<>(folders.values());
@@ -286,7 +305,7 @@ public class ResearchObject extends Thing implements Annotable {
         List<Resource> resourcesWithoutFolders = new ArrayList<>(resources);
         for (Folder folder : folders) {
             if (!folder.isLoaded()) {
-                folder.load(true);
+                folder.load();
             }
             resourcesWithoutFolders.removeAll(folder.getResources());
         }
@@ -309,7 +328,7 @@ public class ResearchObject extends Thing implements Annotable {
         List<Folder> rootFolders2 = new ArrayList<>(folders);
         for (Folder folder : folders) {
             if (!folder.isLoaded()) {
-                folder.load(true);
+                folder.load();
             }
             rootFolders2.removeAll(folder.getSubfolders());
         }

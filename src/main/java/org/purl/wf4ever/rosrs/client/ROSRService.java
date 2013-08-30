@@ -18,7 +18,6 @@ import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 import pl.psnc.dl.wf4ever.vocabulary.AO;
 import pl.psnc.dl.wf4ever.vocabulary.ORE;
 import pl.psnc.dl.wf4ever.vocabulary.RO;
-import pl.psnc.dl.wf4ever.vocabulary.W4E;
 
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
@@ -30,9 +29,6 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
-
-import de.fuberlin.wiwiss.ng4j.NamedGraphSet;
-import de.fuberlin.wiwiss.ng4j.impl.NamedGraphSetImpl;
 
 /**
  * A client of ROSR 6 API.
@@ -457,26 +453,6 @@ public class ROSRService implements Serializable {
 
 
     /**
-     * Checks if it is possible to create an RO with workspace "default" and version "v1".
-     * 
-     * @param roId
-     *            RO id
-     * @return true if the RO id is free, false otherwise
-     * @throws URISyntaxException
-     *             if the URIs returned by RODL are not correct
-     * @throws ROSRSException
-     *             when the response code is not 2xx
-     */
-    public boolean isRoIdFree(String roId)
-            throws URISyntaxException, ROSRSException {
-        //FIXME there should be a way to implement this without getting the list of all URIs
-        List<URI> ros = getROList(true);
-        URI ro = new URI(rosrsURI.getScheme(), rosrsURI.getHost(), rosrsURI.getPath() + "ROs/" + roId + "/", null);
-        return !ros.contains(ro);
-    }
-
-
-    /**
      * Create a new folder in the Research Object.
      * 
      * @param researchObject
@@ -539,28 +515,6 @@ public class ROSRService implements Serializable {
         } else {
             throw new ROSRSException("Creating the folder entry failed", response);
         }
-    }
-
-
-    /**
-     * Create a Jena {@link OntModel} of a manifest and its annotations.
-     * 
-     * @param researchObjectURI
-     *            RO URI
-     * @return the OntModel
-     */
-    public static OntModel createManifestAndAnnotationsModel(URI researchObjectURI) {
-        URI manifestURI = researchObjectURI.resolve(".ro/manifest.trig");
-        NamedGraphSet graphset = new NamedGraphSetImpl();
-        graphset.read(manifestURI.toString() + "?original=manifest.rdf", "TRIG");
-        if (graphset.countQuads() == 0) {
-            // HACK for old ROs
-            graphset.read(manifestURI.toString() + "?original=manifest", "TRIG");
-        }
-        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM,
-            graphset.asJenaModel(researchObjectURI.resolve(".ro/manifest.rdf").toString()));
-        model.add(W4E.DEFAULT_MODEL);
-        return model;
     }
 
 }

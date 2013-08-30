@@ -80,6 +80,25 @@ public class BaseTest {
     @Before
     public void setUp()
             throws Exception {
+        //        Dataset dataset = DatasetFactory.createMem();
+        //        Model model = ModelFactory.createDefaultModel();
+        //        InputStream manifest = getClass().getClassLoader().getResourceAsStream("ro1/.ro/manifest.rdf");
+        //        model.read(manifest, MOCK_MANIFEST.toString());
+        //        dataset.addNamedModel(MOCK_MANIFEST.toString(), model);
+        //        Model model2 = ModelFactory.createDefaultModel();
+        //        InputStream body = getClass().getClassLoader().getResourceAsStream("ro1/body.rdf");
+        //        model2.read(body, MOCK_BODY.toString());
+        //        dataset.addNamedModel(MOCK_BODY.toString(), model2);
+        //        Model model3 = ModelFactory.createDefaultModel();
+        //        InputStream folder = getClass().getClassLoader().getResourceAsStream("ro1/folder1.rdf");
+        //        model3.read(folder, MOCK_BODY.resolve("folder1.rdf").toString());
+        //        dataset.addNamedModel(MOCK_BODY.resolve("folder1.rdf").toString(), model3);
+        //        Model model4 = ModelFactory.createDefaultModel();
+        //        InputStream folder2 = getClass().getClassLoader().getResourceAsStream("ro1/folder2.rdf");
+        //        model4.read(folder2, MOCK_BODY.resolve("folder2.rdf").toString());
+        //        dataset.addNamedModel(MOCK_BODY.resolve("folder2.rdf").toString(), model4);
+        //        RDFDataMgr.write(System.out, dataset, Lang.TRIG);
+
         WireMock.resetAllScenarios();
         setUpRoResources();
         setUpRoCreateDelete();
@@ -117,6 +136,10 @@ public class BaseTest {
         stubFor(get(urlEqualTo("/ro1/.ro/manifest.rdf")).willReturn(
             aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")
                     .withBody(IOUtils.toByteArray(manifest))));
+        InputStream manifestTrig = getClass().getClassLoader().getResourceAsStream("ro1/.ro/manifest.trig");
+        stubFor(get(urlEqualTo("/ro1/")).withHeader("Accept", equalTo("application/x-trig")).willReturn(
+            aResponse().withStatus(200).withHeader("Content-Type", "application/x-trig")
+                    .withBody(IOUtils.toByteArray(manifestTrig))));
         InputStream body = getClass().getClassLoader().getResourceAsStream("ro1/body.rdf");
         stubFor(get(urlEqualTo("/ro1/body.rdf")).willReturn(
             aResponse().withStatus(200).withHeader("Content-Type", "application/rdf+xml")

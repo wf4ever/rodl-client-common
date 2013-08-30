@@ -31,6 +31,7 @@ import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.util.FileManager;
@@ -135,12 +136,10 @@ public class Folder extends Resource {
     /**
      * Load the folder contents from the resource map.
      * 
-     * @param recursive
-     *            should the folder tree rooted in this folder be loaded as well
      * @throws ROSRSException
      *             unexpected service response
      */
-    public void load(boolean recursive)
+    public void load()
             throws ROSRSException {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
         RDFFormat syntax = RDFFormat.forFileName(resourceMap.toString(), RDFFormat.RDFXML);
@@ -160,6 +159,17 @@ public class Folder extends Resource {
                 }
             }
         }
+        load(model);
+    }
+
+
+    /**
+     * Load folder from the provided Jena model.
+     * 
+     * @param model
+     *            Jena model of the resource map
+     */
+    public void load(Model model) {
         this.folderEntries = extractFolderEntries(model);
         subfolders = new ArrayList<>();
         resources = new ArrayList<>();
@@ -176,14 +186,6 @@ public class Folder extends Resource {
             Collections.sort(resources, c);
         }
         this.loaded = true;
-        if (recursive) {
-            for (FolderEntry entry : folderEntries.values()) {
-                Folder folder = researchObject.getFolder(entry.getResourceUri());
-                if (folder != null && !folder.isLoaded()) {
-                    folder.load(true);
-                }
-            }
-        }
     }
 
 
@@ -194,7 +196,7 @@ public class Folder extends Resource {
      *            resource map model
      * @return a set of folder entries
      */
-    private Map<URI, FolderEntry> extractFolderEntries(OntModel model) {
+    private Map<URI, FolderEntry> extractFolderEntries(Model model) {
         Map<URI, FolderEntry> folderEntries2 = new HashMap<>();
         String queryString = String
                 .format(

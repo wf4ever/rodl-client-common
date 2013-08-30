@@ -426,4 +426,10 @@ public class Resource extends Thing implements Annotable {
     public void setNestedRO(boolean nestedRO) {
         this.nestedRO = nestedRO;
     }
+
+
+    @Override
+    public String toString() {
+        return uri.toString();
+    }
 }

@@ -208,7 +208,17 @@ public class Annotation extends Thing {
                 LOG.warn("Failed to close the annotation body input stream", e);
             }
         }
+        load(model);
+    }
 
+
+    /**
+     * Load the annotation body from the provided model.
+     * 
+     * @param model
+     *            Jena model with the annotation body
+     */
+    public void load(Model model) {
         //first, extract statements
         this.statements = extractStatements(model);
 
