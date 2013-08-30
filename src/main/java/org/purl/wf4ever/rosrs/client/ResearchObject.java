@@ -68,8 +68,11 @@ public class ResearchObject extends Thing implements Annotable {
     /** ROEVO client. */
     private final ROEVOService roevo;
 
-    /** has the RO been loaded from ROSRS. */
-    private boolean loaded;
+    /** has the entire RO been loaded from ROSRS. */
+    private boolean loaded = false;
+
+    /** has the RO manifest been loaded from ROSRS. */
+    private boolean manifestLoaded = false;
 
     /** aggregated ro:Resources, excluding ro:Folders. */
     private Map<URI, Resource> resources = new HashMap<>();
@@ -124,7 +127,6 @@ public class ResearchObject extends Thing implements Annotable {
         this.rosrs = rosrs;
         //HACK
         this.roevo = rosrs != null ? new ROEVOService(rosrs.getRosrsURI().resolve(".."), rosrs.getToken()) : null;
-        this.loaded = false;
     }
 
 
@@ -154,6 +156,58 @@ public class ResearchObject extends Thing implements Annotable {
 
     public boolean isLoaded() {
         return loaded;
+    }
+
+
+    public boolean isManifestLoaded() {
+        return manifestLoaded;
+    }
+
+
+    /**
+     * Load and parse the manifest.
+     * 
+     * @throws ROSRSException
+     *             could not download the manifest
+     * @throws ROException
+     *             the manifest is incorrect
+     */
+    public void loadManifest()
+            throws ROSRSException, ROException {
+        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
+        ClientResponse response = rosrs.getResource(uri, "application/rdf+xml");
+        try {
+            //HACK there's no way to get the URI after redirection, so we're using a fixed one which may change for different ROSR services
+            model.read(response.getEntityInputStream(), uri.resolve(".ro/manifest.rdf").toString());
+        } finally {
+            try {
+                response.getEntityInputStream().close();
+            } catch (IOException e) {
+                LOG.warn("Failed to close the manifest input stream", e);
+            }
+        }
+        this.creator = Person.create(model.getIndividual(uri.toString()).getPropertyValue(DCTerms.creator));
+        this.created = extractCreated(model);
+        this.aggregatingRO = extractIsAggregated(model);
+        for (Resource resource : extractResources(model)) {
+            if (!this.resources.containsKey(resource.getUri())) {
+                this.resources.put(resource.getUri(), resource);
+            }
+        }
+        for (Folder folder : extractFolders(model)) {
+            if (!this.folders.containsKey(folder.getUri())) {
+                this.folders.put(folder.getUri(), folder);
+            }
+        }
+        for (Annotation annotation : extractAnnotations(model)) {
+            if (!this.annotations.containsValue(annotation)) {
+                for (URI target : annotation.getTargets()) {
+                    this.annotations.put(target, annotation);
+                }
+            }
+        }
+        this.evoType = findEvoType(model);
+        this.manifestLoaded = true;
     }
 
 
