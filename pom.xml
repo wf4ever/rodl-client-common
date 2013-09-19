@@ -6,7 +6,7 @@
 	<packaging>jar</packaging>
 	<properties>
 		<jersey.version>1.17</jersey.version>
-		<jena.version>2.10.2-SNAPSHOT</jena.version>
+		<jena.version>2.11.0</jena.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
@@ -148,16 +148,6 @@
 			</snapshots>
 			<id>dlibra-snapshots</id>
 			<url>http://maven.man.poznan.pl/repository/dlibra-libs-snapshots-public/</url>
-		</repository>
-		<repository>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<id>apache-snapshots</id>
-			<url>https://repository.apache.org/content/repositories/snapshots/</url>
 		</repository>
 	</repositories>
 	<distributionManagement>
