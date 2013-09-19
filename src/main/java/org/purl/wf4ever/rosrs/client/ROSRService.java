@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.purl.wf4ever.rosrs.client.exception.ROSRSException;
 
 import pl.psnc.dl.wf4ever.vocabulary.AO;
@@ -160,7 +161,9 @@ public class ROSRService implements Serializable {
     public ClientResponse getResource(URI resourceURI, String accept)
             throws ROSRSException {
         WebResource webResource = getClient().resource(resourceURI.toString());
+        LOG.debug("Start loading " + resourceURI + " time: " + DateTime.now());
         ClientResponse response = webResource.accept(accept).get(ClientResponse.class);
+        LOG.debug("Ended loading " + resourceURI + " time: " + DateTime.now());
         if (response.getStatus() == HttpStatus.SC_OK) {
             return response;
         } else {
