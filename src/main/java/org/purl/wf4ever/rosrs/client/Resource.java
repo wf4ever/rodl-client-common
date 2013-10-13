@@ -72,6 +72,13 @@ public class Resource extends Thing implements Annotable {
         super(uri, creator, created);
         this.researchObject = researchObject;
         this.proxyUri = proxyURI;
+        
+    }
+    public Resource(ResearchObject researchObject, URI uri, URI proxyURI, Person creator, DateTime created, long sizeRes) {
+        super(uri, creator, created);
+        this.researchObject = researchObject;
+        this.proxyUri = proxyURI;
+        this.size=sizeRes;
     }
 
 
