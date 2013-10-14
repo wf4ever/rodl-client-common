@@ -33,6 +33,7 @@ import pl.psnc.dl.wf4ever.vocabulary.ROEVO;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.hp.hpl.jena.datatypes.xsd.impl.XSDBaseNumericType;
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
@@ -547,7 +548,10 @@ public class ResearchObject extends Thing implements Annotable {
                 DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
                         .asLiteral().getString()) : null;
                 RDFNode sizeNode = solution.get("size");
-                long resSize=Long.parseLong(sizeNode != null && sizeNode.isLiteral() ? sizeNode.asLiteral().toString() : "-1");
+                long resSize=-1;
+                if (sizeNode!=null && sizeNode.isLiteral()) 
+                	if (sizeNode.asNode().getLiteralDatatype() instanceof XSDBaseNumericType)
+                		resSize=Long.parseLong(sizeNode.asNode().getLiteralValue().toString());
                 Resource resource = new Resource(this, rURI, URI.create(p.asResource().getURI()), resCreator,
                         resCreated,resSize);
 
