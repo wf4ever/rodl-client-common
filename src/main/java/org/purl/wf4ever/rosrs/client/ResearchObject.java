@@ -705,6 +705,17 @@ public class ResearchObject extends Thing implements Annotable {
         Collections.sort(rootResources, new ResourceByNameComparator());
         return resource;
     }
+    public Resource aggregate(String path, InputStream content, String contentType, long sizeRes)
+            throws ROSRSException, ROException {
+        Resource resource = Resource.create(this, path, content, contentType,sizeRes);
+        if (!loaded) {
+            load();
+        }
+        this.resources.put(resource.getUri(), resource);
+        this.rootResources.add(resource);
+        Collections.sort(rootResources, new ResourceByNameComparator());
+        return resource;
+    }
 
 
     /**
