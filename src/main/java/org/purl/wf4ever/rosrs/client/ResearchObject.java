@@ -33,6 +33,7 @@ import pl.psnc.dl.wf4ever.vocabulary.ROEVO;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.hp.hpl.jena.datatypes.xsd.impl.XSDBaseNumericType;
 import com.hp.hpl.jena.ontology.Individual;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
@@ -525,7 +526,7 @@ public class ResearchObject extends Thing implements Annotable {
         Set<Resource> resources2 = new HashSet<>();
         String queryString = String
                 .format(
-                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> PREFIX foaf: <%s> SELECT ?resource ?proxy ?created ?creator ?creatorName WHERE { <%s> ore:aggregates ?resource . ?resource a ro:Resource . ?proxy ore:proxyFor ?resource . OPTIONAL { ?resource dcterms:creator ?creator . OPTIONAL { ?creator foaf:name ?creatorName . } } OPTIONAL { ?resource dcterms:created ?created . } }",
+                    "PREFIX ore: <%s> PREFIX dcterms: <%s> PREFIX ro: <%s> PREFIX foaf: <%s> SELECT ?resource ?proxy ?created ?creator ?creatorName ?size WHERE { <%s> ore:aggregates ?resource . ?resource a ro:Resource . ?proxy ore:proxyFor ?resource . OPTIONAL { ?resource dcterms:creator ?creator . OPTIONAL { ?creator foaf:name ?creatorName . } } OPTIONAL { ?resource dcterms:created ?created . } OPTIONAL { ?resource ro:filesize ?size . } }",
                     ORE.NAMESPACE, DCTerms.NS, RO.NAMESPACE, FOAF.NAMESPACE, uri.toString());
 
         Query query = QueryFactory.create(queryString);
@@ -546,8 +547,13 @@ public class ResearchObject extends Thing implements Annotable {
                 RDFNode createdNode = solution.get("created");
                 DateTime resCreated = createdNode != null && createdNode.isLiteral() ? DateTime.parse(createdNode
                         .asLiteral().getString()) : null;
+                RDFNode sizeNode = solution.get("size");
+                long resSize=-1;
+                if (sizeNode!=null && sizeNode.isLiteral()) 
+                	if (sizeNode.asNode().getLiteralDatatype() instanceof XSDBaseNumericType)
+                		resSize=Long.parseLong(sizeNode.asNode().getLiteralValue().toString());
                 Resource resource = new Resource(this, rURI, URI.create(p.asResource().getURI()), resCreator,
-                        resCreated);
+                        resCreated,resSize);
 
                 String queryString2 = String.format("PREFIX ro: <%s> ASK { <%s> a ro:ResearchObject }", RO.NAMESPACE,
                     resource.getUri().toString());
@@ -691,6 +697,17 @@ public class ResearchObject extends Thing implements Annotable {
     public Resource aggregate(String path, InputStream content, String contentType)
             throws ROSRSException, ROException {
         Resource resource = Resource.create(this, path, content, contentType);
+        if (!loaded) {
+            load();
+        }
+        this.resources.put(resource.getUri(), resource);
+        this.rootResources.add(resource);
+        Collections.sort(rootResources, new ResourceByNameComparator());
+        return resource;
+    }
+    public Resource aggregate(String path, InputStream content, String contentType, long sizeRes)
+            throws ROSRSException, ROException {
+        Resource resource = Resource.create(this, path, content, contentType,sizeRes);
         if (!loaded) {
             load();
         }

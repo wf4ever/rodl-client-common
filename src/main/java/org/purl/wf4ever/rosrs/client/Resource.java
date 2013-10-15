@@ -72,6 +72,13 @@ public class Resource extends Thing implements Annotable {
         super(uri, creator, created);
         this.researchObject = researchObject;
         this.proxyUri = proxyURI;
+        
+    }
+    public Resource(ResearchObject researchObject, URI uri, URI proxyURI, Person creator, DateTime created, long sizeRes) {
+        super(uri, creator, created);
+        this.researchObject = researchObject;
+        this.proxyUri = proxyURI;
+        this.size=sizeRes;
     }
 
 
@@ -105,6 +112,12 @@ public class Resource extends Thing implements Annotable {
         model.read(response.getEntityInputStream(), null);
         response.close();
         return readFromModel(researchObject, response.getLocation(), resourceUri, model);
+    }
+    public static Resource create(ResearchObject researchObject, String path, InputStream content, String contentType, long sizeRes)
+            throws ROSRSException {
+           Resource res=create(researchObject,path,content,contentType);
+           res.size=sizeRes;
+           return res;
     }
 
 
@@ -188,6 +201,11 @@ public class Resource extends Thing implements Annotable {
     public void update(InputStream content, String contentType)
             throws ROSRSException {
         researchObject.getRosrs().updateResource(uri, content, contentType);
+    }
+    public void update(InputStream content, String contentType, long sizeRes)
+            throws ROSRSException {
+    	update(content,contentType);
+    	this.size=sizeRes;
     }
 
 
