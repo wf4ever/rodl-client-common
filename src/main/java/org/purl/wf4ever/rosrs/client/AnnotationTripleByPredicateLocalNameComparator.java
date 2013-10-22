@@ -13,8 +13,14 @@ public class AnnotationTripleByPredicateLocalNameComparator implements Comparato
     @Override
     public int compare(AnnotationTriple o1, AnnotationTriple o2) {
         String path1 = o1.getProperty().getPath();
+        if (path1 == null) {
+            path1 = o1.getProperty().toString();
+        }
         String name1 = path1.contains("/") ? path1.substring(path1.lastIndexOf("/")) : path1;
         String path2 = o2.getProperty().getPath();
+        if (path2 == null) {
+            path2 = o2.getProperty().toString();
+        }
         String name2 = path2.contains("/") ? path2.substring(path2.lastIndexOf("/")) : path2;
         return name1.compareToIgnoreCase(name2);
     }
