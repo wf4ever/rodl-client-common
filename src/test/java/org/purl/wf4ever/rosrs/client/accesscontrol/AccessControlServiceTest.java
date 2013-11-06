@@ -41,5 +41,4 @@ public class AccessControlServiceTest {
 		Assert.assertEquals("accesscontrol/modes{?ro}",
 				accessControlService.getModesUriTemplateString());
 	}
-
 }

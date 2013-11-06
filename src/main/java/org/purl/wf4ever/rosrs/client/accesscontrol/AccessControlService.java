@@ -2,7 +2,10 @@ package org.purl.wf4ever.rosrs.client.accesscontrol;
 
 import java.io.Serializable;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.log4j.Logger;
@@ -14,6 +17,8 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.shared.JenaException;
 import com.hp.hpl.jena.util.FileManager;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.WebResource.Builder;
 
 /**
  * The notification service.
@@ -128,7 +133,7 @@ public class AccessControlService implements Serializable {
 		return URI.create(permissionsUriTemplateString).resolve(Integer.toString(id));
 	}
 
-	public URI getModesUri(URI roUri) {
+	public URI getModeUri(URI roUri) {
 		if (modesUriTemplateString == null) {
 			init();
 		}
@@ -139,4 +144,15 @@ public class AccessControlService implements Serializable {
 		return serviceUri.resolve(UriBuilder.fromUri(uriTemplate.expand()).build());
 	}
 
+	public AccessMode getMode(URI roUri) {
+		WebResource webResource = getClient().resource(getModeUri(roUri));
+		Builder builder = webResource.accept(MediaType.APPLICATION_JSON);
+		return webResource.get(AccessMode.class);
+	}
+
+	public List<Permission> getPermissions(URI roUri) {
+		WebResource webResource = getClient().resource(getModeUri(roUri));
+		Builder builder = webResource.accept(MediaType.APPLICATION_JSON);
+		return Arrays.asList(webResource.get(Permission.class));
+	}
 }
