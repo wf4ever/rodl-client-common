@@ -17,4 +17,6 @@
    [ lm:name "http://purl.org/pav/provenance/2.0/" ; lm:altName "file:src/test/resources/vocabularies/pav-provenance.owl" ] 
 
    , [ lm:name "http://example.org/notifications/" ; lm:altName "file:src/test/resources/notifications/serviceDescription.rdf" ] 
+   , [ lm:name "http://example.org/accesscontrol/" ; lm:altName "file:src/test/resources/accesscontrol/serviceDescription.rdf" ] 
+ 
    .

@@ -40,7 +40,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 public class NotificationServiceTest {
 
     /** Service URI mapped to a test service description document. */
-    private static final URI EXAMPLE_SERVICE_URI = URI.create("http://example.org/notifications/");
+    private static final URI EXAMPLE_SERVICE_URI = URI.create("http://example.org/serviceuris/accessconstrol/");
 
     /** Service URI of the mock HTTP server, mapped to a test service description document. */
     private static final URI MOCK_SERVICE_URI = URI.create("http://localhost:8089/");
