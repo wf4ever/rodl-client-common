@@ -30,7 +30,7 @@
 		<id>urn:X-rodl:13</id>
 		<published>2005-06-13T16:20:02Z</published>
 		<!-- here goes the notification message -->
-		<summary type="html">&lt;p&gt;Lorem ipsum&lt;/p&gt;</summary>
+		<content type="html">&lt;p&gt;Lorem ipsum&lt;/p&gt;</content>
 	</entry>
 
 	<entry>
@@ -38,6 +38,6 @@
 		<link href="http://sandbox.wf4ever-project.org/roevaluate/" rel="http://purl.org/dc/terms/source" />
 		<id>urn:X-rodl:15</id>
 		<published>2005-07-21T11:45:07Z</published>
-		<summary type="html">&lt;strong&gt;Lorem ipsum&lt;/strong&gt;</summary>
+		<content type="html">&lt;strong&gt;Lorem ipsum&lt;/strong&gt;</content>
 	</entry>
 </feed>
