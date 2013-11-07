@@ -146,13 +146,15 @@ public class AccessControlService implements Serializable {
 
 	public AccessMode getMode(URI roUri) {
 		WebResource webResource = getClient().resource(getModeUri(roUri));
-		Builder builder = webResource.accept(MediaType.APPLICATION_JSON);
+		Builder builder = webResource.accept(MediaType.APPLICATION_JSON).header("Authorization",
+				"Bearer " + token);
 		return webResource.get(AccessMode.class);
 	}
 
 	public List<Permission> getPermissions(URI roUri) {
 		WebResource webResource = getClient().resource(getModeUri(roUri));
-		Builder builder = webResource.accept(MediaType.APPLICATION_JSON);
+		Builder builder = webResource.accept(MediaType.APPLICATION_JSON).header("Authorization",
+				"Bearer " + token);
 		return Arrays.asList(webResource.get(Permission.class));
 	}
 }
