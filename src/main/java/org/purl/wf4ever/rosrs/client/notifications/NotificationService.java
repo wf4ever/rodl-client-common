@@ -207,25 +207,28 @@ public class NotificationService implements Serializable {
 			String title = entry.getTitle();
 			// String content =
 			// StringEscapeUtils.unescapeHtml4(entry.getDescription().getValue());
-			SyndContent content = (SyndContent) entry.getContents().get(0);
-			Notification notification = new Notification(id, title, content.getValue());
-			notification.setPublished(new DateTime(entry.getPublishedDate()));
-			@SuppressWarnings("unchecked")
-			List<SyndLink> links = entry.getLinks();
-			for (SyndLink link : links) {
-				if (link.getRel().equals(DCTerms.source.getURI())) {
-					notification.setSource(URI.create(link.getHref()));
-					notification.setSourceName(link.getTitle() != null ? link.getTitle() : link
-							.getHref());
-				} else if (link.getRel().equals(ORE.describes.getURI())) {
-					notification.setResearchObjectUri(URI.create(link.getHref()));
-				}
-			}
-			if (notification.getResearchObjectUri() == null && researchObjectUri != null) {
-				notification.setResearchObjectUri(researchObjectUri);
-			}
+			if (entry.getContents().size() > 0) {
+				SyndContent content = (SyndContent) entry.getContents().get(0);
+				Notification notification = new Notification(id, title, content.getValue());
+				notification.setPublished(new DateTime(entry.getPublishedDate()));
 
-			notifications.add(notification);
+				@SuppressWarnings("unchecked")
+				List<SyndLink> links = entry.getLinks();
+				for (SyndLink link : links) {
+					if (link.getRel().equals(DCTerms.source.getURI())) {
+						notification.setSource(URI.create(link.getHref()));
+						notification.setSourceName(link.getTitle() != null ? link.getTitle() : link
+								.getHref());
+					} else if (link.getRel().equals(ORE.describes.getURI())) {
+						notification.setResearchObjectUri(URI.create(link.getHref()));
+					}
+				}
+				if (notification.getResearchObjectUri() == null && researchObjectUri != null) {
+					notification.setResearchObjectUri(researchObjectUri);
+				}
+
+				notifications.add(notification);
+			}
 		}
 		return notifications;
 	}
