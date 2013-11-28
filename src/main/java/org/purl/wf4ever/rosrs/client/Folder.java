@@ -253,7 +253,7 @@ public class Folder extends Resource {
         //                    researchObject.getUri());
         //        }
         //        String name = entries.get(0).getPropertyValue(RO.entryName).asLiteral().getString();
-        FolderEntry entry = new FolderEntry(this, response.getLocation(), resourceUri, null);
+        FolderEntry entry = new FolderEntry(this, response.getLocation(), resourceUri, entryName);
         this.getFolderEntries().put(entry.getUri(), entry);
         if (researchObject.isLoaded()) {
             if (resources != null && researchObject.getResources().containsKey(entry.getResourceUri())) {
