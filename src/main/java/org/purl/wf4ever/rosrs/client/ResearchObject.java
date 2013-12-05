@@ -12,9 +12,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status.Family;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFLanguages;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.openrdf.rio.RDFFormat;
@@ -224,12 +230,39 @@ public class ResearchObject extends Thing implements Annotable {
      * @throws ROException
      *             the manifest is incorrect
      */
+    @SuppressWarnings("deprecation")
     public void load()
             throws ROSRSException, ROException {
         Dataset dataset = DatasetFactory.createMem();
         ClientResponse response = rosrs.getResource(uri, RDFFormat.TRIG.getDefaultMIMEType());
+        MediaType mediaType = response.getType();
+        Lang lang = null;
+        if (mediaType != null) {
+            lang = RDFLanguages.contentTypeToLang(ContentType.parse(mediaType
+                    .toString()));
+        }
+        if (lang == null) {
+            lang = Lang.TRIG;
+        }
+        URI base = uri;
+        // TODO: https://java.net/jira/browse/JERSEY-1611 means we can't
+        // get the final location if redirection occurred! :-(.  We'll assume
+        // the requested URI as base for now.
+        
+        // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.14
+        // "The value of Content-Location also defines the base URI for the entity."
+        String contentLocation = response.getHeaders().getFirst(HttpHeaders.CONTENT_LOCATION);
+        if (contentLocation != null) {
+            // If the Content-Location is a relative URI, the relative URI is interpreted relative to the Request-URI.
+            // NOTE: https://java.net/jira/browse/JERSEY-1611 means we might get this wrong
+            // if the client followed redirections
+            base = base.resolve(contentLocation);
+        }
+        if (response.getClientResponseStatus().getFamily() != Family.SUCCESSFUL) {
+            throw new ROException("Can't retrieve manifest, status " + response.getClientResponseStatus(), uri);
+        }
         try {
-            RDFDataMgr.read(dataset, response.getEntityInputStream(), Lang.TRIG);
+            RDFDataMgr.read(dataset, response.getEntityInputStream(), base.toString(), lang);
         } finally {
             try {
                 response.getEntityInputStream().close();
@@ -238,8 +271,14 @@ public class ResearchObject extends Thing implements Annotable {
             }
         }
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
-        //HACK there's no way to get the URI after redirection, so we're using a fixed one which may change for different ROSR services
-        model.add(dataset.getNamedModel(uri.resolve(".ro/manifest.rdf").toString()));
+        model.add(dataset.getDefaultModel());
+        // HACK: there's no way to get the URI after redirection, so we're using
+        // a fixed one which may change for different ROSR services.
+        // https://java.net/jira/browse/JERSEY-1611
+        Model namedModel = dataset.getNamedModel(uri.resolve(".ro/manifest.rdf").toString());
+        if (namedModel != null) {
+            model.add(namedModel);
+        }
 
         OntModel allAnnotations = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
 
