@@ -775,7 +775,7 @@ public class ResearchObject extends Thing implements Annotable {
      * @param entry
      *            the new folder entry
      */
-    void addFolderEntry(FolderEntry entry) {
+    public void addFolderEntry(FolderEntry entry) {
         this.rootResources.remove(entry.getResource());
         this.rootFolders.remove(entry.getResource());
     }
