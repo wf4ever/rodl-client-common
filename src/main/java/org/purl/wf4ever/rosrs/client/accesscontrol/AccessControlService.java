@@ -2,20 +2,10 @@ package org.purl.wf4ever.rosrs.client.accesscontrol;
 
 import java.io.Serializable;
 import java.net.URI;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> AccessControl simple get operations implemented.
 import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
-<<<<<<< HEAD
-=======
-
->>>>>>> AccessControlService skeleton implemented.
-=======
->>>>>>> AccessControl simple get operations implemented.
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.log4j.Logger;
@@ -27,10 +17,6 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.shared.JenaException;
 import com.hp.hpl.jena.util.FileManager;
 import com.sun.jersey.api.client.Client;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> AccessControl simple get operations implemented.
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
 
