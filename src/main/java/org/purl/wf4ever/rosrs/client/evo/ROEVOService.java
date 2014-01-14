@@ -207,8 +207,13 @@ public class ROEVOService implements Serializable {
      * @return an input stream of an RDF graph in the Turtle format
      */
     public InputStream getEvolutionInformationInputStream(URI roUri) {
-        return getClient().resource(getInfoUriTemplate().set("ro", roUri.toString()).expand())
-                .accept(RDFFormat.TURTLE.getDefaultMIMEType()).get(InputStream.class);
+    		try {
+	            return getClient().resource(getInfoUriTemplate().set("ro", roUri.toString()).expand())
+		                .accept(RDFFormat.TURTLE.getDefaultMIMEType()).get(InputStream.class);
+    		} catch(Exception e) {
+    			return null;
+    		}
+    
     }
 
 }

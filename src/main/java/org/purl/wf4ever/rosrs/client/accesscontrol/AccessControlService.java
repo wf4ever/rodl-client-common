@@ -2,6 +2,7 @@ package org.purl.wf4ever.rosrs.client.accesscontrol;
 
 import java.io.Serializable;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.shared.JenaException;
 import com.hp.hpl.jena.util.FileManager;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
 
@@ -92,7 +94,7 @@ public class AccessControlService implements Serializable {
 					.listProperties(pl.psnc.dl.wf4ever.vocabulary.AccessControlService.modes)
 					.next().getObject().asLiteral().getString();
 		} catch (JenaException e) {
-			LOGGER.error("Could not initialize the notification service: "
+			LOGGER.error("Could not initialize the access control service: "
 					+ e.getLocalizedMessage());
 		}
 	}
@@ -146,15 +148,23 @@ public class AccessControlService implements Serializable {
 
 	public AccessMode getMode(URI roUri) {
 		WebResource webResource = getClient().resource(getModeUri(roUri));
-		Builder builder = webResource.accept(MediaType.APPLICATION_JSON).header("Authorization",
-				"Bearer " + token);
-		return webResource.get(AccessMode.class);
+		Builder builder = webResource.accept(MediaType.APPLICATION_JSON);
+		if (token != null) {
+			builder.header("Authorization", "Bearer " + token);
+		}
+		return builder.get(AccessMode.class);
 	}
 
 	public List<Permission> getPermissions(URI roUri) {
-		WebResource webResource = getClient().resource(getModeUri(roUri));
-		Builder builder = webResource.accept(MediaType.APPLICATION_JSON).header("Authorization",
-				"Bearer " + token);
-		return Arrays.asList(webResource.get(Permission.class));
+		WebResource webResource = getClient().resource(getPermissionsUri(roUri));
+		Builder builder = webResource.accept(MediaType.APPLICATION_JSON);
+		if (token != null) {
+			builder.header("Authorization", "Bearer " + token);
+		}
+		ClientResponse response = builder.get(ClientResponse.class);
+		if (response.getStatus() != 200 ) {
+			return new ArrayList<Permission>();
+		}
+		return Arrays.asList(response.getEntity(Permission[].class));
 	}
 }
