@@ -155,7 +155,12 @@ public class ROSRService implements Serializable {
 	public ClientResponse getResource(URI resourceURI, String accept) throws ROSRSException {
 		WebResource webResource = getClient().resource(resourceURI.toString());
 		LOG.debug("Start loading " + resourceURI + " time: " + DateTime.now());
-		ClientResponse response = webResource.accept(accept).get(ClientResponse.class);
+		ClientResponse response;
+		if (token != null) {
+			response = webResource.header("Authorization", "Bearer " + token).accept(accept).get(ClientResponse.class);
+		} else {
+			response = webResource.accept(accept).get(ClientResponse.class);
+		}
 		LOG.debug("Ended loading " + resourceURI + " time: " + DateTime.now());
 		if (response.getStatus() == HttpStatus.SC_OK) {
 			return response;
@@ -175,7 +180,12 @@ public class ROSRService implements Serializable {
 	 */
 	public ClientResponse getResourceHead(URI resource) throws ROSRSException {
 		WebResource webResource = getClient().resource(resource.toString());
-		ClientResponse response = webResource.accept("application/rdf+xml").head();
+		ClientResponse response;
+		if (token != null) {
+			response = webResource.header("Authorization", "Bearer " + token).accept("application/rdf+xml").head();
+		} else {
+			response = webResource.accept("application/rdf+xml").head();
+		}
 		if (response.getStatus() == HttpStatus.SC_OK) {
 			return response;
 		} else {

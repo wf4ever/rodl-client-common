@@ -1,14 +1,14 @@
 package org.purl.wf4ever.rosrs.client.accesscontrol;
 
 /** User role. */
-public enum Role {
+public enum Role{
 
     /** Can read, edit and grant permissions. */
     OWNER,
     /** Can read and edit. */
     EDITOR,
     /** Can read. */
-    REDAER;
+    READER;
 
     @Override
     public String toString() {

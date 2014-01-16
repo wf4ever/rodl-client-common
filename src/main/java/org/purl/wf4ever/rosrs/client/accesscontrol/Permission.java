@@ -1,6 +1,7 @@
 package org.purl.wf4ever.rosrs.client.accesscontrol;
 
 import java.beans.Transient;
+import java.io.Serializable;
 import java.net.URI;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -13,8 +14,10 @@ import javax.xml.bind.annotation.XmlRootElement;
  * 
  */
 @XmlRootElement(name = "permission")
-public class Permission {
+public class Permission implements Serializable{
 
+	/** Serialization. */
+	private static final long serialVersionUID = 1L;
 	/** Unique id. */
 	private int id;
 	/** Research Object uri. */

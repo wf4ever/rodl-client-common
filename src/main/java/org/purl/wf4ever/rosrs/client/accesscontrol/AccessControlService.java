@@ -167,4 +167,33 @@ public class AccessControlService implements Serializable {
 		}
 		return Arrays.asList(response.getEntity(Permission[].class));
 	}
+	
+	public ClientResponse grantPermission(Permission permission) {
+		WebResource webResource = getClient().resource(UriTemplate.fromTemplate(permissionsUriTemplateString).expand());
+		if (token != null) {
+			Builder builder = webResource.header("Authorization", "Bearer " + token);
+			builder.type(MediaType.APPLICATION_JSON);
+			return builder.entity(permission).post(ClientResponse.class);
+		}
+		return null;
+	}
+	
+	public ClientResponse setMode(AccessMode mode) {
+		WebResource webResource = getClient().resource(UriTemplate.fromTemplate(modesUriTemplateString).expand());
+		if (token != null) {
+			Builder builder = webResource.header("Authorization", "Bearer " + token);
+			builder.type(MediaType.APPLICATION_JSON);
+			return builder.entity(mode).post(ClientResponse.class);
+		}
+		return null;
+	}
+	
+	public ClientResponse delete(Permission permission) {
+		WebResource webResource = getClient().resource(permission.getUri());
+		if (token != null) {
+			Builder builder = webResource.header("Authorization", "Bearer " + token);
+			return builder.delete(ClientResponse.class);
+		}
+		return null;
+	}
 }
